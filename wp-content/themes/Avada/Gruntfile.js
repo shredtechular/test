@@ -36,7 +36,6 @@ module.exports = function(grunt) {
 				src: [
 					'assets/js/bootstrap.js',
 					'assets/js/cssua.js',
-					'assets/js/easyPieChart.js',
 					'assets/js/excanvas.js',
 					'assets/js/Froogaloop.js',
 					'assets/js/imagesLoaded.js',
@@ -48,6 +47,7 @@ module.exports = function(grunt) {
 					'assets/js/jquery.countdown.js',
 					'assets/js/jquery.cycle.js',
 					'assets/js/jquery.easing.js',
+					'assets/js/jquery.easyPieChart.js',
 					'assets/js/jquery.elasticslider.js',
 					'assets/js/jquery.fitvids.js',
                     'assets/js/jquery.nicescroll.js',

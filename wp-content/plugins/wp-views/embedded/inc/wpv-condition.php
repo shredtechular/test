@@ -92,8 +92,6 @@ function wpv_condition_manage_and_evaluate( $atts, $post_to_check = null ) {
         // Will not execute any condition that involves custom fields
         $has_post = false;
     }
-
-    global $wplogger;
     
 	if ( $has_post ) {
 		do_action( 'wpv_condition', $post );
@@ -312,7 +310,7 @@ function wpv_condition_manage_and_evaluate( $atts, $post_to_check = null ) {
 		. $evaluate 
 		. "\n--------------------";
 
-    $wplogger->log( $logging_string, WPLOG_DEBUG );
+    toolset_wplog( $logging_string, 'debug', __FILE__, 'wpv_condition_manage_and_evaluate', 313 );
     // evaluate the prepared expression using the custom eval script
 	// wpv_condition_evaluate_expression
     $result = wpv_condition_evaluate_expression( $evaluate );
@@ -603,7 +601,7 @@ add_filter('widget_text', 'wpv_resolve_wpv_if_shortcodes_for_widgets');
 /**
 * wpv_add_wpv_if_functions_support
 *
-* Add filter to "wpv-extra-condition-filters" located in embedded/toolset/toolset-common/functions.php
+* Add filter to "wpv-extra-condition-filters" located in embedded/toolset/toolset-common/inc/toolset.function.helpers.php
 * This will add support for custom functions in wpv-if shortcodes
 * Added priority of 11 to be run just after the filter "wpv_add_time_functions_to_conditionals"
 *

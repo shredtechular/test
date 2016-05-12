@@ -19,7 +19,13 @@ class WPV_RuntimeExceptionWithMessage extends RuntimeException {
 	protected $user_message;
 
 	public function __construct( $message = '' , $user_message = '', $code = 0, $previous = NULL ) {
-		parent::__construct( $message, $code, $previous );
+		// The $previous argument was added in PHP 5.3.0
+		// http://php.net/manual/en/exception.construct.php
+		if ( version_compare( PHP_VERSION, '5.3.0' ) >= 0 ) {
+			parent::__construct( $message, $code, $previous );
+		} else {
+			parent::__construct( $message, $code );
+		}
 		$this->user_message = $user_message;
 	}
 

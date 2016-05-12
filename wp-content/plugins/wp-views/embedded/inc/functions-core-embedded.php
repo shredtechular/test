@@ -300,7 +300,19 @@ function wpv_count_filter_controls( $view_settings ) {
  * @return string (string) the field type if any or an empty string if not
  */
 function wpv_types_get_field_type( $field_name, $field_type = 'cf' ) {
-	$option_slug = ( $field_type == 'cf' ) ? 'wpcf-fields' : 'wpcf-usermeta';
+	switch ( $field_type ) {
+		case 'tf':
+			$option_slug = 'wpcf-termmeta';
+			break;
+		case 'uf':
+			$option_slug = 'wpcf-usermeta';
+			break;
+		case 'cf':
+		default:
+			$option_slug = 'wpcf-fields';
+			break;
+	}
+	$types_field_type = '';
 	if ( ! empty( $field_name ) ) {
 		$opt = get_option( $option_slug, array() );
 		if ( 
@@ -315,11 +327,11 @@ function wpv_types_get_field_type( $field_name, $field_type = 'cf' ) {
 				&& is_array( $opt[$field_name] ) 
 				&& isset( $opt[$field_name]['type'] ) 
 			) {
-				$field_type = strtolower( $opt[$field_name]['type'] );
+				$types_field_type = strtolower( $opt[$field_name]['type'] );
 			}
 		}
 	}
-    return $field_type;
+    return $types_field_type;
 }
 
 
@@ -338,7 +350,18 @@ function wpv_types_get_field_type( $field_name, $field_type = 'cf' ) {
  */
 function wpv_types_get_field_name( $field_name, $field_type = 'cf' ) {
     $field_nicename = $field_name;
-	$option_slug = ( $field_type == 'cf' ) ? 'wpcf-fields' : 'wpcf-usermeta';
+	switch ( $field_type ) {
+		case 'tf':
+			$option_slug = 'wpcf-termmeta';
+			break;
+		case 'uf':
+			$option_slug = 'wpcf-usermeta';
+			break;
+		case 'cf':
+		default:
+			$option_slug = 'wpcf-fields';
+			break;
+	}
 	if ( ! empty( $field_name ) ) {
 		$opt = get_option( $option_slug, array() );
 		if ( 
@@ -378,7 +401,18 @@ function wpv_types_get_field_name( $field_name, $field_type = 'cf' ) {
  */
 function wpv_types_get_field_real_slug( $field_name, $field_type = 'cf' ) {
 	$real_slug = $field_name;
-	$option_slug = ( $field_type == 'cf' ) ? 'wpcf-fields' : 'wpcf-usermeta';
+	switch ( $field_type ) {
+		case 'tf':
+			$option_slug = 'wpcf-termmeta';
+			break;
+		case 'uf':
+			$option_slug = 'wpcf-usermeta';
+			break;
+		case 'cf':
+		default:
+			$option_slug = 'wpcf-fields';
+			break;
+	}
 	$opt = get_option( $option_slug, array() );
     if ( 
 		$opt 
@@ -413,7 +447,18 @@ function wpv_types_get_field_real_slug( $field_name, $field_type = 'cf' ) {
  */
 function wpv_is_types_custom_field( $field_name, $field_type = 'cf' ) {
 	$is_types_field = false;
-	$option_slug = ( $field_type == 'cf' ) ? 'wpcf-fields' : 'wpcf-usermeta';
+	switch ( $field_type ) {
+		case 'tf':
+			$option_slug = 'wpcf-termmeta';
+			break;
+		case 'uf':
+			$option_slug = 'wpcf-usermeta';
+			break;
+		case 'cf':
+		default:
+			$option_slug = 'wpcf-fields';
+			break;
+	}
 	if ( ! empty( $field_name ) ) {
 		$opt = get_option( $option_slug, array() );
 		if ( 
@@ -614,7 +659,7 @@ function wpv_get_the_archive_title() {
  * @since 1.8
  */
 function wpv_getpost( $key, $default = '', $valid = null ) {
-    return wpv_getarr( $_POST, $key, $default, $valid );
+	return wpv_getarr( $_POST, $key, $default, $valid );
 }
 
 
@@ -632,7 +677,7 @@ function wpv_getpost( $key, $default = '', $valid = null ) {
  * @since 1.8
  */
 function wpv_getget( $key, $default = '', $valid = null ) {
-    return wpv_getarr( $_GET, $key, $default, $valid );
+	return wpv_getarr( $_GET, $key, $default, $valid );
 }
 
 
@@ -653,15 +698,16 @@ function wpv_getget( $key, $default = '', $valid = null ) {
  * @since 1.8
  */
 function wpv_getarr( &$source, $key, $default = '', $valid = null ) {
-    if( isset( $source[ $key ] ) ) {
-        $val = $source[ $key ];
-        if( is_array( $valid ) && !in_array( $val, $valid ) ) {
-            return $default;
-        }
-        return $val;
-    } else {
-        return $default;
-    }
+	if( isset( $source[ $key ] ) ) {
+		$val = $source[ $key ];
+		if( is_array( $valid ) && !in_array( $val, $valid ) ) {
+			return $default;
+		}
+
+		return $val;
+	} else {
+		return $default;
+	}
 }
 
 
@@ -754,17 +800,14 @@ function wpv_predump( $value, $title = null ) {
     echo '</pre>';
 }
 
-/*
-* wpv_get_loop_content_template_ids
-*
-* Query the database for IDs of CT used as loop templates
-* Note that we might be storing zero as this field value for no loop template assigned
-*
-* @return (array) Loop Content Template IDs or empty if none
-*
-* @since 1.10
-*/
-
+/**
+ * Query the database for IDs of CT used as loop templates
+ * Note that we might be storing zero as this field value for no loop template assigned
+ *
+ * @return array Loop Content Template IDs or empty if none
+ *
+ * @since 1.10
+ */
 function wpv_get_loop_content_template_ids() {
 	static $loop_ct_ids = null;
 	if ( $loop_ct_ids === null ) {
@@ -783,4 +826,23 @@ function wpv_get_loop_content_template_ids() {
 		);
 	}
 	return $loop_ct_ids;
+}
+
+/**
+* wpv_get_views_ajaxurl
+*
+* Create our own version of ajaxurl that forces a query argument, so we can be sure it exists
+* From now on, we can use it in javascript as views_ajaxurl + '&foo=bar'
+*
+* @since 1.12
+*/
+
+function wpv_get_views_ajaxurl() {
+	$origin = admin_url( 'admin-ajax.php' );
+	$query_args['wpv_force_one_query_arg'] = 'views';
+	$url = esc_url( add_query_arg(
+		$query_args,
+		$origin
+	) );
+	return $url;
 }

@@ -6,6 +6,9 @@
 * @package Views
 *
 * @since unknown
+* @since 1.12.1	Changes in the filter modes
+* 		current_page becomes top_current_post and tracks $WP_Views->get_top_current_page()
+* 		parent_view becomes current_post_or_parent_post_view and tracks $WP_Views->get_current_page()
 */
 
 WPV_Post_Relationship_Filter::on_load();
@@ -97,8 +100,8 @@ class WPV_Post_Relationship_Filter {
 	static function wpv_add_new_filter_post_relationship_list_item( $post_type ) {
 		if ( function_exists( 'wpcf_pr_get_belongs' ) ) {
 			$args = array(
-				'post_relationship_mode' => array( 'current_page' ),
-				'post_type'=> $post_type
+				'post_relationship_mode'	=> array( 'top_current_post' ),
+				'post_type'					=> $post_type
 			);
 			WPV_Post_Relationship_Filter::wpv_add_filter_post_relationship_list_item( $args );
 		}
@@ -155,7 +158,7 @@ class WPV_Post_Relationship_Filter {
 		WPV_Filter_Item::simple_filter_list_item_buttons( 'post-relationship', 'wpv_filter_post_relationship_update', wp_create_nonce( 'wpv_view_filter_post_relationship_nonce' ), 'wpv_filter_post_relationship_delete', wp_create_nonce( 'wpv_view_filter_post_relationship_delete_nonce' ) );
 		?>
 		<span class="wpv-filter-title-notice js-wpv-filter-post-relationship-notice hidden">
-			<i class="icon-bookmark fa fa-bookmark icon-rotate-270 fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
+			<i class="icon-bookmark fa fa-bookmark fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
 		</span>
 		<div id="wpv-filter-post-relationship-edit" class="wpv-filter-edit js-wpv-filter-edit" style="padding-bottom:28px;">
 			<div id="wpv-filter-post-relationship" class="js-wpv-filter-options js-wpv-filter-post-relationship-options">
@@ -386,23 +389,23 @@ class WPV_Post_Relationship_Filter {
 	static function wpv_render_post_relationship( $view_settings = array() ) {
 		global $wpdb;
 		$defaults = array(
-			'post_relationship_mode' => 'current_page',
-			'post_relationship_id' => 0,
-			'post_relationship_shortcode_attribute' => 'wpvprchildof',
-			'post_relationship_url_parameter' => 'wpv-pr-child-of',
-			'post_relationship_framework' => ''
+			'post_relationship_mode'				=> 'top_current_post',
+			'post_relationship_id'					=> 0,
+			'post_relationship_shortcode_attribute'	=> 'wpvprchildof',
+			'post_relationship_url_parameter'		=> 'wpv-pr-child-of',
+			'post_relationship_framework'			=> ''
 		);
 		$view_settings = wp_parse_args( $view_settings, $defaults );
 		?>
 		<h4><?php _e( 'Select posts that are children of...', 'wpv-views' ); ?></h4>
 		<ul class="wpv-filter-options-set">
 			<li>
-				<input type="radio" id="post-relationship-mode-current-page" class="js-post-relationship-mode" name="post_relationship_mode[]" value="current_page" <?php checked( $view_settings['post_relationship_mode'], 'current_page' ); ?> autocomplete="off" />
-				<label for="post-relationship-mode-current-page"><?php _e('Post where this View is inserted', 'wpv-views'); ?></label>
+				<input type="radio" id="post-relationship-mode-current-page" class="js-post-relationship-mode" name="post_relationship_mode[]" value="top_current_post" <?php checked( in_array( $view_settings['post_relationship_mode'], array( 'current_page', 'top_current_post' ) ) ); ?> autocomplete="off" />
+				<label for="post-relationship-mode-current-page"><?php _e('Post where this View is shown', 'wpv-views'); ?></label>
 			</li>
 			<li>
-				<input type="radio" id="post-relationship-mode-parent-view" class="js-post-relationship-mode" name="post_relationship_mode[]" value="parent_view" <?php checked( $view_settings['post_relationship_mode'], 'parent_view' ); ?> autocomplete="off" />
-				<label for="post-relationship-mode-parent-view"><?php _e('Post set by parent View', 'wpv-views'); ?></label>
+				<input type="radio" id="post-relationship-mode-parent-view" class="js-post-relationship-mode" name="post_relationship_mode[]" value="current_post_or_parent_post_view" <?php checked( in_array( $view_settings['post_relationship_mode'], array( 'parent_view', 'current_post_or_parent_post_view' ) ) ); ?> autocomplete="off" />
+				<label for="post-relationship-mode-parent-view"><?php _e('The current post in the loop', 'wpv-views'); ?></label>
 			</li>
 			<li>
 				<input type="radio" id="post-relationship-mode-this-page" class="js-post-relationship-mode" name="post_relationship_mode[]" value="this_page" <?php checked( $view_settings['post_relationship_mode'], 'this_page' ); ?> autocomplete="off" />
@@ -435,7 +438,14 @@ class WPV_Post_Relationship_Filter {
 				}
 				?>
 				</select>
-				<?php wpv_show_posts_dropdown( $selected_type, 'post_relationship_id', $view_settings['post_relationship_id'] ); ?>
+				<?php 
+				$dropdown_args = array(
+					'post_type'		=> $selected_type,
+					'name'			=> 'post_relationship_id',
+					'selected'		=> (int) $view_settings['post_relationship_id']
+				);
+				wpv_render_posts_select_dropdown( $dropdown_args );
+				?>
 			</li>
 			<li>
 				<input type="radio" id="post-relationship-mode-shortcode" class="js-post-relationship-mode" name="post_relationship_mode[]" value="shortcode_attribute" <?php checked( $view_settings['post_relationship_mode'], 'shortcode_attribute' ); ?> autocomplete="off" />
@@ -488,7 +498,11 @@ class WPV_Post_Relationship_Filter {
 		if ( ! wp_verify_nonce( $nonce, 'wpv_view_filter_post_relationship_post_type_nonce' ) ) {
 			die( "Security check" );
 		}
-		wpv_show_posts_dropdown( $_POST['post_type'], 'post_relationship_id' );
+		$dropdown_args = array(
+			'post_type'		=> sanitize_text_field( $_POST['post_type'] ),
+			'name'			=> 'post_relationship_id'
+		);
+		wpv_render_posts_select_dropdown( $dropdown_args );
 		die();
 	}
 

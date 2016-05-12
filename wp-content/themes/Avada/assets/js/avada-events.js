@@ -32,7 +32,7 @@ jQuery( window ).load(function() {
 	});
 });
 
-jQuery( document ).ajaxComplete( function() {
+jQuery( document ).ajaxComplete( function( event, request, settings ) {
 	jQuery( '.fusion-tribe-has-featured-image' ).each(function() {
 		var height = jQuery(this).parent().height();
 		jQuery(this).find('.tribe-events-event-image').css('height', height);
@@ -43,6 +43,24 @@ jQuery( document ).ajaxComplete( function() {
 		jQuery( this ).find( '.full-video, .video-shortcode, .wooslider .slide-content' ).fitVids();
 	});
 
-	jQuery( '#tribe-events .fusion-blog-layout-grid' ).isotope();
-	jQuery( window ).trigger( 'resize' );
+	// Fade in new posts when all images are loaded, then relayout isotope
+	$posts_container = jQuery( '#tribe-events .fusion-blog-layout-grid' );
+	$posts = $posts_container.find( '.post' );
+	$posts_container.css( 'height', $posts_container.height() );
+	$posts.hide();
+	imagesLoaded( $posts, function() {
+
+		$posts_container.css( 'height', '' );
+		$posts.fadeIn();
+
+		// Relayout isotope
+		$posts_container.isotope();
+		jQuery( window ).trigger( 'resize' );
+
+		// Refresh the scrollspy script for one page layouts
+		jQuery( '[data-spy="scroll"]' ).each( function () {
+			  var $spy = jQuery( this ).scrollspy( 'refresh' );
+		});
+	});
+
 });

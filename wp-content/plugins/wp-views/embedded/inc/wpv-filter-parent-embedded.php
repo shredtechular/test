@@ -8,6 +8,12 @@
 */
 
 /**
+* -------------------------------------------------
+* Filtering by post parent - WordPress hierarchy
+* -------------------------------------------------
+*/
+
+/**
 * wpv_filter_post_parent
 *
 * Apply the filter by post parent to the View query
@@ -20,9 +26,16 @@ add_filter( 'wpv_filter_query', 'wpv_filter_post_parent', 10, 2 );
 function wpv_filter_post_parent( $query, $view_settings ) {
     if ( isset( $view_settings['parent_mode'][0] ) ) {
 		switch ( $view_settings['parent_mode'][0] ) {
-			case 'current_page':
-				global $WP_Views;
-				$current_page = $WP_Views->get_current_page();
+			case 'top_current_post':
+				$current_page = apply_filters( 'wpv_filter_wpv_get_top_current_post', null );
+				if ( $current_page ) {
+					$query['post_parent'] = $current_page->ID;
+				}
+				break;
+			case 'current_page': // @deprecated in 1.12.1
+			case 'current_post_or_parent_post_view':
+				// @todo this should be renamed to FROM PARENT POST VIEW, and create a new mode for get_top_current_page(); might need adjust in labels too
+				$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
 				if ( $current_page ) {
 					$query['post_parent'] = $current_page->ID;
 				}
@@ -145,6 +158,8 @@ function wpv_filter_post_parent( $query, $view_settings ) {
 *
 * Check if the current filter by post parent needs info about the current page
 *
+* @todo this is wrong, it requires parent post as of now...
+*
 * @since unknown
 */
 
@@ -155,7 +170,29 @@ function wpv_filter_parent_requires_current_page( $state, $view_settings ) {
 		return $state;
 	}
     if ( isset( $view_settings['parent_mode'][0] ) ) {
-        if ( $view_settings['parent_mode'][0] == 'current_page' ) {
+        if ( $view_settings['parent_mode'][0] == 'top_current_post' ) {
+            $state = true;
+        }
+    }
+    return $state;
+}
+
+/**
+* wpv_filter_parent_requires_parent_post
+*
+* Check if the current filter by post parent needs info about the parent post
+*
+* @since unknown
+*/
+
+add_filter( 'wpv_filter_requires_parent_post', 'wpv_filter_parent_requires_parent_post', 10, 2 );
+
+function wpv_filter_parent_requires_parent_post( $state, $view_settings ) {
+	if ( $state ) {
+		return $state;
+	}
+    if ( isset( $view_settings['parent_mode'][0] ) ) {
+        if ( in_array( $view_settings['parent_mode'][0], array( 'current_page', 'current_post_or_parent_post_view' ) ) ) {
             $state = true;
         }
     }
@@ -242,4 +279,91 @@ function wpv_filter_register_post_parent_filter_url_parameters( $attributes, $vi
 		);
 	}
 	return $attributes;
+}
+
+/**
+* -------------------------------------------------
+* Filtering by taxonomy term parent
+* -------------------------------------------------
+*/
+
+/**
+* wpv_filter_taxonomy_parent
+*
+* Apply child_of settings to Views listing taxonomy terms
+*
+* @since 1.12
+*/
+
+add_filter( 'wpv_filter_taxonomy_query', 'wpv_filter_taxonomy_parent', 20, 3 );
+
+function wpv_filter_taxonomy_parent( $tax_query_settings, $view_settings, $view_id ) {
+	$parent_id = null;
+    if (
+		isset( $view_settings['taxonomy_parent_mode'] ) 
+		&& isset( $view_settings['taxonomy_parent_mode'][0] ) 
+	) {
+		switch ( $view_settings['taxonomy_parent_mode'][0] ) {
+			case 'current_view': // @deprecated in 1.12.1
+			case 'current_taxonomy_view':
+				$parent_id = apply_filters( 'wpv_filter_wpv_get_parent_view_taxonomy', null );
+				break;
+			case 'current_archive_loop':
+				if ( 
+					is_category() 
+					|| is_tag() 
+					|| is_tax() 
+				) {
+					$queried_object = get_queried_object();
+					$parent_id = $queried_object->term_id;
+				}
+				break;
+			case 'this_parent':
+				$parent_id = $view_settings['taxonomy_parent_id'];
+				if ( 
+					isset( $view_settings['taxonomy_type'][0] ) 
+					&& ! empty( $parent_id ) 
+				) {
+					// WordPress 4.2 compatibility - split terms
+					$candidate_term_id_splitted = wpv_compat_get_split_term( $parent_id, $view_settings['taxonomy_type'][0] );
+					if ( $candidate_term_id_splitted ) {
+						$parent_id = $candidate_term_id_splitted;
+					}
+					// Adjust for WPML support
+					$parent_id = apply_filters( 'translate_object_id', $parent_id, $view_settings['taxonomy_type'][0], true, null );
+				}
+				break;
+		}
+    }
+	if ( $parent_id !== null ) {
+		global $WPVDebug;
+        $tax_query_settings['child_of'] = $parent_id;
+        $WPVDebug->add_log( 'filters', "Filter by parent with ID {$parent_id}", 'filters', 'Filter by parent term' );
+    }
+	
+	return $tax_query_settings;
+}
+
+/**
+* wpv_filter_taxonomy_parent_post_query
+*
+* If we added a child_of setting to the query of a View listing taxonomy terms, we have a filter by parent.
+* Note that child_of returns all descendants and not only direct children.
+* We adjust this here.
+*
+* @since 1.12
+*/
+
+add_filter( 'wpv_filter_taxonomy_post_query', 'wpv_filter_taxonomy_parent_post_query', 20, 4 );
+
+function wpv_filter_taxonomy_parent_post_query( $items, $tax_query_settings, $view_settings, $view_id ) {
+	if ( isset( $tax_query_settings['child_of'] ) ) {
+		$parent_id = $tax_query_settings['child_of'];
+		foreach( $items as $index => $item ) {
+			if ( $item->parent != $parent_id ) {
+				unset( $items[$index] );
+			}
+		}
+	}
+	return $items;
 }

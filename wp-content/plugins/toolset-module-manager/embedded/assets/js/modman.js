@@ -531,12 +531,47 @@
                 });
                 e.sidebars.sortable("refresh")
             },
-            addNew: function () {
+            addNew: function () {            	          	
                 var b = prompt(h.Locale.newModuleName, "New Module");
+                var valid=false;  
+                var dup= 0;
                 if (!b) return !1;
+                while (!valid) {
+                    
+                	/**EMERSON: Module manager 1.6.4+ 
+                	/**Prevent adding modules having the same name
+                	 * Because it can overwrite the existing module with the same name when saving.
+                	 */
+                	
+                    /**START*/
+                    var mod_object=jQuery('div.modules-holder-wrap .sidebar-name h3');                              
+                    jQuery(mod_object).each(function(i, obj) {                	
+                        var z=jQuery(obj).text();
+                        var x = b;
+                        
+                        /**All lower case comparison */
+                        z= z.toLowerCase();
+                        x= x.toLowerCase();
+                        
+                        /**Compare*/
+                        if (z === x) {
+                        	dup++;                          	
+                        }
+                    });
+                    if (0 === dup) {
+                    	valid=true;
+                    } else {                    	
+                    	b = prompt(h.Locale.duplicatenewModuleName, "New Module");
+                    	dup= 0;
+                    	if (!b) return !1;
+                    }
+                    /**END*/               	
+                	
+                }
                 var c = b.replace(/\s+/g, "_"),
                     d = a("#module-template").html(),
                     d = a(d.replace("%%__MOD_NAME__%%", b).replace("%%__MOD_ID__%%", c));
+
                 d.appendTo(a("#modules-right"));
                 b = a(".button.modman-add-module");
                 b[0].__pointer && b[0].__pointer.pointer("close");
@@ -640,7 +675,7 @@
                         module: {}
                     }
                 };
-                $module = a(b);
+                $module = a(b);                
                 b = $module.find(".sidebar-name h3").clone().children().remove().end().text();
                 b = a.trim(b);
                 data.module.name = b;

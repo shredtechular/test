@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Add a filter to add the query by post search to the $query
- *
- */
+* -------------------------------------------------
+* Filtering for Views listing posts
+* -------------------------------------------------
+*/
 
 add_filter('wpv_filter_query', 'wpv_filter_post_search', 10, 2);
 function wpv_filter_post_search($query, $view_settings) {
@@ -20,30 +21,6 @@ function wpv_filter_post_search($query, $view_settings) {
     if ( isset( $view_settings['post_search_content'] ) && 'just_title' == $view_settings['post_search_content'] && isset( $query['s'] ) ) {
 		add_filter( 'posts_search', 'wpv_search_by_title_only', 500, 2 );
     }
-    
-    return $query;
-}
-
-/**
- * Add a filter to for taxonomy search
- *
- */
-
-add_filter('wpv_filter_taxonomy_query', 'wpv_filter_taxonomy_search', 10, 2);
-function wpv_filter_taxonomy_search($query, $view_settings) {
-    
-    if (isset($view_settings['taxonomy_search_value']) && $view_settings['taxonomy_search_value'] != '' && isset($view_settings['taxonomy_search_mode']) && $view_settings['taxonomy_search_mode'][0] == 'specific') {
-        $query['search'] = $view_settings['taxonomy_search_value'];
-    }
-    if (isset($view_settings['taxonomy_search_mode']) && isset($_GET['wpv_taxonomy_search'])) {
-        $search_term = rawurldecode( sanitize_text_field( $_GET['wpv_taxonomy_search'] ) );
-        if ( !empty( $search_term ) ) {
-			$query['search'] = $search_term;
-		}
-    }
-/*    if (isset($view_settings['post_search_content']) && 'just_title' == $view_settings['post_search_content']) {
-	add_filter( 'posts_search', 'wpv_search_by_title_only', 500, 2 );
-    }*/ // Not sure why this was added to the taxonomy search filter, possibly my mistake
     
     return $query;
 }
@@ -69,3 +46,29 @@ function wpv_search_by_title_only( $search, &$wp_query ) {
     return $search;
 }
 
+/**
+* -------------------------------------------------
+* Filtering for Views listing taxonomy terms
+* -------------------------------------------------
+*/
+
+add_filter( 'wpv_filter_taxonomy_query', 'wpv_filter_taxonomy_search', 10, 2 );
+function wpv_filter_taxonomy_search( $tax_query_settings, $view_settings ) {
+    if ( isset( $view_settings['taxonomy_search_mode'] ) ) {
+		if ( $view_settings['taxonomy_search_mode'][0] == 'specific' ) {
+			if (
+				isset( $view_settings['taxonomy_search_value'] ) 
+				&& $view_settings['taxonomy_search_value'] != '' 
+			) {
+				$tax_query_settings['search'] = sanitize_text_field( $view_settings['taxonomy_search_value'] );
+			}
+		} else if ( isset( $_GET['wpv_taxonomy_search'] ) ) {
+			$search_term = rawurldecode( sanitize_text_field( $_GET['wpv_taxonomy_search'] ) );
+			if ( ! empty( $search_term ) ) {
+				$tax_query_settings['search'] = $search_term;
+			}
+		}
+	}
+    
+    return $tax_query_settings;
+}

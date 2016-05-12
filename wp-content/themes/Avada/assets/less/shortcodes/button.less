@@ -113,6 +113,7 @@
 }
 
 .fusion-button,
+.post-password-form input[type="submit"],
 .wpcf7-submit,
 .gform_wrapper .gform_button,
 .gform_wrapper .button,
@@ -153,6 +154,24 @@
 	}
 }
 
+.fusion-button-text,
+.fusion-button-icon-divider,
+.fusion-button i {
+	-webkit-transition: all .2s;
+	-moz-transition: all .2s;
+	-ms-transition: all .2s;
+	-o-transition: all .2s;
+	transition: all .2s;
+
+	&:hover {
+		-webkit-transition: all .3s;
+		-moz-transition: all .3s;
+		-ms-transition: all .3s;
+		-o-transition: all .3s;
+		transition: all .3s;
+	}
+}
+
 .ls-container {
 	.button,
 	.fusion-button {
@@ -173,11 +192,13 @@
 }
 
 #wrapper .fusion-button-square,
+.fusion-body .fusion-button-square,
 #wrapper .button-square {
 	border-radius: 0;
 }
 
 #wrapper .fusion-button-round,
+.fusion-body .fusion-button-round,
 #wrapper .button-round {
 	border-radius: 2px;
 
@@ -187,11 +208,12 @@
 }
 
 #wrapper .fusion-button-pill,
+.fusion-body .fusion-button-pill,
 #wrapper .button-pill {
 	border-radius: 25px !important;
 }
 
-.fusion-body .fusion-button-small, .button-small, .button.small, #bbp_user_edit_submit, .woocommerce .single_add_to_cart_button, .bbp-submit-wrapper .button {
+.fusion-body .fusion-button-small, .button-small, .button.small, .post-password-form input[type="submit"], #bbp_user_edit_submit, .woocommerce .single_add_to_cart_button, .bbp-submit-wrapper .button {
 	.button-dimensions( 32px, 20px, 9px, 14px, 12px, 2px );
 }
 

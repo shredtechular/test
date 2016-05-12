@@ -81,7 +81,7 @@ class Fusion_Breadcrumbs {
 			 'separator' 				=> $this->options['breadcrumb_separator'],
 			 'show_post_type_archive'	=> $this->options['breadcrumb_show_post_type_archive'],
 			 'show_terms'  				=> $this->options['breadcrumb_show_categories'],
-			 'home_label'      			=> __( 'All Stories', 'Avada' ),
+			 'home_label'      			=> __( 'Home', 'Avada' ),
 			 'tag_archive_prefix'   	=> __( 'Tag:', 'Avada' ),
 			 'search_prefix'        	=> __( 'Search:', 'Avada' ),
 			 'error_prefix' 			=> __( '404 - Page not Found', 'Avada' ),
@@ -306,7 +306,7 @@ class Fusion_Breadcrumbs {
 
 		// If the home page is a real page
 		if ( ! is_front_page() ) {
-			$home_link = $this->get_single_breadcrumb_markup( $this->home_label, '/all-stories/' );
+			$home_link = $this->get_single_breadcrumb_markup( $this->home_label, '/' );
 		// If the home page is the main blog page
 		} elseif ( is_home() ) {
 			$home_link = $this->get_single_breadcrumb_markup( $this->options['blog_title'] );

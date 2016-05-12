@@ -171,7 +171,7 @@ function wrap_gravity_selects() {
 
 // Wrap gravity forms select and add arrow
 function calc_select_arrow_dimensions() {
-	jQuery( '.avada-select-parent .select-arrow, .gravity-select-parent .select-arrow, .wpcf7-select-parent .select-arrow' ).each( function() {
+	jQuery( '.avada-select-parent .select-arrow, .gravity-select-parent .select-arrow, .wpcf7-select-parent .select-arrow' ).filter( ':visible' ).each( function() {
 		if( jQuery( this ).prev().innerHeight() > 0 ) {
 			jQuery( this ).css( {
 				height: jQuery( this ).prev().innerHeight(),

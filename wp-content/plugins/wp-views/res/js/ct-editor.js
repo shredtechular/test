@@ -598,7 +598,7 @@ WPViews.CTEditScreen = function( $ ) {
             },
             write: function(newTitle) {
                 vm.titleLastInput(newTitle);
-				var titleEscaped = newTitle.replace( /\'/gi, '' ),
+				var titleEscaped = newTitle.replace( /\'/gi, '' );
                 titleEscaped = WPV_Toolset.Utils._strip_tags_and_preserve_text(_.unescape(titleEscaped));
                 vm.titleWasLastInputEscaped(titleEscaped != newTitle);
                 vm.titleAccepted(titleEscaped);
@@ -754,6 +754,7 @@ WPViews.CTEditScreen = function( $ ) {
 
                     // If we escaped the title, show a different message and display the accepted value.
                     if(vm.titleWasLastInputEscaped()) {
+                        //noinspection JSUnresolvedVariable
                         successMessage = self.l10n.title_section.title_was_escaped;
                         vm.titleLastInput(vm.titleAccepted());
                     }
@@ -1370,7 +1371,7 @@ WPViews.CTEditScreen = function( $ ) {
      * Also deletes previously displayed messages with the same selector.
      *
      * @param type {string} 'success' or 'error'
-     * @param stay {bool} Determines whether the message will fade out or stays displayed.
+     * @param stay {boolean} Determines whether the message will fade out or stays displayed.
      * @param fadeOut {int} How long should the fadeOut message last when removing the message.
      * @param selector {string} CSS selector for the message container.
      * @param text {string} Text of the message.
@@ -1443,6 +1444,7 @@ WPViews.CTEditScreen = function( $ ) {
         for (var i = 0, j = valuesToPush.length; i < j; i++) {
             items.push(valuesToPush[i]);
         }
+        //noinspection JSValidateTypes
         return items;
     };
 
@@ -1747,6 +1749,7 @@ WPViews.CTEditScreen = function( $ ) {
             self.log('self.trashAction succeeded');
 
             // CTs have been trashed. Redirect to CT listing page and show a message.
+            //noinspection JSUnresolvedVariable
             var uri = new URI(self.ct_data.listing_page_url);
             window.location.href = uri.addQuery('trashed', '1').addQuery('affected', self.vm.id).toString();
         };
@@ -1862,6 +1865,20 @@ WPViews.CTEditScreen = function( $ ) {
      * self.fill_editors() after knockout bindings are applied.
      */
 
+
+    /**
+     * Wrapper function for updating the Content section.
+     *
+     * It needs to be implemented this way because we use this function before self.vm is initialized (but never
+     * call it too early).
+     *
+     * @since 1.12
+     */
+    self.updateContentSectionEditors = function() {
+        self.vm.contentSectionUpdate();
+    };
+
+
     /**
      * Array with description of CM editors on the page.
      *
@@ -1872,6 +1889,9 @@ WPViews.CTEditScreen = function( $ ) {
      * - allow_quicktags: boolean, if true, quicktags will be added to the editor (basic HTML ones, hardcoded below).
      * - propertyToUpdate: Full name of the VM property (incl. the 'Accepted' suffix) that should be kept in sync
      *   with editor content.
+     * - propertyName: Name of the VM property (without the suffix).
+     * - manualUpdateHandler: Function that will be called when a manual update is triggered by CodeMirror (currently,
+     *   that means user pressing Ctrl+S or Cmd+S). It gets propertyName as first parameter.
      * - mode: Editor mode (for syntax highlighting). Allowed values depend on CM.
      *
      * @since 1.9
@@ -1882,6 +1902,8 @@ WPViews.CTEditScreen = function( $ ) {
             selector: 'wpv_content',
             allow_quicktags: true,
             propertyToUpdate: 'postContentAccepted',
+            propertyName: 'postContent',
+            manualUpdateHandler: self.updateContentSectionEditors,
             mode: undefined
         },
         {
@@ -1889,6 +1911,8 @@ WPViews.CTEditScreen = function( $ ) {
             selector: 'wpv_template_extra_css',
             allow_quicktags: false,
             propertyToUpdate: 'templateCssAccepted',
+            propertyName: 'templateCss',
+            manualUpdateHandler: self.updateContentSectionEditors,
             mode: 'css'
         },
         {
@@ -1896,6 +1920,8 @@ WPViews.CTEditScreen = function( $ ) {
             selector: 'wpv_template_extra_js',
             allow_quicktags: false,
             propertyToUpdate: 'templateJsAccepted',
+            propertyName: 'templateJs',
+            manualUpdateHandler: self.updateContentSectionEditors,
             mode: 'javascript'
         }
     ];
@@ -1928,7 +1954,57 @@ WPViews.CTEditScreen = function( $ ) {
                 WPV_Toolset.add_qt_editor_buttons( self[quicktags_slug],self[editor_slug] );
             }
         });
+
+        self.codemirror_apply_autoresize_options();
+
+        self.init_codemirror_autosave();
     };
+
+
+    /**
+     * Apply autoresize options to the CodeMirror editors.
+     *
+     * @since 1.10
+     */
+    self.codemirror_apply_autoresize_options = function() {
+        //noinspection JSUnresolvedVariable
+        if (self.l10n.content_section.codemirror_autoresize == 'true'
+            || self.l10n.content_section.codemirror_autoresize == '1')
+        {
+            $( '.CodeMirror' ).css( 'height', 'auto' );
+            $( '.CodeMirror-scroll' ).css( {'overflow-y':'hidden', 'overflow-x':'auto', 'min-height':'15em'} );
+        }
+    };
+
+
+    /**
+     * Setup CodeMirror editors to run an update handler on Ctrl+S or Cmd+S keypress.
+     *
+     * @since 1.12
+     */
+    self.init_codemirror_autosave = function() {
+        CodeMirror.commands.save = function(cm) {
+
+            // Prevent Firefox trigger Save Dialog
+            var keypress_handler = function (cm, event) {
+                if (event.which == 115 && (event.ctrlKey || event.metaKey) || (event.which == 19)) {
+                    event.preventDefault();
+                    return false;
+                }
+                return true;
+            };
+            CodeMirror.off(cm.getWrapperElement(), 'keypress', keypress_handler);
+            cm.on('keypress', keypress_handler);
+
+            var editor_selector = cm.getTextArea().id;
+            var editor_description = _.findWhere(self.editors, {selector: editor_selector});
+            if( 'undefined' != typeof(editor_description) ) {
+                editor_description.manualUpdateHandler(editor_description.propertyName);
+            }
+
+        };
+    };
+
 
 
     /**
@@ -1951,8 +2027,10 @@ WPViews.CTEditScreen = function( $ ) {
             self[editor_slug].on('change', function(cm) {
                 var value = cm.getValue();
                 $('#' + editor_info.selector).val(value);
-                self.vm.log('codemirror change(' + editor_slug + '): updating vm[' + editor_info.propertyToUpdate + '] from "'
-                + self.vm[ editor_info.propertyToUpdate ]() + '" to "' + value + '".');
+                self.vm.log(
+                    'codemirror change(' + editor_slug + '): updating vm[' + editor_info.propertyToUpdate + '] from "'
+                    + self.vm[ editor_info.propertyToUpdate ]() + '" to "' + value + '".'
+                );
                 self.vm[editor_info.propertyToUpdate](value);
             });
         });
@@ -2131,25 +2209,6 @@ WPViews.CTEditScreen = function( $ ) {
             cred_cred.posts();
         }
     };
-	
-	// ----------------------------------------------------------------------------
-    // CodeMirror autoresize
-    // ----------------------------------------------------------------------------
-	
-	/**
-     * Apply autoresize options to the CodeMirror editors.
-     *
-     * @since 1.10
-     */
-	self.codemirror_autoresize_check = function() {
-		if ( 
-			self.l10n.content_section.codemirror_autoresize == 'true' 
-			|| self.l10n.content_section.codemirror_autoresize == '1' 
-		) {
-			$( '.CodeMirror' ).css( 'height', 'auto' );
-			$( '.CodeMirror-scroll' ).css( {'overflow-y':'hidden', 'overflow-x':'auto', 'min-height':'15em'} );
-		}
-	};
 
 
     // ----------------------------------------------------------------------------
@@ -2176,11 +2235,13 @@ WPViews.CTEditScreen = function( $ ) {
         var show_error_messages_for_unsaved_sections = function() {
             _.each(self.vm.sections, function(section) {
                if(section.isUpdateNeeded()) {
+                   //noinspection JSUnresolvedVariable
                    self.showErrorMessage(section.messageContainer, section.properties, self.l10n.editor.pending_changes);
                }
             });
         };
 
+        //noinspection JSUnresolvedVariable
         WPV_Toolset.Utils.setConfirmUnload(self.vm.isAnyUpdateNeeded, show_error_messages_for_unsaved_sections, self.l10n.editor.confirm_unload);
     };
 
@@ -2197,13 +2258,11 @@ WPViews.CTEditScreen = function( $ ) {
      */
     self.init = function() {
 
-        self.init_editors();
-
         // Get the localization data
+        //noinspection JSUnresolvedVariable
         self.l10n = wpv_ct_editor_l10n;
-		
-		// CodeMirror autoresize
-		self.codemirror_autoresize_check();
+
+        self.init_editors();
 
         // Read additional data for specific sections.
         // Note: this is not passed via ct_data, because the data is gathered only when sections
@@ -2214,6 +2273,7 @@ WPViews.CTEditScreen = function( $ ) {
 
         // Read the Content Template data passed as a l10n variable and initialize
         // ViewModel with them. This will also apply knockout bindings.
+        //noinspection JSUnresolvedVariable
         self.ct_data = wpv_ct_editor_ct_data;
         self.vm = new self.ViewModel(self.ct_data, section_data);
 

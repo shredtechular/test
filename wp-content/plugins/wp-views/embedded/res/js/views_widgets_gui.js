@@ -70,7 +70,8 @@ WPViews.WidgetsGUI = function( $ ) {
 	// Initialize suggest on the already existing Views Filter widgets
 	
 	self.initialize_suggest = function() {
-		$('#widgets-right .js-wpv-widget-form-target-suggest-title:not(.js-wpv-suggest-on)').suggest( ajaxurl + '?action=wpv_suggest_form_targets', {
+		$('#widgets-right .js-wpv-widget-form-target-suggest-title:not(.js-wpv-suggest-on)').suggest( wpv_widgets_gui_texts.ajaxurl + '&action=wpv_suggest_form_targets', {
+			resultsClass: 'ac_results wpv-suggest-results',
 			onSelect: function() {
 				var t_value = this.value,
 				t_container = $( this ).closest( '.widget' ),
@@ -251,7 +252,8 @@ WPViews.LayoutsWidgetsGUI = function( $ ) {
 	// Initialize suggest on the already existing Views Filter widgets
 	
 	self.initialize_suggest = function() {
-		$( self.container_selector + ' .js-wpv-widget-form-target-suggest-title:not(.js-wpv-suggest-on)' ).suggest( ajaxurl + '?action=wpv_suggest_form_targets', {
+		$( self.container_selector + ' .js-wpv-widget-form-target-suggest-title:not(.js-wpv-suggest-on)' ).suggest( wpv_widgets_gui_texts.ajaxurl + '&action=wpv_suggest_form_targets', {
+			resultsClass: 'ac_results wpv-suggest-results',
 			onSelect: function() {
 				var t_value = this.value,
 				t_container = $( this ).closest( self.container_selector ),

@@ -191,7 +191,7 @@ class Avada_Social_Icons {
 
 		$link = $args['social_link'];
 		
-		if( $args['social_network'] == 'googleplus' ) {
+		if( $args['social_network'] == 'googleplus'  && strpos($args['social_link'],'share?') !== false ) {
 			$attr['onclick'] = 'javascript:window.open(this.href,\'\', \'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600\');return false;';
 		}
 		
@@ -322,7 +322,7 @@ class Avada_Social_Icons {
 			}
 
 			if( Avada()->settings->get( 'sharing_linkedin' ) ) {
-				$social_link = 'http://linkedin.com/shareArticle?mini=true&amp;url=' . $args['link'] . '&amp;title=' . rawurlencode( $args['title'] );
+				$social_link = 'https://www.linkedin.com/shareArticle?mini=true&url=' . $args['link'] . '&amp;title=' . rawurlencode( $args['title'] ) . '&amp;summary=' . rawurlencode( $args['description'] );
 				$social_links_array['linkedin'] = $social_link;
 			}
 

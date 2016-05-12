@@ -370,16 +370,11 @@ function wpv_modules_views_pluginversion_used() {
 function wpv_admin_export_selected_data( $items, $type = 'view', $mode = 'xml' ) {
     global $wpdb, $WPV_settings, $_wp_additional_image_sizes;
 
-    require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/array2xml.php';
     $xml = new ICL_Array2XML();
     $data = array();
     $items_hash = array();
     $export = false; // flag
-
-    // SRDJAN - add siteurl, upload url, record taxonomies old IDs
-    // https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142382866/comments
-    // https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142389966/comments
-//    $data['site_url'] = get_site_url();
+	
 	// TODO this might not be needed, it's not used here
     if ( is_multisite() ) {
         $upload_directory = get_option('fileupload_url');
@@ -635,8 +630,6 @@ function wpv_admin_export_selected_data( $items, $type = 'view', $mode = 'xml' )
 								unset( $data['views']['view-' . $post['ID']]['meta'] );
 							}
 						}
-						// Juan - add images for exporting
-						// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
 						$att_args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => null, 'post_parent' => $post['ID'] );
 						$attachments = get_posts( $att_args );
 						if ( $attachments ) {
@@ -883,8 +876,6 @@ function wpv_admin_export_selected_data( $items, $type = 'view', $mode = 'xml' )
 						$post_data['template_extra_css'] = $template_extra_css;
 						$post_data['template_extra_js'] = $template_extra_js;
 						$post_data['template_description'] = $template_description;
-						// Juan - add images for exporting
-						// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
 						$att_args = array( 
 							'post_type' => 'attachment', 
 							'numberposts' => -1, 
@@ -1022,9 +1013,10 @@ function wpv_admin_export_selected_data( $items, $type = 'view', $mode = 'xml' )
 		&& ( 'view-template' == $type )
 	) {
         //This is a module manager export request for Content Template
-		if ( ! $WPV_settings->is_empty() ) {
+		$settings_array = $WPV_settings->get();
+		if ( ! empty( $settings_array ) ) {
 			$wpv_settings_to_export = array();
-			foreach ( $WPV_settings as $option_name => $option_value ) {
+			foreach ( $settings_array as $option_name => $option_value ) {
 				if ( strpos( $option_name, 'views_template_for_' ) === 0 ) {
 					$item_name = $wpdb->get_var( 
 						$wpdb->prepare( 
@@ -1046,9 +1038,10 @@ function wpv_admin_export_selected_data( $items, $type = 'view', $mode = 'xml' )
 		&& ( 'view' == $type )
 	) {
 		//This is a module manager export request for WordPress archives
-		if ( ! $WPV_settings->is_empty() ) {
+		$settings_array = $WPV_settings->get();
+		if ( ! empty( $settings_array ) ) {
 			$wpv_settings_to_export = array();
-			foreach ( $WPV_settings as $option_name => $option_value ) {
+			foreach ( $settings_array as $option_name => $option_value ) {
 				if ( strpos( $option_name, 'view_' ) === 0 ) {
 					$item_name = $wpdb->get_var( 
 						$wpdb->prepare( 

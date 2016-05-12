@@ -503,7 +503,7 @@ function wp_ajax_wpv_shortcode_gui_dialog_conditional_create() {
 			$content .= '<p class="description" style="margin-top:15px;padding-top:10px;border-top:solid 1px #dedede;">'
 				. sprintf(
 					__( 'If you need to remove any of those registered items, please go to the <a href="%s" target="_blank">Views Settings page</a>.', 'wpv-views' ),
-					admin_url( 'admin.php?page=views-settings&tab=compatibility' )
+					admin_url( 'admin.php?page=toolset-settings&tab=front-end-content' )
 				)
 				. '</p>';
 			$content .= wp_nonce_field( 'wpv_custom_conditional_extra_settings', 'wpv_custom_conditional_extra_settings', true, false );
@@ -580,6 +580,13 @@ class WPV_Views_Conditional {
 
 	public function init() {
 		add_shortcode( 'wpv-conditional', array( $this, 'wpv_shortcode_wpv_conditional' ) );
+		
+		$toolset_common_bootstrap = Toolset_Common_Bootstrap::getInstance();
+		$toolset_common_sections = array(
+			'toolset_parser'
+		);
+		$toolset_common_bootstrap->load_sections( $toolset_common_sections );
+		
 	}
 
 
@@ -724,23 +731,22 @@ class WPV_Views_Conditional {
 			. $condition
 			. "\n--------------------";
 
-		if( !defined( 'WPTOOLSET_COMMON_PATH' ) ) {
+		if ( ! defined( 'WPTOOLSET_COMMON_PATH' ) ) {
 			define( 'WPTOOLSET_COMMON_PATH', WPV_PATH_EMBEDDED . '/toolset/toolset-common' );
 		}
-		require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/toolset-forms/classes/class.types.php';
-		require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/toolset-forms/classes/class.cred.php';
+		require_once TOOLSET_COMMON_PATH . '/toolset-forms/classes/class.types.php';
+		require_once TOOLSET_COMMON_PATH . '/toolset-forms/classes/class.cred.php';
 		$data = WPToolset_Types::getCustomConditional( $condition, '', WPToolset_Types::getConditionalValues( $id ) );
 
 		$evaluate = $data['custom'];
 		$values = $data['values'];
 
-		if( strpos( $evaluate, "REGEX" ) === false ) {
+		if ( strpos( $evaluate, "REGEX" ) === false ) {
 			$evaluate = trim( stripslashes( $evaluate ) );
 			// Check dates
 			$evaluate = wpv_filter_parse_date( $evaluate );
 			$evaluate = self::handle_user_function( $evaluate );
 		}
-
 
 		$fields = self::extractFields( $evaluate );
 
@@ -748,20 +754,20 @@ class WPV_Views_Conditional {
 		$temp = self::extractVariables( $evaluate, $attr, $has_post, $id );
 		$evaluate = $temp[0];
 		$logging_string .= $temp[1];
-		$passed = self::evaluateCustom( $evaluate );
-		if( $passed ) {
-			return array( 'debug' => $logging_string, 'passed' => $passed );
+		
+		if (
+			empty( $fields ) 
+			&& empty( $values )
+		) {
+			$passed = self::evaluateCustom( $evaluate );
+		} else {
+			$evaluate = self::_update_values_in_expression( $evaluate, $fields, $values );
+			$logging_string .= "\n--------------------\nConverted expression: "
+				. $evaluate
+				. "\n--------------------";
+			$passed = self::evaluateCustom( $evaluate );
 		}
-
-
-		$evaluate = self::_update_values_in_expression( $evaluate, $fields, $values );
-
-
-		$logging_string .= "\n--------------------\nConverted expression: "
-			. $evaluate
-			. "\n--------------------";
-		$passed = self::evaluateCustom( $evaluate );
-
+		
 		return array( 'debug' => $logging_string, 'passed' => $passed );
 
 	}
@@ -848,7 +854,7 @@ class WPV_Views_Conditional {
 
 
 				$evaluate = ( is_numeric( $first_string ) ? str_replace( $matches[1][ $i ], $first_string, $evaluate ) : str_replace( $matches[1][ $i ], "'$first_string'", $evaluate ) );
-				$evaluate = ( is_numeric( $first_string ) ? str_replace( $matches[5][ $i ], $second_string, $evaluate ) : str_replace( $matches[5][ $i ], "'$second_string'", $evaluate ) );
+				$evaluate = ( is_numeric( $second_string ) ? str_replace( $matches[5][ $i ], $second_string, $evaluate ) : str_replace( $matches[5][ $i ], "'$second_string'", $evaluate ) );
 				$logging_string .= "\nAfter replacing " . ( $i + 1 ) . " general variables and comparing strings: " . $evaluate . $general_variables_logging_extra;
 			}
 		}
@@ -887,7 +893,10 @@ class WPV_Views_Conditional {
 				foreach( $matches[1] as $match ) {
 					if( isset( $atts[ $match ] ) ) {
 						$meta = get_post_meta( $id, $atts[ $match ], true );
-						if( empty( $meta ) ) {
+						if ( 
+							empty( $meta ) 
+							&& ! is_numeric( $meta )
+						) {
 							$meta = "''";
 						}
 					} else {

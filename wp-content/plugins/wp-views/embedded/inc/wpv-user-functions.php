@@ -10,10 +10,6 @@
 * @since unknown
 */
 
-if ( ! function_exists( 'wpv_filter_parse_date' ) ) {
-	include_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/wpv-filter-date-embedded.php';
-}
-
 $GLOBALS['no_parameter_found'] = 'WPV_NO_PARAM_FOUND';
 
 // @todo make the existing filters use the filter method instead of calling this function

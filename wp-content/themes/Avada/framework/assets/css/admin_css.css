@@ -557,3 +557,41 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Dashboard Widget */
+#themefusion_news .rss-widget {
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    padding: 8px 12px 10px;
+}
+#themefusion_news .rss-widget:last-child {
+    border-bottom: medium none;
+    padding-bottom: 8px;
+}
+#themefusion_news .rss-widget span.rss-date {
+    margin-left: 12px;
+}
+#themefusion_news .rss-widget:nth-of-type(2) ul li:first-child {
+	display: none;
+}
+
+/* TGMPA Install/Update Page */
+.wrap.tgmpa .subsubsub {
+	display: none;
+}
+
+/* TGMPA Notices */
+#setting-error-tgmpa .fusion-update-heading {
+    display: block;
+    margin-bottom: 1em;
+    font-size: 1.3em;
+    color: #dc3232;
+}
+
+#setting-error-tgmpa .fusion-update-heading > em {
+	font-style: normal;
+}
+
+/* Slider Fields */
+.fusion-double-fields { overflow: hidden; }
+.fusion-double-fields .fusion-field { width: 49%; float: left; }

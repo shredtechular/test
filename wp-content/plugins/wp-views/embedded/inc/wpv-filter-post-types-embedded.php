@@ -34,34 +34,39 @@ function wpv_filter_get_post_types_arg($query, $view_settings) {
     }
     $query['post_type'] = $post_type;
     
-    if (!isset($view_settings['post_type_dont_include_current_page']) || $view_settings['post_type_dont_include_current_page']) {
+    if ( 
+		! isset( $view_settings['post_type_dont_include_current_page'] ) 
+		|| $view_settings['post_type_dont_include_current_page']
+	) {
 
-        if (is_single() || is_page()) {
+		if ( isset( $_GET['wpv_aux_current_post_id'] ) ) { 
+			// In AJAX pagination is_single() and is_page() do not work as expected, but it seems they return TRUE here anyway
+			// @todo this works for the top_current_page, but not for the current_page...
+			if ( isset( $query['post__not_in'] ) ) {
+				$query['post__not_in'] = array_merge( (array) $query['post__not_in'], array( $_GET['wpv_aux_current_post_id'] ) );
+			} else {
+				$query['post__not_in'] = array( $_GET['wpv_aux_current_post_id'] );
+			}
+        } else if ( 
+			is_single() 
+			|| is_page() 
+		) {
         	global $wp_query;
-            
-            if (isset($wp_query->posts[0])) {
+            if ( isset( $wp_query->posts[0] ) ) {
                 $current_post = $wp_query->posts[0];
-                $post_not_in_list = $current_post ? array($current_post->ID) : array();
-            
+                $post_not_in_list = $current_post ? array( $current_post->ID ) : array();
 				if ( isset( $query['post__not_in'] ) ) {
-					$query['post__not_in'] = array_merge( (array)$query['post__not_in'], $post_not_in_list );
+					$query['post__not_in'] = array_merge( (array) $query['post__not_in'], $post_not_in_list );
 				} else {
 					$query['post__not_in'] = $post_not_in_list;
 				}
-           //     $query['post__not_in'] = $post_not_in_list;
             }
-        } else if ( isset( $_GET['wpv_post_id'] ) ) { //in AJAX pagination is_single() and is_page() do not work as expected
-			if ( isset( $query['post__not_in'] ) ) {
-				$query['post__not_in'] = array_merge( (array)$query['post__not_in'], array( $_GET['wpv_post_id'] ) );
-			} else {
-				$query['post__not_in'] = array( $_GET['wpv_post_id'] );
-			}
         } else {
 			global $post;
 			if ( $post instanceof WP_Post ) {
 				$post_not_in_list = array( $post->ID );
 				if ( isset( $query['post__not_in'] ) ) {
-					$query['post__not_in'] = array_merge( (array)$query['post__not_in'], $post_not_in_list );
+					$query['post__not_in'] = array_merge( (array) $query['post__not_in'], $post_not_in_list );
 				} else {
 					$query['post__not_in'] = $post_not_in_list;
 				}
@@ -77,7 +82,7 @@ function wpv_filter_get_post_types_arg($query, $view_settings) {
 * wpv_filter_post_exclude_current_requires_current_page
 *
 * Filter hooked to wpv_filter_requires_current_page.
-* When the option post_type_dont_include_current_page is checked, we need to pass the wpv_post_id value in an input when doing AJAX pagination
+* When the option post_type_dont_include_current_page is checked, we need to pass the wpv_aux_current_post_id value in an input when doing AJAX pagination
 *
 * @since 1.5.0
 */

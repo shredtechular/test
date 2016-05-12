@@ -393,7 +393,8 @@ if ( ! class_exists( 'TGM_Plugin_Activation' ) ) {
 
 				add_action( 'admin_menu', array( $this, 'admin_menu' ) );		
 				
-				add_action( 'admin_head', array( $this, 'dismiss' ) );
+				// ThemeFusion edit for Avada theme: delete the dismiss button to make sure FusionCore plugin is updated
+				//add_action( 'admin_head', array( $this, 'dismiss' ) );
 
 				// Prevent the normal links from showing underneath a single install/update page.
 				add_filter( 'install_plugin_complete_actions', array( $this, 'actions' ) );
@@ -1024,8 +1025,9 @@ if ( ! class_exists( 'TGM_Plugin_Activation' ) ) {
 		 * @return null Returns early if we're on the Install page.
 		 */
 		public function notices() {
+			// ThemeFusion edit for Avada theme: added check if we have an admin user, if not return
 			// Remove nag on the install page / Return early if the nag message has been dismissed.
-			if ( $this->is_tgmpa_page() || get_user_meta( get_current_user_id(), 'tgmpa_dismissed_notice_' . $this->id, true ) ) {
+			if ( $this->is_tgmpa_page() || get_user_meta( get_current_user_id(), 'tgmpa_dismissed_notice_' . $this->id, true ) || ! current_user_can( 'edit_theme_options' ) ) {
 				return;
 			}
 
@@ -1038,7 +1040,12 @@ if ( ! class_exists( 'TGM_Plugin_Activation' ) ) {
 			$activate_link_count = 0;
 
 			foreach ( $this->plugins as $slug => $plugin ) {
-				if ( $this->is_plugin_active( $slug ) && false === $this->does_plugin_have_update( $slug ) ) {
+	
+				// ThemeFusion edit for Avada theme: added ! $plugin['required'] to the conditional
+				if ( $this->is_plugin_active( $slug ) && false === $this->does_plugin_have_update( $slug ) ||
+					! $plugin['required']
+				
+				) {
 					continue;
 				}
 
@@ -1139,10 +1146,13 @@ if ( ! class_exists( 'TGM_Plugin_Activation' ) ) {
 					'install'  => '',
 					'update'   => '',
 					'activate' => '',
-					'dismiss'  => $this->dismissable ? '<a href="' . esc_url( add_query_arg( 'tgmpa-dismiss', 'dismiss_admin_notices' ) ) . '" class="dismiss-notice" target="_parent">' . esc_html( $this->strings['dismiss'] ) . '</a>' : '',
+					// ThemeFusion edit for Avada theme: delete the dismiss button to make sure FusionCore plugin is updated
+					//'dismiss'  => $this->dismissable ? '<a href="' . esc_url( add_query_arg( 'tgmpa-dismiss', 'dismiss_admin_notices' ) ) . '" class="dismiss-notice" target="_parent">' . esc_html( $this->strings['dismiss'] ) . '</a>' : '',
+					'dismiss' => '',
 				);
 
-				$link_template = '<a href="%2$s">%1$s</a>';
+				// ThemeFusion edit for Avada theme: add class="button-primary" and style="margin-top:1em;" 
+				$link_template = '<a class="button-primary" style="margin-top:1em;" href="%2$s">%1$s</a>';
 
 				if ( current_user_can( 'install_plugins' ) ) {
 					if ( $install_link_count > 0 ) {
@@ -2067,27 +2077,29 @@ if ( ! class_exists( 'TGMPA_List_Table' ) ) {
 			}
 
 			foreach ( $plugins[ $this->view_context ] as $slug => $plugin ) {
-				$table_data[ $i ]['sanitized_plugin']  = $plugin['name'];
-				$table_data[ $i ]['slug']              = $slug;
-				$table_data[ $i ]['plugin']            = '<strong>' . $this->tgmpa->get_info_link( $slug ) . '</strong>';
-				$table_data[ $i ]['source']            = $this->get_plugin_source_type_text( $plugin['source_type'] );
-				$table_data[ $i ]['type']              = $this->get_plugin_advise_type_text( $plugin['required'] );
-				$table_data[ $i ]['status']            = $this->get_plugin_status_text( $slug );
-				$table_data[ $i ]['installed_version'] = $this->tgmpa->get_installed_version( $slug );
-				$table_data[ $i ]['minimum_version']   = $plugin['version'];
-				$table_data[ $i ]['available_version'] = $this->tgmpa->does_plugin_have_update( $slug );
+				if ( $plugin['required'] ) {
+					$table_data[ $i ]['sanitized_plugin']  = $plugin['name'];
+					$table_data[ $i ]['slug']              = $slug;
+					$table_data[ $i ]['plugin']            = '<strong>' . $this->tgmpa->get_info_link( $slug ) . '</strong>';
+					$table_data[ $i ]['source']            = $this->get_plugin_source_type_text( $plugin['source_type'] );
+					$table_data[ $i ]['type']              = $this->get_plugin_advise_type_text( $plugin['required'] );
+					$table_data[ $i ]['status']            = $this->get_plugin_status_text( $slug );
+					$table_data[ $i ]['installed_version'] = $this->tgmpa->get_installed_version( $slug );
+					$table_data[ $i ]['minimum_version']   = $plugin['version'];
+					$table_data[ $i ]['available_version'] = $this->tgmpa->does_plugin_have_update( $slug );
 
-				// Prep the upgrade notice info.
-				$upgrade_notice = $this->tgmpa->get_upgrade_notice( $slug );
-				if ( ! empty( $upgrade_notice ) ) {
-					$table_data[ $i ]['upgrade_notice'] = $upgrade_notice;
+					// Prep the upgrade notice info.
+					$upgrade_notice = $this->tgmpa->get_upgrade_notice( $slug );
+					if ( ! empty( $upgrade_notice ) ) {
+						$table_data[ $i ]['upgrade_notice'] = $upgrade_notice;
 
-					add_action( "tgmpa_after_plugin_row_$slug", array( $this, 'wp_plugin_update_row' ), 10, 2 );
+						add_action( "tgmpa_after_plugin_row_$slug", array( $this, 'wp_plugin_update_row' ), 10, 2 );
+					}
+
+					$table_data[ $i ] = apply_filters( 'tgmpa_table_data_item', $table_data[ $i ], $plugin );
+
+					$i++;
 				}
-
-				$table_data[ $i ] = apply_filters( 'tgmpa_table_data_item', $table_data[ $i ], $plugin );
-
-				$i++;
 			}
 
 			return $table_data;

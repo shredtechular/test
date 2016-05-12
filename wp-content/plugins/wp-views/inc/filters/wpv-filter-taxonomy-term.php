@@ -16,6 +16,9 @@ WPV_Taxonomy_Term_Filter::on_load();
 * Views Taxonomy Term Filter Class
 *
 * @since 1.7.0
+* @since 1.12.1	Changes in the filter modes for the posts filter and the taxonomy filter
+* 		CURRENT_PAGE becomes top_current_post and tracks $WP_Views->get_top_current_page()
+* 		current_post_or_parent_post_view tracks $WP_Views->get_current_page()
 */
 
 class WPV_Taxonomy_Term_Filter {
@@ -221,6 +224,8 @@ class WPV_Taxonomy_Term_Filter {
 		$settings_to_check = array(
 			'taxonomy_terms_mode',
 			'taxonomy_terms',
+			'taxonomy_terms_url',
+			'taxonomy_terms_shortcode',
 			'taxonomy_terms_framework'
 		);
 		foreach ( $settings_to_check as $set ) {
@@ -264,6 +269,8 @@ class WPV_Taxonomy_Term_Filter {
 			$filter_data['taxonomy_terms'] = $terms_list['taxonomy_terms'];
 		}
 		$filter_data['taxonomy_type'] = $_POST['tax_term_tax_type'];
+		$filter_data['taxonomy_terms_url'] = $_POST['tax_term_terms_url'];
+		$filter_data['taxonomy_terms_shortcode'] = $_POST['tax_term_terms_shortcode'];
 		echo wpv_get_filter_taxonomy_term_summary_txt( $filter_data );
 		die();
 	}
@@ -309,6 +316,8 @@ class WPV_Taxonomy_Term_Filter {
 		$to_delete = array(
 			'taxonomy_terms_mode',
 			'taxonomy_terms',
+			'taxonomy_terms_url',
+			'taxonomy_terms_shortcode',
 			'taxonomy_terms_framework'
 		);
 		foreach ( $to_delete as $index ) {
@@ -352,9 +361,11 @@ class WPV_Taxonomy_Term_Filter {
 
 	static function wpv_render_taxonomy_term_options( $view_settings = array() ) {
 		$defaults = array(
-			'taxonomy_terms' => array(),
-			'taxonomy_terms_mode' => 'THESE',
-			'taxonomy_terms_framework' => ''
+			'taxonomy_terms'			=> array(),
+			'taxonomy_terms_mode'		=> 'THESE',
+			'taxonomy_terms_url'		=> 'terms-filter',
+			'taxonomy_terms_shortcode'	=> 'terms',
+			'taxonomy_terms_framework'	=> ''
 		);
 		$view_settings = wp_parse_args( $view_settings, $defaults );
 		if ( isset( $view_settings['taxonomy_type'] ) && $view_settings['taxonomy_type'] != '' ) {
@@ -366,8 +377,22 @@ class WPV_Taxonomy_Term_Filter {
 		<h4><?php  _e( 'List the following terms', 'wpv-views' ); ?></h4>
 		<ul class="wpv-filter-options-set">
 			<li>
-				<input type="radio" id="taxonomy-terms-mode-current" name="taxonomy_terms_mode" <?php checked( $view_settings['taxonomy_terms_mode'], 'CURRENT_PAGE' ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="CURRENT_PAGE" autocomplete="off" />
-				<label for="taxonomy-terms-mode-current"><?php _e('Set by the current post', 'wpv-views'); ?></label>
+				<input type="radio" id="taxonomy-terms-mode-top-current-post" name="taxonomy_terms_mode" <?php checked( in_array( $view_settings['taxonomy_terms_mode'], array( 'CURRENT_PAGE', 'top_current_post' ) ) ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="top_current_post" autocomplete="off" />
+				<label for="taxonomy-terms-mode-top-current-post"><?php _e('Set by the page where this View is inserted', 'wpv-views'); ?></label>
+			</li>
+			<li>
+				<input type="radio" id="taxonomy-terms-mode-current-post" name="taxonomy_terms_mode" <?php checked( in_array( $view_settings['taxonomy_terms_mode'], array( 'current_post_or_parent_post_view' ) ) ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="current_post_or_parent_post_view" autocomplete="off" />
+				<label for="taxonomy-terms-mode-current-post"><?php _e('Set by the current post', 'wpv-views'); ?></label>
+			</li>
+			<li>
+				<input type="radio" id="taxonomy-terms-mode-url" name="taxonomy_terms_mode" <?php checked( $view_settings['taxonomy_terms_mode'], 'by_url' ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="by_url" autocomplete="off" />
+				<label for="taxonomy-terms-mode-url"><?php _e('Terms with ID set by the URL parameter: ', 'wpv-views'); ?></label>
+				<input type='text' class="js-wpv-filter-taxonomy-terms-url js-wpv-filter-validate" data-type="url" data-class="js-wpv-filter-taxonomy-terms-url" name="taxonomy_terms_url" value="<?php echo esc_attr( $view_settings['taxonomy_terms_url'] ); ?>" size="10" autocomplete="off" />
+			</li>
+			<li>
+				<input type="radio" id="taxonomy-terms-mode-shortcode" name="taxonomy_terms_mode" <?php checked( $view_settings['taxonomy_terms_mode'], 'shortcode' ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="shortcode" autocomplete="off" />
+				<label for="taxonomy-terms-mode-shortcode"><?php _e('Terms with ID set by the shortcode attribute: ', 'wpv-views'); ?></label>
+				<input type='text' class="js-wpv-filter-taxonomy-terms-shortcode js-wpv-filter-validate" data-type="shortcode" data-class="js-wpv-filter-taxonomy-terms-shortcode" name="taxonomy_terms_shortcode" value="<?php echo esc_attr( $view_settings['taxonomy_terms_shortcode'] ); ?>" size="10" autocomplete="off" />
 			</li>
 			<li>
 				<input type="radio" id="taxonomy-terms-mode-these" name="taxonomy_terms_mode" <?php checked( $view_settings['taxonomy_terms_mode'], 'THESE' ); ?> class="taxonomy-terms-mode js-wpv-taxonomy-term-mode" value="THESE" autocomplete="off" />
@@ -375,7 +400,7 @@ class WPV_Taxonomy_Term_Filter {
 			<?php 
 			if ( taxonomy_exists( $taxonomy ) ) {
 			?>
-				<ul class="wpv-mightlong-list js-taxonomy-term-checklist<?php if ( $view_settings['taxonomy_terms_mode'] == 'CURRENT_PAGE' ) { echo ' hidden'; } ?>">
+				<ul class="wpv-mightlong-list js-taxonomy-term-checklist<?php if ( in_array( $view_settings['taxonomy_terms_mode'], array( 'CURRENT_PAGE', 'top_current_post' ) ) ) { echo ' hidden'; } ?>">
 						<?php
 						ob_start();
 						$my_walker = new WPV_Walker_Taxonomy_Checkboxes_Flat();

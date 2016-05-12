@@ -41,9 +41,6 @@ ul.wpv_pagination_dots li.wpv_pagination_dots_item {
 .wpv-pagination:after {
     clear: both;
 }
-.wpv-pagination {
-    *zoom: 1;
-}
 
 /**
 * #.# Table sorting styles

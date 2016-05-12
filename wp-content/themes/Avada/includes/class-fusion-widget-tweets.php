@@ -18,7 +18,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 		$title					= apply_filters( 'widget_title', isset( $instance['title'] ) ? $instance['title'] : '' );
 		$twitter_id				= isset( $instance['twitter_id'] ) ? $instance['twitter_id'] : '';
 		$count					= ( int ) isset( $instance['count'] ) ? $instance['count'] : 3;
-		
+
 		$consumer_key			= isset( $instance['consumer_key'] ) ? $instance['consumer_key'] : '';
 		$consumer_secret		= isset( $instance['consumer_secret'] ) ? $instance['consumer_secret'] : '';
 		$access_token			= isset( $instance['access_token'] ) ? $instance['access_token'] : '';
@@ -44,7 +44,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 		}
 
 		if ( $widget_type == 'twitter_style' || $widget_type == 'twitter_preconfig_style' ) {
-			if ( $widget_id ) { 
+			if ( $widget_id ) {
 				$widget_params = array('title' => $title, 'twitter_id' => $twitter_id, 'count' => $count, 'widget_id' => $widget_id, 'widget_type' => $widget_type, 'width' => $width, 'height' => $height, 'theme' => $theme, 'link_color' => $link_color, 'border_color' => $border_color, 'show_header' => $show_header, 'show_footer' => $show_footer, 'show_borders' => $show_borders, 'transparent_bg' => $transparent_bg, 'chrome' => $chrome );
 				$this->render_new_widget( $widget_params );
 			}
@@ -55,7 +55,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 				$this->render_old_widget( $widget_params );
 			}
 		}
-		
+
 		echo $after_widget;
 
 	}
@@ -67,7 +67,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 		$instance['title']              	= strip_tags( $new_instance['title'] );
 		$instance['twitter_id']         	= $new_instance['twitter_id'];
 		$instance['count']              	= $new_instance['count'];
-		
+
 		$instance['consumer_key']       	= $new_instance['consumer_key'];
 		$instance['consumer_secret']    	= $new_instance['consumer_secret'];
 		$instance['access_token']       	= $new_instance['access_token'];
@@ -100,9 +100,9 @@ class Fusion_Widget_Tweets extends WP_Widget {
 			'consumer_secret'		=> '',
 			'access_token'			=> '',
 			'access_token_secret'	=> '',
-			
+
 			'widget_id'				=> '',
-			'widget_type'			=> 'old_widget',
+			'widget_type'			=> 'avada_style',
 			'width'					=> '',
 			'height'				=> '',
 			'theme'					=> 'light',
@@ -118,24 +118,24 @@ class Fusion_Widget_Tweets extends WP_Widget {
 		$twitter_doc_url = 'https://theme-fusion.com/avada-doc/twitter-widget/';
 
 		?>
-		
+
 		<script type="text/javascript">
 			jQuery( document ).ready( function() {
 			var $widget_type_select = jQuery( '#<?php echo $this->get_field_id( 'widget_type' ); ?>' );
 				if ( $widget_type_select.val() == 'twitter_style' ) {
 					$widget_type_select.parents( '.widget' ).find( '.avada_style' ).hide();
-					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).show();		
+					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).show();
 					$widget_type_select.parents( '.widget' ).find( '.general_option' ).show();
 				} else if( $widget_type_select.val() == 'avada_style' ) {
 					$widget_type_select.parents( '.widget' ).find( '.avada_style' ).show();
 					$widget_type_select.parents( '.widget' ).find( '.general_option' ).show();
-					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).hide();					
+					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).hide();
 				} else {
-					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).hide();	
+					$widget_type_select.parents( '.widget' ).find( '.twitter_style' ).hide();
 					$widget_type_select.parents( '.widget' ).find( '.avada_style' ).hide();
 					$widget_type_select.parents( '.widget' ).find( '.general_option' ).hide();
 					$widget_type_select.parents( '.widget' ).find( '.widget_id' ).show();
-					
+
 				}
 
 				jQuery( '.widget-type-selector' ).change( function() {
@@ -146,7 +146,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 					} else if( jQuery( this ).val() == 'avada_style' ) {
 						jQuery( this ).parents( '.widget' ).find( '.avada_style' ).show();
 						jQuery( this ).parents( '.widget' ).find( '.general_option' ).show();
-						jQuery( this ).parents( '.widget' ).find( '.twitter_style' ).hide();						
+						jQuery( this ).parents( '.widget' ).find( '.twitter_style' ).hide();
 					} else {
 						jQuery( this ).parents( '.widget' ).find( '.twitter_style' ).hide();
 						jQuery( this ).parents( '.widget' ).find( '.avada_style' ).hide();
@@ -163,7 +163,7 @@ class Fusion_Widget_Tweets extends WP_Widget {
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $instance['title']; ?>" />
 		</p>
-		
+
 		<p>
 			<label for="<?php echo $this->get_field_id( 'widget_type' ); ?>"><?php _e( 'Widget Style:', 'Avada' ); ?></label>
 			<select id="<?php echo $this->get_field_id( 'widget_type' ); ?>" name="<?php echo $this->get_field_name( 'widget_type' ); ?>" class="widefat widget-type-selector" style="width:100%;">
@@ -172,11 +172,11 @@ class Fusion_Widget_Tweets extends WP_Widget {
 				<option value="avada_style" <?php selected( $instance['widget_type'], 'avada_style' ); ?>><?php _e( 'Avada Style', 'Avada' ); ?></option>
 			</select>
 		</p>
-		
+
 		<p class="twitter_style widget_id">
 			<label for="<?php echo $this->get_field_id( 'widget_id' ); ?>"><?php _e( 'Twitter Widget ID:', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'widget_id' ); ?>" name="<?php echo $this->get_field_name( 'widget_id' ); ?>" value="<?php echo $instance['widget_id']; ?>" />
-		</p>		
+		</p>
 
 		<p class="avada_style">
 			<label for="<?php echo $this->get_field_id( 'consumer_key' ); ?>"><?php _e( 'Consumer Key:', 'Avada' ); ?></label>
@@ -202,55 +202,55 @@ class Fusion_Widget_Tweets extends WP_Widget {
 			<label for="<?php echo $this->get_field_id( 'twitter_id' ); ?>"><?php _e( 'Twitter Username:', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'twitter_id' ); ?>" name="<?php echo $this->get_field_name( 'twitter_id' ); ?>" value="<?php echo $instance['twitter_id']; ?>" />
 		</p>
-		
+
 		<p  class="general_option">
 			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Number of Tweet (max. 20 tweets possible):', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" value="<?php echo $instance['count']; ?>" />
 		</p>
-		
+
 		<p class="twitter_style">
 			<label for="<?php echo $this->get_field_id( 'width' ); ?>"><?php _e( 'Max. Width (has to be between 180 and 520):', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'width' ); ?>" name="<?php echo $this->get_field_name( 'width' ); ?>" value="<?php echo $instance['width']; ?>" />
 		</p>
-		
+
 		<p class="twitter_style">
 			<label for="<?php echo $this->get_field_id( 'height' ); ?>"><?php _e( 'Height (min. is 200):', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'height' ); ?>" name="<?php echo $this->get_field_name( 'height' ); ?>" value="<?php echo $instance['height']; ?>" />
-		</p>		
-		
+		</p>
+
 		<p class="twitter_style">
 			<label for="<?php echo $this->get_field_id( 'theme' ); ?>"><?php _e( 'Color Scheme:', 'Avada' ); ?></label>
 			<select id="<?php echo $this->get_field_id( 'theme' ); ?>" name="<?php echo $this->get_field_name( 'theme' ); ?>" class="widefat" style="width:100%;">
 				<option value="light" <?php if ( 'light' == $instance['theme'] ) echo 'selected="selected"'; ?>><?php _e( 'Light', 'Avada' ); ?></option>
 				<option value="dark" <?php if ( 'dark' == $instance['theme'] ) echo 'selected="selected"'; ?>><?php _e( 'Dark', 'Avada' ); ?></option>
 			</select>
-		</p>		
-		
+		</p>
+
 		<p class="twitter_style">
 			<label for="<?php echo $this->get_field_id( 'link_color' ); ?>"><?php _e( 'Link Color (leave empty for Theme default link color):', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'link_color' ); ?>" name="<?php echo $this->get_field_name( 'link_color' ); ?>" value="<?php echo $instance['link_color']; ?>" />
 		</p>
-		
+
 		<p class="twitter_style">
 			<label for="<?php echo $this->get_field_id( 'border_color' ); ?>"><?php _e( 'Border Color:', 'Avada' ); ?></label>
 			<input class="widefat" type="text" id="<?php echo $this->get_field_id( 'border_color' ); ?>" name="<?php echo $this->get_field_name( 'border_color' ); ?>" value="<?php echo $instance['border_color']; ?>" />
-		</p>		
-		
+		</p>
+
 		<p class="twitter_style">
 			<input class="checkbox" type="checkbox" <?php checked( $instance['show_header'], 'on' ); ?> id="<?php echo $this->get_field_id( 'show_header' ); ?>" name="<?php echo $this->get_field_name( 'show_header' ); ?>" />
 			<label for="<?php echo $this->get_field_id( 'show_header' ); ?>"><?php _e( 'Show Header', 'Avada' ); ?></label>
 		</p>
-		
+
 		<p class="twitter_style">
 			<input class="checkbox" type="checkbox" <?php checked( $instance['show_footer'], 'on' ); ?> id="<?php echo $this->get_field_id( 'show_footer' ); ?>" name="<?php echo $this->get_field_name( 'show_footer' ); ?>" />
 			<label for="<?php echo $this->get_field_id( 'show_footer' ); ?>"><?php _e( 'Show Footer', 'Avada' ); ?></label>
 		</p>
-		
+
 		<p class="twitter_style">
 			<input class="checkbox" type="checkbox" <?php checked( $instance['show_borders'], 'on' ); ?> id="<?php echo $this->get_field_id( 'show_borders' ); ?>" name="<?php echo $this->get_field_name( 'show_borders' ); ?>" />
 			<label for="<?php echo $this->get_field_id( 'show_borders' ); ?>"><?php _e( 'Show Borders', 'Avada' ); ?></label>
 		</p>
-		
+
 		<p class="twitter_style">
 			<input class="checkbox" type="checkbox" <?php checked( $instance['transparent_bg'], 'on' ); ?> id="<?php echo $this->get_field_id( 'transparent_bg' ); ?>" name="<?php echo $this->get_field_name( 'transparent_bg' ); ?>" />
 			<label for="<?php echo $this->get_field_id( 'transparent_bg' ); ?>"><?php _e( 'Transparent Background', 'Avada' ); ?></label>
@@ -269,15 +269,15 @@ class Fusion_Widget_Tweets extends WP_Widget {
 	* @param array $widget_params 	The needed twitter API parameters to render the widget
 	*
 	* @return void 					Echos output directly
-	*/	
+	*/
 	public function render_new_widget( $widget_params ) {
-	
+
 		extract( $widget_params );
 
 		?>
 			<div style="overflow:hidden">
 				<?php if ( $widget_type == 'twitter_style' ): ?>
-					<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/<?php echo $twitter_id; ?>" data-widget-id="<?php echo $widget_id; ?>" data-tweet-limit = "<?php echo $count; ?>" data-width="<?php echo $width; ?>" data-height="<?php echo $height; ?>" data-theme="<?php echo $theme; ?>" data-link-color="<?php echo $link_color; ?>" data-border-color="<?php echo $border_color; ?>" data-chrome="<?php echo $chrome; ?>">Twitter Tweets</a>
+					<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/<?php echo $twitter_id; ?>" data-widget-id="<?php echo $widget_id; ?>" data-tweet-limit = "<?php echo $count; ?>" data-width="<?php echo $width; ?>" data-height="<?php echo $height; ?>" width="<?php echo $width; ?>" height="<?php echo $height; ?>" data-theme="<?php echo $theme; ?>" data-link-color="<?php echo $link_color; ?>" data-border-color="<?php echo $border_color; ?>" data-chrome="<?php echo $chrome; ?>">Twitter Tweets</a>
 				<?php else: ?>
 					<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/<?php echo $twitter_id; ?>" data-widget-id="<?php echo $widget_id; ?>">Twitter Tweets</a>
 				<?php endif; ?>
@@ -289,41 +289,41 @@ class Fusion_Widget_Tweets extends WP_Widget {
 			</div>
 		<?php
 	}
-	
+
 	/*
 	* Returns the correct flag string for twiiter chrome params.
 	*
 	* @param array $instance 	The twitter widget's instance parameters
 	*
 	* @return string 			The flag string for the twitter widget js API
-	*/	
+	*/
 	public function get_chrome( $instance ) {
 		$chrome = '';
-		
+
 		$instance['show_header']	= isset( $instance['show_header'] ) ? $instance['show_header'] : 1;
 		$instance['show_footer']	= isset( $instance['show_footer'] ) ? $instance['show_footer'] : 1;
 		$instance['show_borders']	= isset( $instance['show_borders'] ) ? $instance['show_borders'] : 1;
-		$instance['transparent_bg']	= isset( $instance['transparent_bg'] ) ? $instance['transparent_bg'] : 0;		
-	
-		if ( ! $instance['show_header'] ) {
-			$chrome .= 'noheader ';	
+		$instance['transparent_bg']	= isset( $instance['transparent_bg'] ) ? $instance['transparent_bg'] : 0;
+
+		if ( $instance['show_header'] != 'on' ) {
+			$chrome .= 'noheader ';
 		}
 
-		if ( ! $instance['show_footer'] ) {
-			$chrome .= 'nofooter ';	
+		if ( $instance['show_footer'] != 'on'  ) {
+			$chrome .= 'nofooter ';
 		}
 
-		if ( ! $instance['show_borders'] ) {
-			$chrome .= 'noborders ';	
+		if ( $instance['show_borders'] != 'on'  ) {
+			$chrome .= 'noborders ';
 		}
-		
-		if ( $instance['transparent_bg'] ) {
-			$chrome .= 'transparent ';	
-		}		
-	
+
+		if ( $instance['transparent_bg'] && $instance['transparent_bg'] == 'on' ) {
+			$chrome .= 'transparent ';
+		}
+
 		return rtrim( $chrome );
 	}
-	
+
 
 	/* =================================================================================================
 	Old Widget Helper Functions
@@ -335,16 +335,15 @@ class Fusion_Widget_Tweets extends WP_Widget {
 	* @param array $widget_params 	The needed twitter API parameters to render the widget
 	*
 	* @return void 					Echos output directly
-	*/	
+	*/
 	public function render_old_widget( $widget_params ) {
-	
+
 		extract( $widget_params );
-	
-		$transName = 'list_tweets_' . $widget_id;
-		$cacheTime = 10;
 
-		if ( false === ( $twitterData = get_transient( $transName ) ) ) {
+		$transName = 'list_tweets_' . $widget_id;	
+		$tweets_body = get_transient( $transName );
 
+		if ( ! $tweets_body ) {
 			$token = get_option( 'cfTwitterToken_' . $widget_id );
 			// Get a new token anyways
 			delete_option( 'cfTwitterToken_'.$widget_id );
@@ -394,12 +393,13 @@ class Fusion_Widget_Tweets extends WP_Widget {
 			add_filter( 'https_ssl_verify', '__return_false' );
 			$api_url  = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=' . $twitter_id . '&count=' . $count;
 			$response = wp_remote_get( $api_url, $args );
+			$tweets_body = wp_remote_retrieve_body( $response );
 
-			set_transient( $transName, wp_remote_retrieve_body( $response ), 60 * $cacheTime );
+			set_transient( $transName, $tweets_body, 600 );
 
 		}
 
-		@$tweets = json_decode( get_transient( $transName ) );
+		@$tweets = json_decode( $tweets_body );
 
 		if ( $tweets && is_array( $tweets ) ) {
 		?>
@@ -432,20 +432,26 @@ class Fusion_Widget_Tweets extends WP_Widget {
 		<?php
 		}
 	}
-
+	
 	/*
 	* Converts the tweet text into a HTML formatted string, incl. links for URLs, Hashtags and users
 	*
-	* @param string $tweet The tweet text
+	* @param string $tweet 		The tweet text
 	* @param boolean $links 	Flag if link tags for URLs should be added
 	* @param boolean $users 	Flag if link tags for users should be added
 	* @param boolean $hashtags 	Flag if link tags for hashtags should be added
+	* @param boolean $media 	Flag if link tags for media should be added
 	*
 	* @return string 			The HTML formatted tweet text
-	*/	
-	public function tweet_get_html( $tweet, $links = true, $users = true, $hashtags = true ) {
+	*/
+	public function tweet_get_html( $tweet, $links = true, $users = true, $hashtags = true, $media = true ) {
 
-		$return   = $tweet->text;
+		if ( property_exists( $tweet, 'retweeted_status' ) ) {
+			$tweet = $tweet->retweeted_status;
+		}
+		
+		$return = $tweet->text;
+
 		$entities = array();
 
 		if ( $links && is_array( $tweet->entities->urls ) ) {
@@ -481,26 +487,89 @@ class Fusion_Widget_Tweets extends WP_Widget {
 
 		}
 
+		if ( $media && property_exists( $tweet->entities, 'media' ) ) {
+
+			foreach ( $tweet->entities->media as $e ) {
+				$temp['start']       = $e->indices[0];
+				$temp['end']         = $e->indices[1];
+				$temp['replacement'] = '<a href="' . $e->url . '" target="_blank">' . $e->display_url . '</a>';
+				$entities[]          = $temp;
+			}
+
+		}
+
 		usort( $entities, array( $this, 'sort_tweets' ) );
 
 		foreach ( $entities as $item ) {
-			$return = substr_replace( $return, $item['replacement'], $item['start'], $item['end'] - $item['start'] );
+			$return = $this->mb_substr_replace( $return, $item['replacement'], $item['start'], $item['end'] - $item['start'] );
 		}
 
 		return $return;
 	}
 	
 	/*
+	* The PHP substr_replace equivalent for multibyte encoded strings.
+	*
+	* @param string $string 		The string in which replacement should take place 
+	* @param string $replacement 	The replacement string
+	* @param int 	$start 			The index where the replacement should start
+	* @param int 	$length 		The length of $string that should be replaced
+	*
+	* @return string 				The correctly replaced string
+	*/	
+	public function mb_substr_replace( $string, $replacement, $start, $length = NULL ) {
+		if ( is_array( $string ) ) {
+			$num = count( $string );
+			// $replacement
+			$replacement = is_array( $replacement ) ? array_slice( $replacement, 0, $num ) : array_pad( array( $replacement ), $num, $replacement );
+			
+			// $start
+			if ( is_array( $start ) ) {
+				$start = array_slice( $start, 0, $num );
+				foreach ( $start as $key => $value ) {
+					$start[$key] = is_int( $value ) ? $value : 0;
+				}
+			} else {
+				$start = array_pad( array( $start ), $num, $start );
+			}
+			
+			// $length
+			if ( !isset( $length ) ) {
+				$length = array_fill( 0, $num, 0 );
+			} elseif ( is_array( $length ) ) {
+				$length = array_slice( $length, 0, $num );
+				foreach ($length as $key => $value) {
+					$length[$key] = isset( $value ) ? ( is_int( $value ) ? $value : $num ) : 0;
+				}
+			} else {
+				$length = array_pad( array( $length ), $num, $length );
+			}
+			
+			// Recursive call
+			return array_map( __FUNCTION__, $string, $replacement, $start, $length );
+		}
+		
+		preg_match_all( '/./us', ( string )$string, $smatches );
+		preg_match_all('/./us', ( string )$replacement, $rmatches );
+		if ( $length === NULL ) {
+			$length = mb_strlen( $string );
+		}
+		array_splice( $smatches[0], $start, $length, $rmatches[0] );
+		
+		return join( $smatches[0] );
+	}	
+
+	/*
 	* Compare the start indices of two twitter entities
 	*
 	* @param array $a A twiiter entity
 	* @param array $b A twiiter entity
 	*
-	* @return int The difference of the start indices 
-	*/	
-	public function sort_tweets( $a, $b ) { 
-		return ( $b['start'] - $a['start'] ); 
-	}	
+	* @return int The difference of the start indices
+	*/
+	public function sort_tweets( $a, $b ) {
+		return ( $b['start'] - $a['start'] );
+	}
 
 	/*
 	* Function to display the correct time format for each tweet

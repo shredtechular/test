@@ -39,7 +39,7 @@ function wpml_content_fix_links_to_translated_content($body){
 
         static $content_cache = array();
 
-        $target_lang_code = $sitepress->get_current_language();
+        $target_lang_code = apply_filters( 'wpml_current_language', '' );
 
         $cache_code = md5($body . $target_lang_code);
         if (isset($content_cache[$cache_code])) {
@@ -59,7 +59,7 @@ function wpml_content_fix_links_to_translated_content($body){
             $body = $icl_abs_links->_process_generic_text($body, $alp_broken_links);
 
             // Restore the language as the above call can change the current language.
-            $sitepress->switch_lang($target_lang_code);
+			do_action( 'wpml_switch_language', $target_lang_code );
 
             if ($body == '') {
                 // Handle a problem with abs links occasionally return empty.
@@ -344,7 +344,7 @@ function wpv_wpml_settings() {
             <div class="wpml-section">
                 <div class="wpml-section-header">
                     <h3>
-                        <?php _e('Views', 'wpv-views'); ?></th>
+                        <?php _e('Views', 'wpv-views'); ?>
                     </h3>
                 </div>
                 <div class="wpml-section-content">
@@ -914,6 +914,7 @@ function wpv_disable_wpml_admin_lang_switcher( $state ) {
 		'views', 'views-editor', 'embedded-views', 'views-embedded', 
 		'view-templates', 'ct-editor', 'embedded-views-templates', 'view-templates-embedded', 
 		'view-archives', 'view-archives-editor', 'embedded-views-archives', 'view-archives-embedded', 
+		// DEPRECATED:
 		'views-settings', 'views-import-export', 'views-debug-information', 'views-update-help'
 	);
 	if ( 
@@ -988,6 +989,9 @@ class WPV_WPML_Integration_Embedded {
 
         // this will be run during plugins_loaded
         add_action( 'wpml_tm_loaded', array( $this, 'wpml_tm_loaded' ) );
+
+		// Action after saving translated post content
+		add_action( 'icl_pro_translation_completed', array( $this, 'icl_pro_translation_completed' ) );
     }
 
 
@@ -1137,4 +1141,36 @@ class WPV_WPML_Integration_Embedded {
         return $edit_url;
     }
 
+
+	/**
+	 * This action hook is invoked when the translation in WPML TM is completed.
+	 *
+	 * For Views, WPAs and Content Templates, we will manually run the appropriate "after update" action.
+	 *
+	 * @param int $new_post_id ID of the newly created post.
+	 * @since 1.12
+	 */
+	public function icl_pro_translation_completed( $new_post_id ) {
+		$post = get_post( $new_post_id );
+		if( $post instanceof WP_Post ) {
+			switch( $post->post_type ) {
+				case WPV_Content_Template_Embedded::POST_TYPE:
+					$ct = WPV_Content_Template_Embedded::get_instance( $post );
+					$ct->after_update_action();
+					break;
+				case WPV_View_Base::POST_TYPE:
+					// View or WPA, doesn't make difference this time.
+					$view = WPV_View_Base::get_instance( $post );
+					$view->after_update_action();
+					break;
+			}
+		}
+	}
+	
+	public function wpml_get_user_admin_language_post_id( $id, $element_type = 'any' ) {
+		$current_user_id = get_current_user_id();
+		$user_admin_lang = apply_filters( 'wpml_get_user_admin_language', '', $current_user_id );
+		$id = apply_filters( 'translate_object_id', $id, $element_type, true, $user_admin_lang );
+		return $id;
+	}
 }

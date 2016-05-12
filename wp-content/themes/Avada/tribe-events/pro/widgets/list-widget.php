@@ -53,7 +53,7 @@ if ( isset( $posts ) && $posts ) :
 	<?php endforeach ?>
 
 	<p class="tribe-events-widget-link">
-		<a href="<?php esc_attr( esc_url( $link_to_all ) ) ?>" rel="bookmark">
+		<a href="<?php esc_attr_e( esc_url( $link_to_all ) ) ?>" rel="bookmark">
 			<?php esc_html_e( 'View More&hellip;', 'tribe-events-calendar-pro' ) ?>
 		</a>
 	</p>
@@ -62,7 +62,7 @@ if ( isset( $posts ) && $posts ) :
 // No Events were found.
 else:
 ?>
-	<p><?php printf( __( 'There are no upcoming %s at this time.', 'tribe-events-calendar' ), strtolower( tribe_get_event_label_plural() ) ); ?></p>
+	<p><?php printf( __( 'There are no upcoming %s at this time.', 'the-events-calendar' ), strtolower( tribe_get_event_label_plural() ) ); ?></p>
 <?php
 endif;
 

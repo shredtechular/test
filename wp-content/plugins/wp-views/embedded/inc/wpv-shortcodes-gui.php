@@ -313,6 +313,13 @@ function wpv_shortcode_gui_dialog_render_attribute( $id, $data = array(), $class
      * produce code
      */
     switch( $data['type'] ) {
+	case 'info':
+		if ( isset( $data['content'] ) ) {
+			$content .= '<p class="' . esc_attr( $id ) . '">'
+				. $data['content']
+				. '</p>';
+		}
+		break;
     case 'number':
     case 'text':
     case 'url':
@@ -528,7 +535,11 @@ function wpv_shortcode_gui_dialog_render_attribute( $id, $data = array(), $class
 					&& isset( $current_post_type_data['post_relationship']['belongs'] )
 				) {
 					foreach ( array_keys( $current_post_type_data['post_relationship']['belongs'] ) as $cpt_in_relation) {
-						$current_post_type_parents[] = $cpt_in_relation;
+						// Watch out! WE are not currently clearing the has and belongs entries of the relationships when deleting a post type
+						// So make sure the post type does exist
+						if ( isset( $custom_post_types_relations[ $cpt_in_relation ] ) ) {
+							$current_post_type_parents[] = $cpt_in_relation;
+						}
 					}
 				}
 			}
@@ -1015,6 +1026,59 @@ function wpv_suggest_wpv_post_field_name() {
 	die();
 }
 
+add_action('wp_ajax_wpv_suggest_wpv_taxonomy_field_name', 'wpv_suggest_wpv_taxonomy_field_name');
+add_action('wp_ajax_nopriv_wpv_suggest_wpv_taxonomy_field_name', 'wpv_suggest_wpv_taxonomy_field_name');
+
+// @todo please avoid hidden fields!!
+// Then do an array filter on the stored array of hidden fields that should be shown
+function wpv_suggest_wpv_taxonomy_field_name() {
+	global $wp_version;
+	if ( version_compare( $wp_version, '4.4' ) < 0 ) {
+		echo '';
+		die();
+	}
+	global $wpdb;
+	$meta_key_q = '%' . wpv_esc_like( $_REQUEST['q'] ) . '%';
+	$cf_keys = $wpdb->get_col( 
+		$wpdb->prepare(
+			"SELECT DISTINCT meta_key
+			FROM {$wpdb->termmeta}
+			WHERE meta_key LIKE %s
+			ORDER BY meta_key
+			LIMIT 5",
+			$meta_key_q 
+		) 
+	);
+	foreach ( $cf_keys as $key ) {
+		echo $key . "\n";
+	}
+	die();
+}
+
+add_action('wp_ajax_wpv_suggest_wpv_user_field_name', 'wpv_suggest_wpv_user_field_name');
+add_action('wp_ajax_nopriv_wpv_suggest_wpv_user_field_name', 'wpv_suggest_wpv_user_field_name');
+
+// @todo please avoid hidden fields!!
+// Then do an array filter on the stored array of hidden fields that should be shown
+function wpv_suggest_wpv_user_field_name() {
+	global $wpdb;
+	$meta_key_q = '%' . wpv_esc_like( $_REQUEST['q'] ) . '%';
+	$cf_keys = $wpdb->get_col( 
+		$wpdb->prepare(
+			"SELECT DISTINCT meta_key
+			FROM {$wpdb->usermeta}
+			WHERE meta_key LIKE %s
+			ORDER BY meta_key
+			LIMIT 5",
+			$meta_key_q 
+		) 
+	);
+	foreach ( $cf_keys as $key ) {
+		echo $key . "\n";
+	}
+	die();
+}
+
 /**
 * wpv_suggest_form_targets
 *
@@ -1219,35 +1283,4 @@ function wpv_shortcodes_gui_load_post_field_section_on_demand() {
 		'section' => $dialog_content
 	);
 	wp_send_json_success( $data );
-}
-
-/**
-* wpv_action_wpv_delete_shortcodes_gui_transients
-*
-* Deletes the shortcodes GUI transients when creating or updating a View, CT or WPA
-*
-* @since 1.10
-*/
-
-add_action( 'save_post', 'wpv_delete_shortcodes_gui_transients', 10, 2 );
-add_action( 'delete_post', 'wpv_delete_shortcodes_gui_transients', 10 );
-add_action( 'wpv_action_wpv_save_item', 'wpv_delete_shortcodes_gui_transients' );
-
-function wpv_delete_shortcodes_gui_transients( $post_id, $post = null ) {
-	if ( is_null( $post ) ) {
-		$post = get_post( $post_id );
-	}
-	$slugs = array( 'view', 'view-template' );
-    if ( ! in_array( $post->post_type, $slugs ) ) {
-        return;
-    }
-	switch ( $post->post_type ) {
-		case 'view':
-			delete_transient( 'wpv_transient_published_views' );
-			break;
-		case 'view-template':
-			delete_transient( 'wpv_transient_published_cts' );
-			break;
-		
-	}
 }

@@ -77,7 +77,14 @@ WPViews.TaxonomyFilterGUI = function( $ ) {
 							.data('parameter')
 				);
 			single_element.find('.js-taxonomy-param').data('type', 'url');
-		} else if ( mode_value == 'FROM PAGE' || mode_value == 'FROM PARENT VIEW' ) {
+		} else if ( 
+			mode_value == 'FROM PAGE' // @deprecated in 1.12.1
+			|| mode_value == 'current_post_or_parent_post_view' 
+			|| mode_value == 'top_current_post' 
+			|| mode_value == 'FROM PARENT VIEW' // @deprecated in 1.12.1
+			|| mode_value == 'current_taxonomy_view' 
+		) {
+			// do nothing
 		} else if ( mode_value == 'framework' ) {
 			single_element.find( '.js-taxonomy-framework' ).fadeIn();
 		} else if (

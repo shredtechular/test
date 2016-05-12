@@ -59,21 +59,6 @@ function wpv_ct_editor_init() {
 
         add_filter( 'wpcf_filter_force_include_types_fields_on_views_dialog', '__return_true' );
 
-        // By now, the editor scripts should be registered, but we'll check just to be sure.
-        // @todo Changes in common should make those available as dependencies, since they all are registered on init
-        if ( ! wp_script_is( 'editor_addon_menu', 'registered ') ) {
-            wp_register_style('editor_addon_menu', EDITOR_ADDON_RELPATH . '/res/css/pro_dropdown_2.css');
-        }
-        if ( ! wp_script_is( 'editor_addon_menu', 'registered ') ) {
-            wp_register_style('editor_addon_menu_scroll', EDITOR_ADDON_RELPATH . '/res/css/scroll.css');
-        }
-        if ( ! wp_script_is( 'editor_addon_menu', 'registered ') ) {
-            wp_register_script( 'icl_editor-script', EDITOR_ADDON_RELPATH . '/res/js/icl_editor_addon_plugin.js', array( 'jquery', 'quicktags', 'wplink' ) );
-        }
-        if ( ! wp_script_is( 'editor_addon_menu', 'registered ') ) {
-            wp_register_script( 'icl_media-manager-js', EDITOR_ADDON_RELPATH . '/res/js/icl_media_manager.js', array( 'jquery', 'icl_editor-script' ) );
-        }
-
         // Register main CT editor script
         wp_register_script(
             'views-ct-editor-js',
@@ -171,7 +156,7 @@ function wpv_ct_editor_enqueue() {
 function wpv_ct_editor_page() {
 
     if( !current_user_can( 'manage_options' ) ) {
-        wpv_die_toolset_alert_error( __( 'You have no permission to acces this page.', 'wpv-views' ) );
+        wpv_die_toolset_alert_error( __( 'You have no permission to access this page.', 'wpv-views' ) );
     }
 
     $action = wpv_getget( 'action', 'edit', array( 'edit', 'create' ) );
@@ -386,7 +371,10 @@ function wpv_ct_editor_page_edit( $ct ) {
  *     meant mainly for sections with CodeMirror editors.
  * @param string $container_class Additional class(es) for the 'wpv-setting-container' div.
  * @param string $setting_class Additional class(es) for the 'wpv-setting' div.
- * @param array/string $display Display options to show/hide parts of section.
+ * @param null|array $pointer_args Optional arguments for rendering a pointer inside the section. Should contain
+ *     'section' and 'pointer_slug' keys.
+ * @param array $display Display options to show/hide parts of section. Allowed keys are 'title' and 'setting', while
+ *     value should be either 'show' or 'hide'. Default is 'show'.
  *
  * @since 1.9
  */
@@ -426,16 +414,23 @@ function wpv_ct_editor_render_section( $section_title, $class, $content, $wide_c
 
 	<div class="wpv-settings-section <?php echo $class; ?> hidden">
 		<div class="wpv-setting-container <?php echo $container_class; ?>">
-<?php if ( 'hide' != $display['title'] ) { ?>
-			<div class="wpv-settings-header">
-				<h2><?php echo $section_title . $pointer ?></h2>
-			</div>
-<?php } ?>
-<?php if ( 'hide' != $display['setting'] ) { ?>
-			<div class="wpv-setting <?php echo $setting_class; ?>">
-				<?php echo $content; ?>
-			</div>
-<?php } ?>
+            <?php
+            if ( 'hide' != $display['title'] ) {
+				?>
+				<div class="wpv-settings-header">
+					<h2><?php echo $section_title . $pointer ?></h2>
+				</div>
+				<?php
+			}
+
+			if ( 'hide' != $display['setting'] ) {
+				?>
+				<div class="wpv-setting <?php echo $setting_class; ?>">
+					<?php echo $content; ?>
+				</div>
+				<?php
+			}
+			?>
 		</div>
 	</div>
 
@@ -610,7 +605,10 @@ add_filter( 'wpcf_filter_force_include_types_fields_on_views_dialog', 'wpv_ct_ed
  * @since 1.9
  */
 function wpv_ct_editor_include_types_groups_on_dialog( $state, $current_screen ) {
-    if ( 'views_page_ct-editor' == $current_screen->id ) {
+    if ( 
+		'views_page_ct-editor' == $current_screen->id //DEPRECATED
+		|| 'toolset_page_ct-editor' == $current_screen->id 
+	) {
         $state = true;
     }
     return $state;

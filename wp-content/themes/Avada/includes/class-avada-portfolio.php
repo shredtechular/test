@@ -16,7 +16,7 @@ class Avada_Portfolio {
 	 */
 	public function set_post_filters( $query ) {
 
-		if ( $query->is_main_query() && ( is_tax( 'portfolio_category' ) || is_tax( 'portfolio_skills' ) || is_tax( 'portfolio_tags' ) ) ) {
+		if ( ! is_admin() && $query->is_main_query() && ( is_tax( 'portfolio_category' ) || is_tax( 'portfolio_skills' ) || is_tax( 'portfolio_tags' ) ) ) {
 			$query->set( 'posts_per_page', Avada()->settings->get( 'portfolio_items' ) );
 		}
 

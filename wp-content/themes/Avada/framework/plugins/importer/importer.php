@@ -254,11 +254,205 @@ function fusion_importer() {
 					$fs_exists = true;
 					$fs_url = get_template_directory() . '/framework/plugins/importer/church_demo/fusion_slider.zip';
 				break;
-				default:
+				case 'gym':
+					$shop_demo = false;
+					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/gym_demo/avada.xml';
+					$theme_options_file = get_template_directory() . '/framework/plugins/importer/gym_demo/theme_options.txt';
+
+					// Register Custom Sidebars
+					$sidebar_exists = false;
+
+					// Sidebar Widgets File
+					$widgets_file = get_template_directory() . '/framework/plugins/importer/gym_demo/widget_data.json';
+
+					$layerslider_exists = false;
+					$revslider_exists = false;
+
+					// reading settings
+					$homepage_title = 'Home';
+
+					$fs_exists = true;
+					$fs_url = get_template_directory() . '/framework/plugins/importer/gym_demo/fusion_slider.zip';
+				break;
+				case 'modern_shop':
+					// is a shop demo?
 					$shop_demo = true;
+					// Set pages
+					$woopages = array(
+						'woocommerce_shop_page_id' => 'Full Shop With Sidebar',
+						'woocommerce_cart_page_id' => 'Cart',
+						'woocommerce_checkout_page_id' => 'Checkout',
+						'woocommerce_pay_page_id' => 'Checkout &#8594; Pay',
+						'woocommerce_thanks_page_id' => 'Order Received',
+						'woocommerce_myaccount_page_id' => 'My Account',
+						'woocommerce_edit_address_page_id' => 'Edit My Address',
+						'woocommerce_view_order_page_id' => 'View Order',
+						'woocommerce_change_password_page_id' => 'Change Password',
+						'woocommerce_logout_page_id' => 'Logout',
+						'woocommerce_lost_password_page_id' => 'Lost Password'
+					);
+					$woo_xml = get_template_directory() . '/framework/plugins/importer/modern_shop_demo/avada.xml';
+
+					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/modern_shop_demo/avada.xml';
+					$theme_options_file = get_template_directory() . '/framework/plugins/importer/modern_shop_demo/theme_options.txt';
+
+					// Register Custom Sidebars
+					$sidebar_exists = true;
+					$sidebars = array(
+						'Shop' => 'Shop'
+					);
+
+					// Sidebar Widgets File
+					$widgets_file = get_template_directory() . '/framework/plugins/importer/modern_shop_demo/widget_data.json';
+
+					$layerslider_exists = false;
+					$revslider_exists = false;
+
+					// reading settings
+					$homepage_title = 'Home';
+
+					$fs_exists = true;
+					$fs_url = get_template_directory() . '/framework/plugins/importer/modern_shop_demo/fusion_slider.zip';
+				break;
+				case 'classic_shop':
+					// is a shop demo?
+					$shop_demo = true;
+					// Set pages
+					$woopages = array(
+						'woocommerce_shop_page_id' => 'Shop Full Width',
+						'woocommerce_cart_page_id' => 'Shopping Cart',
+						'woocommerce_checkout_page_id' => 'Checkout',
+						'woocommerce_pay_page_id' => 'Checkout &#8594; Pay',
+						'woocommerce_thanks_page_id' => 'Order Received',
+						'woocommerce_myaccount_page_id' => 'My Account',
+						'woocommerce_edit_address_page_id' => 'Edit My Address',
+						'woocommerce_view_order_page_id' => 'View Order',
+						'woocommerce_change_password_page_id' => 'Change Password',
+						'woocommerce_logout_page_id' => 'Logout',
+						'woocommerce_lost_password_page_id' => 'Lost Password'
+					);
+					$woo_xml = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/avada.xml';
+
+					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/avada.xml';
+					$theme_options_file = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/theme_options.txt';
+
+					// Register Custom Sidebars
+					$sidebar_exists = true;
+					$sidebars = array(
+						'Men' => 'Men',
+						'Women' => 'Women',
+						'Accessories' => 'Accessories',
+						'Products Sidebar' => 'ProductsSidebar',
+						'Content Widget 1' => 'ContentWidget1',
+						'Content Widget 2' => 'ContentWidget2',
+						'Content Widget 3' => 'ContentWidget3',
+						'Content Widget 4' => 'ContentWidget4',
+						'Promotion' => 'Promotion'
+					);
+					$sidebars = array_flip( $sidebars ); // lazy code
+
+					// Sidebar Widgets File
+					$widgets_file = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/widget_data.json';
+
+					$layerslider_exists = false;
+
+					$revslider_exists = true;
+					$rev_directory = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/revsliders/';
+
+					// reading settings
+					$homepage_title = 'Home 1';
+
+					$fs_exists = true;
+					$fs_url = get_template_directory() . '/framework/plugins/importer/classic_shop_demo/fusion_slider.zip';
+				break;
+				case 'landing_product':
+				// is a shop demo?
+					$shop_demo = true;
+					// Set pages
+					$woopages = array(
+						'woocommerce_shop_page_id' => 'Shop',
+						'woocommerce_cart_page_id' => 'Cart',
+						'woocommerce_checkout_page_id' => 'Checkout',
+						'woocommerce_pay_page_id' => 'Checkout &#8594; Pay',
+						'woocommerce_thanks_page_id' => 'Order Received',
+						'woocommerce_myaccount_page_id' => 'My Account',
+						'woocommerce_edit_address_page_id' => 'Edit My Address',
+						'woocommerce_view_order_page_id' => 'View Order',
+						'woocommerce_change_password_page_id' => 'Change Password',
+						'woocommerce_logout_page_id' => 'Logout',
+						'woocommerce_lost_password_page_id' => 'Lost Password'
+					);
+					$woo_xml = get_template_directory() . '/framework/plugins/importer/landing_product_demo/avada.xml';
+
+					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/landing_product_demo/avada.xml';
+					$theme_options_file = get_template_directory() . '/framework/plugins/importer/landing_product_demo/theme_options.txt';
+
+					// Register Custom Sidebars
+					$sidebar_exists = false;
+
+					// Sidebar Widgets File
+					$widgets_file = get_template_directory() . '/framework/plugins/importer/landing_product_demo/widget_data.json';
+
+					$layerslider_exists = false;
+
+					$revslider_exists = true;
+					$rev_directory = get_template_directory() . '/framework/plugins/importer/landing_product_demo/revsliders/';
+
+					// reading settings
+					$homepage_title = 'Homepage';
+
+					$fs_exists = false;
+				break;
+				case 'forum':
+					$shop_demo = false;
+					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/forum_demo/avada.xml';
+					$theme_options_file = get_template_directory() . '/framework/plugins/importer/forum_demo/theme_options.txt';
+
+					// Register Custom Sidebars
+					$sidebar_exists = true;
+					$sidebars = array(
+						'News Sidebar' => 'NewsSidebar',
+						'Forum Sidebar' => 'ForumSidebar',
+						'Apple Sidebar' => 'AppleSidebar',
+						'Android Sidebar' => 'AndroidSidebar',
+						'Microsoft Sidebar' => 'MicrosoftSidebar'
+					);
+					$sidebars = array_flip( $sidebars ); // lazy code
+
+					// Sidebar Widgets File
+					$widgets_file = get_template_directory() . '/framework/plugins/importer/forum_demo/widget_data.json';
+
+					$layerslider_exists = false;
+
+					$revslider_exists = false;
+					// reading settings
+					$homepage_title = 'Home';
+
+					$fs_exists = true;
+					$fs_url = get_template_directory() . '/framework/plugins/importer/forum_demo/fusion_slider.zip';
+				break;
+				default:
+					// is a shop demo?
+					$shop_demo = true;
+					// Set pages
+					$woopages = array(
+						'woocommerce_shop_page_id' => 'Shop',
+						'woocommerce_cart_page_id' => 'Cart',
+						'woocommerce_checkout_page_id' => 'Checkout',
+						'woocommerce_pay_page_id' => 'Checkout &#8594; Pay',
+						'woocommerce_thanks_page_id' => 'Order Received',
+						'woocommerce_myaccount_page_id' => 'My Account',
+						'woocommerce_edit_address_page_id' => 'Edit My Address',
+						'woocommerce_view_order_page_id' => 'View Order',
+						'woocommerce_change_password_page_id' => 'Change Password',
+						'woocommerce_logout_page_id' => 'Logout',
+						'woocommerce_lost_password_page_id' => 'Lost Password'
+					);
 					$woo_xml = get_template_directory() . '/framework/plugins/importer/classic_demo/avada.xml';
+
 					$theme_xml_file = get_template_directory() . '/framework/plugins/importer/classic_demo/avada.xml';
 					$theme_options_file = get_template_directory() . '/framework/plugins/importer/classic_demo/theme_options.txt';
+
 
 					// Register Custom Sidebars
 					$sidebar_exists = true;
@@ -301,20 +495,6 @@ function fusion_importer() {
 				$importer->import($theme_xml);
 				ob_end_clean();
 
-				// Set pages
-				$woopages = array(
-					'woocommerce_shop_page_id' => 'Shop',
-					'woocommerce_cart_page_id' => 'Cart',
-					'woocommerce_checkout_page_id' => 'Checkout',
-					'woocommerce_pay_page_id' => 'Checkout &#8594; Pay',
-					'woocommerce_thanks_page_id' => 'Order Received',
-					'woocommerce_myaccount_page_id' => 'My Account',
-					'woocommerce_edit_address_page_id' => 'Edit My Address',
-					'woocommerce_view_order_page_id' => 'View Order',
-					'woocommerce_change_password_page_id' => 'Change Password',
-					'woocommerce_logout_page_id' => 'Logout',
-					'woocommerce_lost_password_page_id' => 'Lost Password'
-				);
 				foreach($woopages as $woo_page_name => $woo_page_title) {
 					$woopage = get_page_by_title( $woo_page_title );
 					if(isset( $woopage ) && $woopage->ID) {
@@ -345,8 +525,10 @@ function fusion_importer() {
 			$menus = wp_get_nav_menus(); // registered menus
 
 			if($menus) {
-				if( $demo_type == 'classic' ) {
+				if ( $demo_type == 'classic' ) {
 					$opmenu = get_page_by_title( 'One Page' );
+				} else if ( $demo_type == 'landing_product' ) {
+					$opmenu = get_page_by_title( 'Homepage' );
 				}
 				foreach($menus as $menu) { // assign menus to theme locations
 					if( $demo_type == 'classic' ) {
@@ -403,6 +585,33 @@ function fusion_importer() {
 							$locations['main_navigation'] = $menu->term_id;
 						}
 					} elseif( $demo_type == 'church' ) {
+						if( $menu->name == 'Main Menu' ) {
+							$locations['main_navigation'] = $menu->term_id;
+						}
+					} elseif( $demo_type == 'gym' ) {
+						if( $menu->name == 'Main Menu' ) {
+							$locations['main_navigation'] = $menu->term_id;
+						}
+					} elseif( $demo_type == 'modern_shop' ) {
+						if( $menu->name == 'Main Menu' ) {
+							$locations['main_navigation'] = $menu->term_id;
+						}
+					} elseif( $demo_type == 'classic_shop' ) {
+						if( $menu->name == 'Main Menu' ) {
+							$locations['main_navigation'] = $menu->term_id;
+						} else if( $menu->name == 'Top Secondary Menu' ) {
+							$locations['top_navigation'] = $menu->term_id;
+						}
+					} elseif( $demo_type == 'landing_product' ) {
+						// Assign One Page Menu
+						if ( isset( $opmenu ) && $opmenu->ID && $menu->name == 'Landing Page Menu' ) {
+							update_post_meta( $opmenu->ID, 'pyre_displayed_menu', $menu->term_id );
+						}
+
+						if( $menu->name == 'Main Menu' ) {
+							$locations['main_navigation'] = $menu->term_id;
+						}
+					} elseif( $demo_type == 'forum' ) {
 						if( $menu->name == 'Main Menu' ) {
 							$locations['main_navigation'] = $menu->term_id;
 						}
@@ -511,6 +720,8 @@ function fusion_importer() {
 			if( $fs_exists == true ) {
 				@avada_import_fsliders( $fs_url );
 			}
+
+			update_option( 'avada_imported_demo', 'true' );
 
 			echo 'imported';
 

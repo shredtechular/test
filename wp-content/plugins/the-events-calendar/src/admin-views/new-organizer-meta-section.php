@@ -56,7 +56,13 @@ $organizer_pto = get_post_type_object( Tribe__Events__Main::ORGANIZER_POST_TYPE 
 		$('#event_organizer').on('blur', '.organizer-name', function () {
 			var input = $(this);
 			var group = input.parents('tbody');
-			$.post(ajaxurl,
+
+			// Not actually populated with anything? Don't bother validating
+			if ( ! input.val().length ) {
+				return;
+			}
+
+			$.post( TEC.ajaxurl,
 				{
 					action: 'tribe_event_validation',
 					nonce: '<?php echo wp_create_nonce( 'tribe-validation-nonce' ); ?>',

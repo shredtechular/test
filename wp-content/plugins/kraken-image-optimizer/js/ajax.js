@@ -1,38 +1,26 @@
 jQuery(document).ready(function($) {
 
-    var errors = [{
-        code: 401,
-        msg: 'Unnknown API Key. Please check your API key and try again'
-    }, {
-        code: 403,
-        msg: 'Your account has been temporarily suspended'
-    }, {
-        code: 413,
-        msg: 'File size too large. The maximum file size for your plan is 1048576 bytes'
-    }, {
-        code: 415,
-        msg: 'File type not supported'
-    }, {
-        code: 415,
-        msg: 'WebP compression is non available for SVG images'
-    }, {
-        code: 422,
-        msg: 'You need to specify either callback_url or wait flag'
-    }, {
-        code: 422,
-        msg: 'This image can not be optimized any further'
-    }, {
-        code: 500,
-        msg: 'Kraken has encountered an unexpected error and cannot fulfill your request'
-    }, {
-        code: 502,
-        msg: 'Couldn\'t get this file'
-    }];
-
+    var tipsySettings =  {
+        gravity: 'e',
+        html: true,
+        trigger: 'manual',
+        className: function() {
+            return 'tipsy-' + $(this).data('id');
+        },
+        title: function() {
+            activeId = $(this).data('id');
+            return $(this).attr('original-title');
+        }
+    }
 
     $('.krakenWhatsThis').tipsy({
         fade: true,
         gravity: 'w'
+    });
+
+    $('.krakenError').tipsy({
+        fade: true,
+        gravity: 'e'
     });
 
     var data = {
@@ -48,23 +36,24 @@ jQuery(document).ready(function($) {
 
     var requestSuccess = function(data, textStatus, jqXHR) {
         var $button = $(this),
-            $parent = $(this).parent(),
+            $parent = $(this).closest('.kraken-wrap, .buttonWrap'),
             $cell = $(this).closest("td");
 
-        if (data.success && typeof data.error === 'undefined') {
-
+        if (data.html) {
             $button.text("Image optimized");
 
             var type = data.type,
-                krakedSize = data.kraked_size,
                 originalSize = data.original_size,
-                savingsPercent = data.savings_percent,
                 $originalSizeColumn = $(this).parent().prev("td.original_size"),
                 krakedData = '';
 
             $parent.fadeOut("fast", function() {
-                $cell.find(".noSavings, .krakenErrorWrap").remove();
-                $(this).replaceWith(data.html);
+                $cell
+                    .find(".noSavings, .krakenErrorWrap")
+                    .remove();
+                $cell.html(data.html);
+                $cell.find('.kraken-item-details')
+                    .tipsy(tipsySettings);
                 $originalSizeColumn.html(originalSize);
                 $parent.remove();
             });
@@ -137,40 +126,42 @@ jQuery(document).ready(function($) {
         return rv;
     };
 
+    var bulkModalOptions = {
+        zIndex: 4,
+        escapeClose: true,
+        clickClose: false,
+        closeText: 'close',
+        showClose: false
+    };
+
     var renderBulkImageSummary = function(bulkImageData) {
-        var modalOptions = {
-                zIndex: 4,
-                escapeClose: true,
-                clickClose: false,
-                closeText: 'close',
-                showClose: false
-            },
-            setting = kraken_settings.api_lossy,
-            nImages = bulkImageData.length,
-            header = '<p class="krakenBulkHeader">Kraken Bulk Image Optimization</p>',
-            krakEmAll = '<button class="kraken_req_bulk">Krak \'em all</button>',
-            typeRadios = '<span class="radiosWrap"><span class="kraken-bulk-choose-type">Choose:</span>' + '<input type="radio" id="kraken-bulk-type-lossy" value="Lossy" name="kraken-bulk-type"/>' + '<label for="kraken-bulk-type-lossy">Lossy</label>&nbsp;' + '<input type="radio" id="kraken-bulk-type-lossless" value="Lossless" name="kraken-bulk-type"/>' + '<label for="kraken-bulk-type-lossless">Lossless</label></span>',
-            $modal = $('<div id="kraken-bulk-modal" class="kraken-modal"></div>')
-            .html(header)
-            .append(typeRadios)
-            .append('<br /><small class="kraken-bulk-small">The following <strong>' + nImages + '</strong> images will be optimized by Kraken.io using the <strong class="bulkSetting">' + setting + '</strong> setting:</small><br />')
-            .appendTo("body")
-            .kmodal(modalOptions)
-            .bind($.kmodal.BEFORE_CLOSE, function(event, modal) {
+        var setting = kraken_settings.api_lossy;
+        var nImages = bulkImageData.length;
+        var header = '<p class="krakenBulkHeader">Kraken Bulk Image Optimization <span class="close-kraken-bulk">&times;</span></p>';
+        var krakEmAll = '<button class="kraken_req_bulk">Krak \'em all</button>';
+        var typeRadios = '<div class="radiosWrap"><p>Choose optimization mode:</p><label><input type="radio" id="kraken-bulk-type-lossy" value="Lossy" name="kraken-bulk-type"/>Intelligent Lossy</label>&nbsp;&nbsp;&nbsp;<label><input type="radio" id="kraken-bulk-type-lossless" value="Lossless" name="kraken-bulk-type"/>Lossless</label></div>';
 
-            })
-            .bind($.kmodal.OPEN, function(event, modal) {
+        var $modal = $('<div id="kraken-bulk-modal" class="kraken-modal"></div>')
+                .html(header)
+                .append(typeRadios)
+                .append('<p class="the-following">The following <strong>' + nImages + '</strong> images will be optimized by Kraken.io using the <strong class="bulkSetting">' + setting + '</strong> setting:</p>')
+                .appendTo("body")
+                .kmodal(bulkModalOptions)
+                .bind($.kmodal.BEFORE_CLOSE, function(event, modal) {
 
-            })
-            .bind($.kmodal.CLOSE, function(event, modal) {
-                $("#kraken-bulk-modal").remove();
-            })
-            .css({
-                top: "10px",
-                marginTop: "40px"
-            });
+                })
+                .bind($.kmodal.OPEN, function(event, modal) {
 
-        if (setting === 'lossy') {
+                })
+                .bind($.kmodal.CLOSE, function(event, modal) {
+                    $("#kraken-bulk-modal").remove();
+                })
+                .css({
+                    top: "10px",
+                    marginTop: "40px"
+                });
+
+        if (setting === "lossy") {
             $("#kraken-bulk-type-lossy").attr("checked", true);
         } else {
             $("#kraken-bulk-type-lossless").attr("checked", true);
@@ -193,17 +184,16 @@ jQuery(document).ready(function($) {
         });
 
         var $table = $('<table id="kraken-bulk"></table>'),
-            $headerRow = $('<tr class="kraken-bulk-header"><td>File</td><td style="width:120px">Original Size</td><td style="width:120px">Kraked Size</td><td style="width:120px">Savings</td><td style="width:120px">% Savings</td></tr>');
+            $headerRow = $('<tr class="kraken-bulk-header"><td>File Name</td><td style="width:120px">Original Size</td><td style="width:120px">Kraken.io Stats</td></tr>');
 
         $table.append($headerRow);
         $.each(bulkImageData, function(index, element) {
-            $table.append('<tr class="kraken-item-row" data-krakenbulkid="' + element.id + '"><td class="kraken-filename">' + element.filename + '</td><td class="kraken-originalsize">' + element.originalSize + '</td><td class="kraken-krakedsize"><span class="krakenBulkSpinner hidden"></span></td><td class="kraken-savings"></td><td class="kraken-savingsPercent"></td></tr>');
+            $table.append('<tr class="kraken-item-row" data-krakenbulkid="' + element.id + '"><td class="kraken-bulk-filename">' + element.filename + '</td><td class="kraken-originalsize">' + element.originalSize + '</td><td class="kraken-krakedsize"><span class="krakenBulkSpinner hidden"></span></td></tr>');
         });
 
         $modal
             .append($table)
-            .append(krakEmAll)
-            .append('<span class="close-kraken-bulk">Close Window</span>');
+            .append(krakEmAll);
 
         $(".close-kraken-bulk").click(function() {
             $.kmodal.close();
@@ -217,6 +207,7 @@ jQuery(document).ready(function($) {
                 });
         }
     };
+
 
     var bulkAction = function(bulkImageData) {
 
@@ -242,37 +233,44 @@ jQuery(document).ready(function($) {
                 data: {
                     'action': 'kraken_request',
                     'id': id,
-                    'type': $("input[name='kraken-bulk-type']:checked").val().toLowerCase()
+                    'type': $("input[name='kraken-bulk-type']:checked").val().toLowerCase(),
+                    'origin': 'bulk_optimizer'
                 },
                 type: "post",
                 dataType: "json",
                 timeout: 360000
             })
                 .done(function(data, textStatus, jqXHR) {
-                    if (data.success && typeof data.error === 'undefined') {
+                    if (data.success && typeof data.message === 'undefined') {
                         var type = data.type,
                             originalSize = data.original_size,
-                            krakedSize = data.kraked_size,
+                            krakedSize = data.html,
                             savingsPercent = data.savings_percent,
                             savingsBytes = data.saved_bytes;
 
-                        $krakedSizeColumn.text(krakedSize);
+                        $krakedSizeColumn.html(data.html);
+
+                        $krakedSizeColumn
+                            .find('.kraken-item-details')
+                            .remove();
+
                         $savingsPercentColumn.text(savingsPercent);
                         $savingsBytesColumn.text(savingsBytes);
 
                         var $button = $("button[id='krakenid-" + id + "']"),
                             $parent = $button.parent(),
                             $cell = $button.closest("td"),
-                            $originalSizeColumn = $button.parent().prev("td.original_size")
+                            $originalSizeColumn = $button.parent().prev("td.original_size");
 
 
                         $parent.fadeOut("fast", function() {
                             $cell.find(".noSavings, .krakenErrorWrap").remove();
-                            krakedData = '<strong>' + krakedSize + '</strong><br /><small>Type:&nbsp;' + type + '</small><br /><small>Savings: ' + savingsPercent + '</small>';
-                            if (typeof data.thumbs_data !== 'undefined') {
-                                krakedData += '<br /><small>' + data.thumbs_data.length + ' thumbs optimized</small>';
-                            }
-                            $(this).replaceWith(krakedData);
+                            $cell
+                                .empty()
+                                .html(data.html);
+                            $cell
+                                .find('.kraken-item-details')
+                                .tipsy(tipsySettings);
                             $originalSizeColumn.html(originalSize);
                             $parent.remove();
                         });
@@ -284,7 +282,6 @@ jQuery(document).ready(function($) {
 
                         }
                     }
-
                 })
 
             .fail(function() {
@@ -338,13 +335,45 @@ jQuery(document).ready(function($) {
             }
         });
 
+    var activeId = null;
+    $('.kraken-item-details').tipsy(tipsySettings);
+
+    var $activePopup = null;
+    $('body').on('click', '.kraken-item-details', function(e) {
+        //$('.tipsy[class="tipsy-' + activeId + '"]').remove();
+
+        var id = $(this).data('id');
+        $('.tipsy').remove();
+        if (id == activeId) {
+            activeId = null;
+            $(this).text('Show details');
+            return;
+        }
+        $('.kraken-item-details').text('Show details');
+        $(this).tipsy('show');
+        $(this).text('Hide details');
+    });
+
+    $('body').on('click', function(e) {
+        var $t = $(e.target);
+        if (($t.hasClass('tipsy') || $t.closest('.tipsy').length) || $t.hasClass('kraken-item-details')) {
+            return;
+        } else {
+            activeId = null;
+            $('.kraken-item-details').text('Show details');
+            $('.tipsy').remove();
+        }
+    });
+
     $('body').on('click', 'small.krakenReset', function(e) {
         e.preventDefault();
         var $resetButton = $(this);
         var resetData = {
             action: 'kraken_reset'
         };
+
         resetData.id = $(this).data("id");
+        $row = $('#post-' + resetData.id).find('.kraked_size');
 
         var $spinner = $('<span class="resetSpinner"></span>');
         $resetButton.after($spinner);
@@ -358,13 +387,14 @@ jQuery(document).ready(function($) {
             })
             .done(function(data, textStatus, jqXHR) {
                 if (data.success !== 'undefined') {
-                    $resetButton
-                        .closest('.kraked_size.column-kraked_size')
+                    $row
                         .hide()
                         .html(data.html)
                         .fadeIn()
                         .prev(".original_size.column-original_size")
                         .html(data.original_size);
+
+                    $('.tipsy').remove();
                 }
             });
     });
@@ -417,7 +447,7 @@ jQuery(document).ready(function($) {
             $rows.show();
             $plusMinus
                 .removeClass('dashicons-arrow-right')
-                .addClass('dashicons-arrow-down');        
+                .addClass('dashicons-arrow-down');
         }
     });
 

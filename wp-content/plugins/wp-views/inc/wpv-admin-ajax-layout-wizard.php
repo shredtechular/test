@@ -104,6 +104,7 @@ function wpv_loop_wizard_get_available_field_menus( $view_id ) {
 	} else if ( $menus_for == 'taxonomy' ) {
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_taxonomy_V', 30 );
+		add_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
 	} else if ( $menus_for == 'users' ) {
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_users_V', 30 );
@@ -118,6 +119,7 @@ function wpv_loop_wizard_get_available_field_menus( $view_id ) {
 	
 	if ( $menus_for == 'taxonomy' ) {
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_taxonomy_V', 30 );
+		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 	} else if ( $menus_for == 'users' ) {
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_users_V', 30 );
@@ -202,6 +204,7 @@ function wpv_loop_wizard_load_saved_fields() {
 			$shortcode_selected_ct_selected = '';
 			$shortcode_selected_is_types_field = false;
 			$shortcode_selected_is_types_userfield = false;
+			$shortcode_selected_is_types_termfield = false;
 			$shortcode_selected_types_name = '';
 			$shortcode_selected_has_views_attributes_gui = false;
 			$selected_views_attributes_gui = '';
@@ -247,6 +250,9 @@ function wpv_loop_wizard_load_saved_fields() {
 				} else if ( isset( $shortcode_selected_attributes['usermeta'] ) ) {
 					$shortcode_selected_is_types_userfield = true;
 					$shortcode_selected_types_name = $shortcode_selected_attributes['usermeta'];
+				} else if ( isset( $shortcode_selected_attributes['termmeta'] ) ) {
+					$shortcode_selected_is_types_termfield = true;
+					$shortcode_selected_types_name = $shortcode_selected_attributes['termmeta'];
 				}
 			}
 			
@@ -344,7 +350,22 @@ function wpv_loop_wizard_load_saved_fields() {
 								&& $field_in_loop[1] == $shortcode_selected_types_name
 							) {
 								$current_shortcode_is_selected = true;
+							} else if ( 
+								$shortcode_selected_is_types_termfield 
+								&& preg_match( '/termmeta="(.*?)"/', $current_shortcode_to_insert, $field_in_loop ) !== 0 
+								&& $field_in_loop[1] == $shortcode_selected_types_name
+							) {
+								$current_shortcode_is_selected = true;
 							}
+						}
+						
+						if ( 
+							! $current_shortcode_is_selected 
+							&& 'wpv-taxonomy-field' == $current_shortcode_handle 
+							&& 'wpv-taxonomy-field' == $shortcode_selected_handle
+						) {
+							$current_shortcode_is_selected = true;
+							$current_shortcode_to_insert = trim( $shortcode_selected_unslashed, '[]');
 						}
 					
 						if (
@@ -370,6 +391,9 @@ function wpv_loop_wizard_load_saved_fields() {
 							if ( preg_match('/name="views_woo(.*?)"/', $current_shortcode_to_insert, $woo_match) ) {
 								$current_shortcode_head = 'post-field-views_woo' . $woo_match[1];
 							}
+						} else if ( $current_shortcode_handle === "wpv-taxonomy-field" ) {
+							//$current_shortcode_handle_corrected = $current_shortcode_handle . '_corrected';
+							$current_shortcode_head = 'taxonomy-field-' . $current_shortcode_name;
 						} else if ( substr( $current_shortcode_to_insert, 0, 8 ) === "wpv-post" ) {
 							if (
 								'wpv-post-body' == $current_shortcode_handle
@@ -398,9 +422,13 @@ function wpv_loop_wizard_load_saved_fields() {
 								$current_shortcode_head = '';
 								$current_shortcode_is_types = true;
 								$current_shortcode_types_name = $field_in_loop[1];
+							} else if ( preg_match( '/termmeta="(.*?)"/', $current_shortcode_to_insert, $field_in_loop ) !== 0 ) {
+								$current_shortcode_head = 'taxonomy-field-' . $field_in_loop[1];
+								$current_shortcode_is_types = true;
+								$current_shortcode_types_name = $field_in_loop[1];
 							}
 						} else if ( substr( $current_shortcode_to_insert, 0, 12 ) === "wpv-taxonomy" ) { // heading table solumns for wpv-taxonomy-* shortcodes
-							if ( in_array( $current_shortcode_handle, array( 'wpv-taxonomy-link', 'wpv-taxonomy-title' ) ) ) {
+							if ( in_array( $current_shortcode_handle, array( 'wpv-taxonomy-link', 'wpv-taxonomy-title', 'wpv-taxonomy-id', 'wpv-taxonomy-slug' ) ) ) {
 								$current_shortcode_head = substr( $current_shortcode_handle, 4 );
 							}
 							if ( $current_shortcode_handle == 'wpv-taxonomy-post-count' ) {
@@ -463,6 +491,7 @@ function wpv_loop_wizard_load_saved_fields() {
 					! ( 
 						$shortcode_selected_is_types_field 
 						|| $shortcode_selected_is_types_userfield 
+						|| $shortcode_selected_is_types_termfield
 					) 
 				) { 
 					?> style="display: none" <?php 
@@ -471,7 +500,9 @@ function wpv_loop_wizard_load_saved_fields() {
 				}
 				if ( $menus_for == 'users' ) {
 					echo ' data-type="views-usermeta"';
-				}
+				} else if ( $menus_for == 'taxonomy' ) {
+					echo ' data-type="views-termmeta"';
+				} 
 				?>>
 					<i class="icon-edit fa fa-pencil-square-o"></i> <?php _e('Edit', 'wpv-views'); ?>
 				</button>
@@ -710,13 +741,14 @@ function wpv_generate_view_loop_output_callback() {
 	$view_id = $_POST['view_id'];
 	$style = sanitize_text_field( $_POST['style'] );
 	
-	// @todo better validation
 	$fields = json_decode( stripslashes( $_POST['fields'] ), true );
 	$args = json_decode( stripslashes( $_POST['args'] ), true );
+	$args = is_array( $args ) ? array_map( 'sanitize_text_field', $args ) : array();
 
     // Translate field data from non-associative arrays into something that WPV_View_Base::generate_loop_output() understands.
     $fields_normalized = array();
     foreach( $fields as $field ) {
+		$field = array_map( 'sanitize_text_field', $field );
 	    $fields_normalized[] = array(
 				'prefix' => $field[0],
 				'shortcode' => $field[1],
@@ -835,6 +867,9 @@ function wpv_loop_wizard_add_field() {
 					if ( preg_match('/name="views_woo(.*?)"/', $current_shortcode_to_insert, $woo_match) ) {
 						$current_shortcode_head = 'post-field-views_woo' . $woo_match[1];
 					}
+				} else if ( $current_shortcode_handle === "wpv-taxonomy-field" ) {
+					//$current_shortcode_handle_corrected = $current_shortcode_handle . '_corrected';
+					$current_shortcode_head = 'taxonomy-field-' . $current_shortcode_name;
 				} else if ( substr( $current_shortcode_to_insert, 0, 8 ) === "wpv-post" ) {
 					if (
 						'wpv-post-body' == $current_shortcode_handle
@@ -863,9 +898,13 @@ function wpv_loop_wizard_add_field() {
 						$current_shortcode_head = '';
 						$current_shortcode_is_types = true;
 						$current_shortcode_types_name = $field_in_loop[1];
+					} else if ( preg_match( '/termmeta="(.*?)"/', $current_shortcode_to_insert, $field_in_loop ) !== 0 ) {
+						$current_shortcode_head = 'taxonomy-field-' . $field_in_loop[1];
+						$current_shortcode_is_types = true;
+						$current_shortcode_types_name = $field_in_loop[1];
 					}
 				} else if ( substr( $current_shortcode_to_insert, 0, 12 ) === "wpv-taxonomy" ) { // heading table solumns for wpv-taxonomy-* shortcodes
-					if ( in_array( $current_shortcode_handle, array( 'wpv-taxonomy-link', 'wpv-taxonomy-title' ) ) ) {
+					if ( in_array( $current_shortcode_handle, array( 'wpv-taxonomy-link', 'wpv-taxonomy-title', 'wpv-taxonomy-id', 'wpv-taxonomy-slug' ) ) ) {
 						$current_shortcode_head = substr( $current_shortcode_handle, 4 );
 					}
 					if ( $current_shortcode_handle == 'wpv-taxonomy-post-count' ) {
@@ -982,8 +1021,8 @@ function wpv_update_loop_wizard_data_callback() {
 		$view_layout_array['bootstrap_grid_row_class'] = sanitize_text_field( $_POST['bootstrap_grid_row_class'] );
 		$view_layout_array['bootstrap_grid_individual'] = sanitize_text_field( $_POST['bootstrap_grid_individual'] );
         $view_layout_array['include_field_names'] = sanitize_text_field( $_POST['include_field_names'] );
-        $view_layout_array['fields'] = $_POST['fields'];// @todo sanitize this
-        $view_layout_array['real_fields'] = $_POST['real_fields'];// @todo sanitize this 
+        $view_layout_array['fields'] = ( isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ) ? array_map( 'sanitize_text_field', $_POST['fields'] ) : array();
+        $view_layout_array['real_fields'] = ( isset( $_POST['real_fields'] ) && is_array( $_POST['real_fields'] ) ) ? array_map( 'sanitize_text_field', $_POST['real_fields'] ) : array();
     }
 	update_post_meta( $_POST["id"], '_wpv_layout_settings', $view_layout_array );
 	do_action( 'wpv_action_wpv_save_item', $_POST["id"] );

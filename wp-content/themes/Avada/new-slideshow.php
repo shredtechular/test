@@ -18,43 +18,34 @@ if(is_archive()) {
 
 	if ( get_post_meta( $post->ID, 'pyre_fimg_width', true ) && get_post_meta( $post->ID, 'pyre_fimg_width', true ) != 'auto' ) {
 		$styles .= sprintf('
-			#post-%s .post-slideshow,
-			#post-%s .floated-post-slideshow
-			{max-width:%s!important;}', $post->ID, $post->ID, get_post_meta( $post->ID, 'pyre_fimg_width', true )
+			#post-%s .fusion-post-slideshow{
+				max-width:%s!important;
+			}', $post->ID, get_post_meta( $post->ID, 'pyre_fimg_width', true )
 		);
 	}
 
 	if ( get_post_meta( $post->ID, 'pyre_fimg_height', true ) && get_post_meta( $post->ID, 'pyre_fimg_height', true ) != 'auto' ) {
 		$styles .= sprintf('
-			#post-%s .post-slideshow,
-			#post-%s .floated-post-slideshow,
-			#post-%s .post-slideshow .image > img,
-			#post-%s .floated-post-slideshow .image > img,
-			#post-%s .post-slideshow .image > a > img,
-			#post-%s .floated-post-slideshow .image > a > img
-			{height:%s!important;}', $post->ID, $post->ID, $post->ID, $post->ID, $post->ID, $post->ID, get_post_meta( $post->ID, 'pyre_fimg_height', true)
+			#post-%s .fusion-post-slideshow,
+			#post-%s .fusion-post-slideshow .fusion-image-wrapper img{
+				max-height:%s!important;
+			}', $post->ID, $post->ID, get_post_meta( $post->ID, 'pyre_fimg_height', true)
 		);
 	}
 
 	if ( get_post_meta( $post->ID, 'pyre_fimg_width', true ) && get_post_meta( $post->ID, 'pyre_fimg_width', true ) == 'auto' ) {
 		$styles .= sprintf('
-			#post-%s .post-slideshow .image > img,
-			#post-%s .floated-post-slideshow .image > img,
-			#post-%s .post-slideshow .image > a > img,
-			#post-%s .floated-post-slideshow .image > a > img{
+			#post-%s .fusion-post-slideshow .fusion-image-wrapper img{
 				width:auto;
-			}', $post->ID, $post->ID, $post->ID, $post->ID
+			}', $post->ID
 		);
 	}
 
 	if ( get_post_meta( $post->ID, 'pyre_fimg_height', true ) && get_post_meta( $post->ID, 'pyre_fimg_height', true ) == 'auto' ) {
 		$styles .= sprintf('
-			#post-%s .post-slideshow .image > img,
-			#post-%s .floated-post-slideshow .image > img,
-			#post-%s .post-slideshow .image > a > img,
-			#post-%s .floated-post-slideshow .image > a > img{
+			#post-%s .fusion-post-slideshow .fusion-image-wrapper img{
 				height:auto;
-			}', $post->ID, $post->ID, $post->ID, $post->ID
+			}', $post->ID
 		);
 	}
 
@@ -63,16 +54,12 @@ if(is_archive()) {
 	) {
 		$styles .= sprintf('
 			@media only screen and (max-width: 479px){
-				#post-%s .post-slideshow,
-				#post-%s .floated-post-slideshow,
-				#post-%s .post-slideshow .image > img,
-				#post-%s .floated-post-slideshow .image > img,
-				#post-%s .post-slideshow .image > a > img,
-				#post-%s .floated-post-slideshow .image > a > img{
+				#post-%s .fusion-post-slideshow,
+				#post-%s .fusion-post-slideshow .fusion-image-wrapper img{
 					width:auto !important;
 					height:auto !important;
 				}
-			}', $post->ID, $post->ID, $post->ID, $post->ID, $post->ID, $post->ID
+			}', $post->ID, $post->ID
 		);
 	}
 
@@ -153,8 +140,8 @@ if( ( has_post_thumbnail() || get_post_meta(get_the_ID(), 'pyre_video', true) ) 
 		<?php if( is_array( $attachment_data ) ): ?>
 		<li>
 			<div class="fusion-image-wrapper">
-					<a href="<?php the_permalink(); ?>"><img src="<?php echo $attachment_image[0]; ?>" alt="<?php echo $attachment_data['image_meta']['title']; ?>" /></a>
-					<a style="display:none;" href="<?php echo $full_image[0]; ?>" data-rel="iLightbox[gallery<?php echo $post->ID; ?>]"  title="<?php echo get_post_field('post_excerpt', $attachment_id); ?>" data-title="<?php echo get_post_field('post_title', $attachment_id); ?>" data-caption="<?php echo get_post_field('post_excerpt', $attachment_id); ?>"><?php if(get_post_meta($attachment_id, '_wp_attachment_image_alt', true)): ?><img style="display:none;" alt="<?php echo get_post_meta($attachment_id, '_wp_attachment_image_alt', true); ?>" /><?php endif; ?></a>
+				<a href="<?php the_permalink(); ?>"><img src="<?php echo $attachment_image[0]; ?>" alt="<?php echo $attachment_data['image_meta']['title']; ?>" /></a>
+				<a style="display:none;" href="<?php echo $full_image[0]; ?>" data-rel="iLightbox[gallery<?php echo $post->ID; ?>]"  title="<?php echo get_post_field('post_excerpt', $attachment_id); ?>" data-title="<?php echo get_post_field('post_title', $attachment_id); ?>" data-caption="<?php echo get_post_field('post_excerpt', $attachment_id); ?>"><?php if(get_post_meta($attachment_id, '_wp_attachment_image_alt', true)): ?><img style="display:none;" alt="<?php echo get_post_meta($attachment_id, '_wp_attachment_image_alt', true); ?>" /><?php endif; ?></a>
 			</div>
 		</li>
 		<?php endif; ?>

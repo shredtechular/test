@@ -160,6 +160,30 @@ function add_view_filter_parametric_search( $view_settings, $view_id ) {
 						</li>
 					</ul>
 					<div class="wpv-ajax-results-details js-wpv-ajax-extra-callbacks"<?php if ( $view_settings['dps']['ajax_results'] != 'enable' && $view_settings['dps']['ajax_results_submit'] == 'reload' ) { echo ' style="display:none"'; } ?>>
+						<?php
+						$global_enable_manage_history = apply_filters( 'wpv_filter_wpv_global_parametric_search_manage_history_status', true );
+						if ( $global_enable_manage_history ) {
+							if ( ! isset( $view_settings['dps']['enable_history'] ) ) {
+								$view_settings['dps']['enable_history'] = 'enable';
+							}
+							?>
+							<h4><?php _e('Browser history settings', 'wpv-views'); ?></h4>
+							<p>
+								<?php _e('You can automatically adjust the URL of the page every time that the search results are updated:', 'wpv-views'); ?>
+							</p>
+							<ul>
+								<li>
+									<input type="radio" <?php checked( $view_settings['dps']['enable_history'], 'disable' ); ?> value="disable" id="wpv-dps-history-disable" class="js-wpv-dps-history js-wpv-dps-history-disable" name="wpv-dps-history" autocomplete="off" />
+									<label for="wpv-dps-history-disable"><?php _e('Do not adjust URLs after loading search results', 'wpv-views'); ?></label>
+								</li>
+								<li>
+									<input type="radio" <?php checked( $view_settings['dps']['enable_history'], 'enable' ); ?> value="enable" id="wpv-dps-history-enable" class="js-wpv-dps-history js-wpv-dps-history-enable" name="wpv-dps-history" autocomplete="off" />
+									<label for="wpv-dps-history-enable"><?php _e('Update URLs after loading search results', 'wpv-views'); ?></label>
+								</li>
+							</ul>
+							<?php
+							}
+						?>
 						<h4><?php _e('Javascript settings', 'wpv-views'); ?></h4>
 						<p>
 							<?php _e('You can execute custom javascript functions before and after the View results are updated:', 'wpv-views'); ?>
@@ -178,7 +202,6 @@ function add_view_filter_parametric_search( $view_settings, $view_id ) {
 								<label for="wpv-dps-ajax-results-after"><?php _e('will run after updating the results', 'wpv-views'); ?></label>
 							</li>
 						</ul>
-						
 					</div>
 					<h4><?php _e('Which options to display in the form inputs', 'wpv-views'); ?></h4>
 					<?php
@@ -733,7 +756,7 @@ function wpv_filter_update_dps_settings() {
 		);
 		wp_send_json_error( $data );
 	}
-	$view_array = get_post_meta( $_POST["id"], '_wpv_settings', true );
+	$view_array = get_post_meta( $view_id, '_wpv_settings', true );
 	if ( ! isset( $view_array['dps'] ) ) {
 		$view_array['dps'] = array();
 	}
@@ -788,6 +811,14 @@ function wpv_filter_update_dps_settings() {
 			$view_array['dps']['enable_dependency'] = 'enable';
 		}
 		if ( 
+			isset( $passed_data['wpv-dps-history'] ) 
+			&& $passed_data['wpv-dps-history'] == 'disable' 
+		) {
+			$view_array['dps']['enable_history'] = 'disable';
+		} else {
+			$view_array['dps']['enable_history'] = 'enable';
+		}
+		if ( 
 			isset( $passed_data['wpv-dps-empty-select'] ) 
 			&& $passed_data['wpv-dps-empty-select'] == 'disable' 
 		) {
@@ -828,10 +859,10 @@ function wpv_filter_update_dps_settings() {
 	} else {
 		
 	}
-	update_post_meta( $_POST["id"], '_wpv_settings', $view_array );
-	do_action( 'wpv_action_wpv_save_item', $_POST["id"] );
+	update_post_meta( $view_id, '_wpv_settings', $view_array );
+	do_action( 'wpv_action_wpv_save_item', $view_id );
 	$data = array(
-		'id' => $_POST["id"],
+		'id' => $view_id,
 		'message' => __( 'Parametric Search Settings saved', 'wpv-views' )
 	);
 	wp_send_json_success( $data );
@@ -1016,8 +1047,8 @@ function wpv_remove_filter_missing_callback() {
 		wp_send_json_error( $data );
 	}
 	if (
-		! isset( $_POST["id"] )
-		|| ! is_numeric( $_POST["id"] )
+		! isset( $_POST['id'] )
+		|| ! is_numeric( $_POST['id'] )
 		|| intval( $_POST['id'] ) < 1 
 	) {
 		$data = array(
@@ -1026,7 +1057,7 @@ function wpv_remove_filter_missing_callback() {
 		);
 		wp_send_json_error( $data );
 	}
-	$view_array = get_post_meta( $_POST["id"], '_wpv_settings', true );
+	$view_array = get_post_meta( $_POST['id'], '_wpv_settings', true );
 	if ( 
 		isset( $_POST['cf'] ) 
 		&& is_array( $_POST['cf'] ) 
@@ -1100,15 +1131,15 @@ function wpv_remove_filter_missing_callback() {
 			}
 		}
 	}
-	update_post_meta( $_POST["id"], '_wpv_settings', $view_array );
-	do_action( 'wpv_action_wpv_save_item', $_POST["id"] );
+	update_post_meta( $_POST['id'], '_wpv_settings', $view_array );
+	do_action( 'wpv_action_wpv_save_item', $_POST['id'] );
 	// Filters list
 	ob_start();
 	wpv_display_filters_list( $view_array['query_type'][0], $view_array );
 	$filters_list = ob_get_contents();
 	ob_end_clean();
 	$data = array(
-		'id' => $_POST["id"],
+		'id' => $_POST['id'],
 		'updated_filters_list' => $filters_list,
 		'message' => __( 'Success', 'wpv-views' )
 	);

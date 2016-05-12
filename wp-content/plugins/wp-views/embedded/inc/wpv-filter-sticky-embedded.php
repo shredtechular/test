@@ -11,13 +11,14 @@ function wpv_filter_post_sticky( $query, $view_settings ) {
 		$sticky = get_option( 'sticky_posts' ) ? get_option( 'sticky_posts' ) : array();
 		switch ( $view_settings['post_sticky'] ) {
 			case 'include':
-				$query['post__in'] = isset( $query['post__in'] ) ? array_unique( $query['post__in'], $sticky ) : $sticky;
+				$query['post__in'] = isset( $query['post__in'] ) ? array_intersect( (array) $query['post__in'], $sticky ) : $sticky;
+				$query['post__in'] = array_values( $query['post__in'] );
 				if ( empty( $query['post__in'] ) ) {
 					$query['post__in'] = array( '0' );
 				}
 				break;
 			case 'exclude':
-				$query['post__not_in'] = isset( $query['post__in'] ) ? array_merge( $query['post__in'], $sticky ) : $sticky;
+				$query['post__not_in'] = isset( $query['post__not_in'] ) ? array_merge( (array) $query['post__not_in'], $sticky ) : $sticky;
 				break;
 		}
     }

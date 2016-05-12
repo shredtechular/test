@@ -65,7 +65,7 @@ function wpv_ct_editor_title_section( $ct )
     <div id="titlediv">
         <div id="titlewrap">
             <label class="screen-reader-text js-title-reader" id="title-prompt-text" for="title">
-                <?php _e('Enter title here', 'wp-views'); ?>
+                <?php _e('Enter title here', 'wpv-views'); ?>
             </label>
             <input id="title" name="title" type="text" size="30" autocomplete="off"
                    data-bind="textInput: title"/>

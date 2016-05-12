@@ -103,6 +103,8 @@
 
 	<![endif]-->
 
+	<link rel="stylesheet" id="avada-stylesheet-css" href="/wp-content/themes/Avada-Child-Theme/hkb-style.css" type="text/css" media="all">
+
 	<script type="text/javascript">
 		var doc = document.documentElement;
 		doc.setAttribute('data-useragent', navigator.userAgent);
@@ -110,7 +112,8 @@
 
 	<script type="text/javascript">
 	jQuery(document).ready(function() {
-		jQuery(".sb-toggle-title-bar").click(function() {
+		jQuery('.sb-toggle-title-bar, a[href="http://slidingbar"]').click(function(e) {
+			e.preventDefault();
 			var a = jQuery(".sb-toggle").parents("#slidingbar-area").children("#slidingbar");
 			if ( jQuery(".sb-toggle").hasClass("open") ) {
 				jQuery(".sb-toggle").removeClass("open");
@@ -122,6 +125,25 @@
 		});
     });
 	</script>
+
+	<style type="text/css" media="screen">
+    .hls { background: orange; }
+  </style>
+  <script type="text/javascript">
+  jQuery.fn.extend({
+    highlight: function(search, insensitive, hls_class){
+      var regex = new RegExp("(<[^>]*>)|(\\b"+ search.replace(/([-.*+?^${}()|[\]\/\\])/g,"\\$1") +")", insensitive ? "ig" : "g");
+      return this.html(this.html().replace(regex, function(a, b, c){
+        return (a.charAt(0) == "<") ? a : "<strong class=\""+ hls_class +"\">" + c + "</strong>";
+      }));
+    }
+  });
+  jQuery(document).ready(function($){
+    if(typeof(hls_query) != 'undefined'){
+      $("#content").highlight(hls_query, 1, "hls");
+    }
+  });
+  </script>
 
 	<?php echo Avada()->settings->get( 'google_analytics' ); ?>
 
@@ -154,6 +176,11 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 	<?php endif; ?>
 	<div id="wrapper" class="<?php echo $wrapper_class; ?>">
 		<div id="home" style="position:relative;top:1px;"></div>
+
+		<?php
+			echo do_shortcode( sprintf( '[fusion_text][wpv-view name="Home Page Alert" limit="-1"][/fusion_text]' ) );
+		?>
+
 		<?php if ( Avada()->settings->get( 'slidingbar_widgets' ) && ! is_page_template( 'blank.php' ) && ! $boxed_side_header_right ) : ?>
 			<?php get_template_part( 'slidingbar' ); ?>
 		<?php endif; ?>

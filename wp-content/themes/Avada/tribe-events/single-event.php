@@ -24,7 +24,13 @@ $event_id = get_the_ID();
 <div id="tribe-events-content" class="tribe-events-single vevent hentry">
 
 	<!-- Notices -->
-	<?php tribe_events_the_notices() ?>
+	<?php
+	if ( function_exists( 'tribe_the_notices' ) ) {
+		tribe_the_notices();
+	} else {
+		tribe_events_the_notices();
+	}
+	?>
 
 	<?php while ( have_posts() ) :  the_post(); ?>
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -51,13 +57,16 @@ $event_id = get_the_ID();
 			<?php do_action( 'tribe_events_single_event_after_the_content' ) ?>
 		</div> <!-- #post-x -->
 		<?php
+
+		avada_render_social_sharing( 'events' );
+
 		if( class_exists( 'Tribe__Events__Pro__Main' ) && ! tribe_get_option( 'hideRelatedEvents', false ) ) {
 			tribe_get_template_part( 'pro/related-events' );
 		}
 		?>
-		<?php  
+		<?php
 		if ( get_post_type() == Tribe__Events__Main::POSTTYPE && tribe_get_option( 'showComments', false ) ) {
-		
+
 			add_filter( 'comments_template', 'add_comments_template' );
 
 			function add_comments_template() {
@@ -67,13 +76,13 @@ $event_id = get_the_ID();
 			comments_template();
 		}
 		?>
-	<?php endwhile; 
+	<?php endwhile;
 	?>
 
 	<!-- Event footer -->
 	<div id="tribe-events-footer">
 		<!-- Navigation -->
-		<h3 class="tribe-events-visuallyhidden"><?php printf( __( '%s Navigation', 'tribe-events-calendar' ), $events_label_singular ); ?></h3>
+		<h3 class="tribe-events-visuallyhidden"><?php printf( __( '%s Navigation', 'the-events-calendar' ), $events_label_singular ); ?></h3>
 		<ul class="tribe-events-sub-nav">
 			<li class="tribe-events-nav-previous"><?php tribe_the_prev_event_link( '%title%' ) ?></li>
 			<li class="tribe-events-nav-next"><?php tribe_the_next_event_link( '%title%' ) ?></li>

@@ -245,11 +245,14 @@ function custom_media_uploader( $strings ) {
  * Echoes strings without the unwanted sections
  *
  * @since unknown
+ *
+ * @todo take out the usermeta to a new filter like wpv_include_types_termmeta_fields for termmeta
  */
 function wpv_add_v_icon_to_codemirror( $editor_id, $menus = array() ) {
 
     global $WP_Views;
 	$is_view = false;
+	$is_wpa = false;
     $view_id = '';
 	$post_hidden = '';
     $tax_hidden = ' hidden';
@@ -274,7 +277,14 @@ function wpv_add_v_icon_to_codemirror( $editor_id, $menus = array() ) {
 			   $tax_hidden = ' hidden';
 			   $users_hidden = '';
 		}
-    }
+    } else if (
+		isset( $_GET['page'] )
+		&& 'view-archives-editor' == $_GET['page']
+		&& isset( $_GET['view_id'] ) 
+		&& is_numeric( $_GET['view_id'] )
+	) {
+		$is_wpa = true;
+	}
     
     $WP_Views->editor_addon = new WPV_Editor_addon(
 		'wpv-views',
@@ -283,8 +293,6 @@ function wpv_add_v_icon_to_codemirror( $editor_id, $menus = array() ) {
         WPV_URL_EMBEDDED . '/res/img/views-icon-black_16X16.png'
 	);
 
-    echo '<div class="wpv-vicon-for-posts'. $post_hidden .'">';
-	
 	if ( empty( $menus ) ) {
 		$menus_to_add = array(
 			'post',						// wpv-post shortcodes plus non-Types fields under their own section
@@ -303,30 +311,45 @@ function wpv_add_v_icon_to_codemirror( $editor_id, $menus = array() ) {
 		$menus_to_add, 
 		$WP_Views->editor_addon 
 	);
-	$WP_Views->editor_addon->add_fields_views_button('', $editor_id , true);
-
-    echo '</div>';
 
 	if ( $is_view ) {
+		echo '<div class="wpv-vicon-for-posts'. $post_hidden .'">';
+		$WP_Views->editor_addon->add_fields_views_button('', $editor_id , true);
+		echo '</div>';
+		
 		echo '<div class="wpv-vicon-for-taxonomy'. $tax_hidden .'">';
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_taxonomy_V', 30 );
-		$WP_Views->editor_addon->add_fields_views_button('', $editor_id, true);
+		add_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
+		$WP_Views->editor_addon->add_fields_views_button('', $editor_id, true, 'taxonomy' );
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_taxonomy_V', 30 );
+		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 		echo '</div>';
 
 		echo '<div class="wpv-vicon-for-users'. $users_hidden .'">';
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_users_V', 30 );
-		$WP_Views->editor_addon->add_fields_views_button('', $editor_id, true);
+		$WP_Views->editor_addon->add_fields_views_button( '', $editor_id, true, 'users' );
 		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_layout_users_V', 30 );
 		add_filter( 'editor_addon_menus_wpv-views', 'wpv_post_taxonomies_editor_addon_menus_wpv_views_filter', 11 );
+		echo '</div>';
+	} else if ( $is_wpa ) {
+		// We include termmeta fields here because users will need a way to show them for WPA taxonomy loops
+		// Note that they will produce no output on all other archive loops
+		echo '<div class="wpv-vicon-for-posts'. $post_hidden .'">';
+		add_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
+		$WP_Views->editor_addon->add_fields_views_button('', $editor_id, true);
+		remove_filter( 'editor_addon_menus_wpv-views', 'wpv_include_types_termmeta_fields', 40 );
+		echo '</div>';
+	} else {
+		echo '<div class="wpv-vicon-for-posts'. $post_hidden .'">';
+		$WP_Views->editor_addon->add_fields_views_button('', $editor_id , true);
 		echo '</div>';
 	}
 }
 
-function wpv_layout_taxonomy_V( $menu ) { // NOT DEPRECATED at all: used to generate the V icon popup for taxonomy Views.
+function wpv_layout_taxonomy_V( $menu ) {
     // remove post items and add taxonomy items.
     global $wpv_shortcodes;
     $basic = __( 'Basic', 'wpv-views' );
@@ -336,6 +359,7 @@ function wpv_layout_taxonomy_V( $menu ) { // NOT DEPRECATED at all: used to gene
 		__( 'Taxonomy View', 'wpv-views' ) => true,
 		__( 'User View', 'wpv-views' ) => true
 	);
+	$allowed_menus = apply_filters( 'wpv_filter_wpv_editor_addon_keep_default_registered_menus_for_taxonomy', $allowed_menus );
 	$menu = array_intersect_key( $menu, $allowed_menus );
     $taxonomy = array(
 		'wpv-taxonomy-title',
@@ -347,13 +371,71 @@ function wpv_layout_taxonomy_V( $menu ) { // NOT DEPRECATED at all: used to gene
 		'wpv-taxonomy-post-count'
 	);
     foreach ( $taxonomy as $key ) {
-        $menu[$basic][$wpv_shortcodes[$key][1]] = array( 
-			$wpv_shortcodes[$key][1], 
-			$wpv_shortcodes[$key][0], 
+        $menu[ $basic ][ $wpv_shortcodes[ $key ][1] ] = array( 
+			$wpv_shortcodes[ $key ][1], 
+			$wpv_shortcodes[ $key ][0], 
 			$basic, 
 			''
 		);
     }
+	$nonce = wp_create_nonce('wpv_editor_callback');
+	$wpv_shortcodes['wpv-taxonomy-field'] = array('wpv-taxonomy-field', __('Taxonomy field', 'wpv-views'), 'wpv_shortcode_wpv_tax_field');
+	$menu[ $basic ][ __('Taxonomy field', 'wpv-views') ] = array( 
+		__('Taxonomy field', 'wpv-views'), 
+		'wpv-taxonomy-field', 
+		$basic, 
+		"WPViews.shortcodes_gui.wpv_insert_popup('wpv-taxonomy-field', '" . esc_js( __('Taxonomy field', 'wpv-views') ). "', {}, '" . $nonce . "', this )"
+	);
+	
+    return $menu;
+}
+
+function wpv_include_types_termmeta_fields( $menu ) {
+	if ( function_exists('wpcf_init') ) {
+		//Get types groups and fields
+		$groups = wpcf_admin_fields_get_groups( 'wp-types-term-group' );
+		$add = array();
+		if ( ! empty( $groups ) ) {
+			foreach ( $groups as $group_id => $group ) {
+				if ( empty( $group['is_active'] ) ) {
+					continue;
+				}
+				$fields = wpcf_admin_fields_get_fields_by_group( 
+					$group['id'],
+					'slug',
+					true,
+					false,
+					true,
+					'wp-types-term-group',
+					'wpcf-termmeta' 
+				);
+				if ( ! empty( $fields ) ) {
+					foreach ( $fields as $field_id => $field ) {
+						$menu[$group['name']][$field['name']] = array(
+							$field['name'],
+							'types termmeta="'.$field['id'].'"][/types',
+							$group['name'],
+							'wpcfFieldsEditorCallback(\'' . $field['id'] . '\', \'views-termmeta\', -1)'
+						);
+						$add[] = $field['meta_key'];
+					}
+				}
+			}
+		}
+		//Get un-grouped Types fields
+		$cf_types = wpcf_admin_fields_get_fields( true, true, false, 'wpcf-termmeta' );
+		foreach ( $cf_types as $cf_id => $cf ) {
+			if ( ! in_array( $cf['meta_key'], $add ) ) {
+				$menu[__('Types fields', 'wpv-views')][$cf['name']] = array(
+					$cf['name'],
+					'types termmeta="'.$cf['id'].'"][/types',
+					__('Types fields', 'wpv-views'),
+					'wpcfFieldsEditorCallback(\'' . $cf['id'] . '\', \'views-termmeta\', -1)'
+				);
+			}
+		}
+	}
+	
     return $menu;
 }
 
@@ -371,6 +453,7 @@ function wpv_layout_users_V( $menu ) {
 		__( 'Taxonomy View', 'wpv-views' )	=> true,
 		__( 'User View', 'wpv-views' )		=> true
 	);
+	$allowed_menus = apply_filters( 'wpv_filter_wpv_editor_addon_keep_default_registered_menus_for_users', $allowed_menus );
 	$menu = array_intersect_key( $menu, $allowed_menus );
     $user_shortcodes = array(
 			'ID'			=> array(
@@ -510,6 +593,7 @@ function wpv_layout_users_V( $menu ) {
  *      'title' => (string) The title of the CT created or the one that made this fail
  *
  * @since 1.7
+ * @deprecated Use WPV_Content_Template::create() instead.
  */
 function wpv_create_content_template( $title, $suffix = '', $force = true, $content = '' ) {
 
@@ -647,17 +731,17 @@ function wpv_current_class( $first_value, $second_value = null, $echo = true ) {
  *
  * @param int $replace_what The ID to be replaced.
  * @param int $replace_by New value.
- * @param mixed $settings If null, Views options are obtained from global $WP_Views and also saved there afterwards.
+ * @param null|array $settings If null, Views options are obtained from global $WP_Views and also saved there afterwards.
  *     Otherwise, an array with Views options is expected and after processing it is not saved, but returned instead.
  *
- * @return Modified array of Views options if $settings was provided, nothing otherwise.
+ * @return array|null Modified array of Views options if $settings was provided, null otherwise.
  *
  * @since 1.7
+ * @deprecated Use WPV_Settings::replace_abstract_ct_associations instead.
  */
 function wpv_replace_views_template_options( $replace_what, $replace_by, $settings = null ) {
-	if( null == $settings ) {
-        global $WPV_settings;
-        $settings = $WPV_settings;
+	if( !is_array( $settings ) ) {
+        $settings = WPV_Settings::get_instance()->get();
 		$save_options = true;
 	} else {
 		$save_options = false;
@@ -672,7 +756,8 @@ function wpv_replace_views_template_options( $replace_what, $replace_by, $settin
 	}
 
 	if( $save_options ) {
-        $settings->save();
+        WPV_Settings::get_instance()->save();
+		return null;
 	} else {
 		return $settings;
 	}

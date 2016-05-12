@@ -771,7 +771,7 @@ WPViews.ViewEditScreen = function( $ ) {
 	// Sorting - rand and pagination do not work well together
 	
 	self.sorting_random_and_pagination = function() {
-		$('.js-wpv-settings-posts-order .toolset-alert, .js-wpv-settings-pagination .js-pagination-settings-form .toolset-alert').remove();
+		$('.js-wpv-settings-ordering .js-wpv-toolset-messages .toolset-alert, .js-wpv-settings-pagination .js-wpv-toolset-messages .toolset-alert').remove();
 		if ( $( '.js-wpv-posts-orderby' ).val() == 'rand' && $( '.js-wpv-pagination-mode:checked' ).val() != 'none' ) {
 			$('.js-wpv-settings-ordering .js-wpv-toolset-messages, .js-wpv-settings-pagination .js-wpv-toolset-messages' )
 				.wpvToolsetMessage({
@@ -1013,6 +1013,7 @@ WPViews.ViewEditScreen = function( $ ) {
 		self.pagination_mode();
 		self.manage_pagination_instructions();
 		self.toolbar_pagination_button_states();
+		self.sorting_random_and_pagination();
 	});
 	
 	$( document ).on( 'change', '.js-wpv-ajax_pagination', function() {
@@ -1488,6 +1489,62 @@ WPViews.ViewEditScreen = function( $ ) {
             resizable: false,
 			position: { my: "center top+50", at: "center top", of: window }
         });
+	});
+
+	/**
+	 * Creates a page with this View, containing the [wpv-view] short code.
+	 * Opens a new browser tab with the page editor.
+	 *
+	 * @since 1.12
+	 */
+	$( document ).on( 'click', '.js-wpv-view-create-page', function(e){
+		e.preventDefault();
+
+		var createPageButton = $( this );
+		var spinnerContainer = $( '<div class="wpv-spinner ajax-loader">' ).insertAfter( createPageButton ).show();
+		var errorMessage = {
+			message: createPageButton.data('error')
+		};
+
+		createPageButton.prop( 'disabled', true );
+
+		var data = {
+			action: 'wpv_create_page_for_view',
+			id: $( '.js-wpv-scan' ).data( 'view-id' ),
+			title: $( '.js-title' ).val(),
+			slug: $( '#editable-post-name' ).text(),
+			wpnonce : $( '.js-wpv-title-update' ).data( 'nonce' )
+		};
+
+		$.ajax({
+			type: 'POST',
+			dataType: 'json',
+			url: ajaxurl,
+			data: data,
+			success: function( response ) {
+				if ( response.success ) {
+					var page_url = response.data.edit_url;
+					window.open( page_url );
+					self.manage_action_bar_success( response.data );
+				} else {
+					if ( 0 == response ) {
+						self.manage_action_bar_error( errorMessage );
+					} else  {
+						self.manage_action_bar_error( response.data );
+					}
+				}
+			},
+			error: function( ajaxContext ) {
+				errorMessage.message = ajaxContext.responseText;
+				self.manage_action_bar_error( errorMessage );
+			},
+			complete: function() {
+				spinnerContainer.remove();
+				createPageButton.removeProp( 'disabled' );
+			}
+		});
+
+		return false;
 	});
 	
 	// ---------------------------------

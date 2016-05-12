@@ -24,7 +24,9 @@ global $post;
 	<?php if ( has_post_thumbnail() ) : ?>
 	<div class="fusion-flexslider flexslider fusion-post-slideshow">
 		<ul class="slides">
-			<li class="hover-type-<?php echo Avada()->settings->get( 'ec_hover_type' ); ?>"><?php the_post_thumbnail( 'full' ); ?></li>
+			<li class="hover-type-<?php echo Avada()->settings->get( 'ec_hover_type' ); ?>">
+				<a href="<?php the_permalink(); ?>"><?php the_post_thumbnail( 'full' ); ?></a>
+			</li>
 		</ul>
 	</div>
 	<?php endif; ?>

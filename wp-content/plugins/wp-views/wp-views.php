@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: WP Views
+Plugin Name: Toolset Views
 Plugin URI: http://wp-types.com/?utm_source=viewsplugin&utm_campaign=views&utm_medium=plugins-list-full-version&utm_term=Visit plugin site
 Description: When you need to create lists of items, Views is the solution. Views will query the content from the database, iterate through it and let you display it with flair. You can also enable pagination, search, filtering and sorting by site visitors.
 Author: OnTheGoSystems
 Author URI: http://www.onthegosystems.com
-Version: 1.11.1
+Version: 2.0
 */
 
 if ( defined( 'WPV_VERSION' ) ) return;
@@ -31,17 +31,27 @@ define('WPV_URL_EMBEDDED_TOOLSET', WPV_URL_EMBEDDED . '/toolset');
 // load on the go resources
 require WPV_PATH_EMBEDDED_TOOLSET . '/onthego-resources/loader.php';
 onthego_initialize(WPV_PATH_EMBEDDED_TOOLSET . '/onthego-resources/', WPV_URL_EMBEDDED_TOOLSET . '/onthego-resources/');
+require WPV_PATH_EMBEDDED_TOOLSET . '/toolset-common/loader.php';
+toolset_common_initialize(WPV_PATH_EMBEDDED_TOOLSET . '/toolset-common/', WPV_URL_EMBEDDED_TOOLSET . '/toolset-common/');
 
 // Views Settings
-require WPV_PATH_EMBEDDED . '/inc/wpv-settings-embedded.php';
-require WPV_PATH . '/inc/wpv-settings.php';
-$WPV_settings = new WPV_Settings;
+require WPV_PATH_EMBEDDED . '/inc/wpv-settings.class.php';
+require WPV_PATH . '/inc/wpv-settings-screen.class.php';
+
+/**
+ * @global $WPV_settings WPV_Settings Views settings manager.
+ * @deprecated Use $s = WPV_Settings::get_instance() instead.
+ */
+global $WPV_settings;
+$WPV_settings = WPV_Settings::get_instance();
 
 // Helper classes
 require_once WPV_PATH . '/inc/classes/wpv-exception-with-message.class.php';
 
 // Public Views API
-require_once WPV_PATH . '/inc/api/api.php';
+require_once WPV_PATH_EMBEDDED . '/inc/third-party/hooks-api.php';
+require_once WPV_PATH . '/inc/api/hooks-api.php';
+WPV_API::initialize();
 
 // WPV_View and other Toolset object wrappers
 require_once WPV_PATH_EMBEDDED . '/inc/classes/wpv-post-object-wrapper.class.php';
@@ -54,12 +64,10 @@ require_once WPV_PATH . '/inc/classes/wpv-view.class.php';
 require_once WPV_PATH . '/inc/classes/wpv-wordpress-archive.class.php';
 require_once WPV_PATH . '/inc/classes/wpv-content-template.class.php';
 
+require_once WPV_PATH_EMBEDDED . '/inc/classes/wpv-cache.class.php';
+
 // Module Manager integration
 require WPV_PATH_EMBEDDED . '/inc/wpv-module-manager.php';
-
-if (!defined('EDITOR_ADDON_RELPATH')) {
-    define('EDITOR_ADDON_RELPATH', WPV_URL . '/embedded/toolset/toolset-common/visual-editor');
-}
 
 require WPV_PATH . '/inc/constants.php';
 require WPV_PATH_EMBEDDED . '/inc/constants-embedded.php';
@@ -69,9 +77,6 @@ require WPV_PATH . '/inc/functions-core.php';
 require WPV_PATH . '/inc/wpv-deprecated.php';
 require WPV_PATH . '/inc/wpv-admin-ajax.php';
 require WPV_PATH . '/inc/wpv-admin-ajax-layout-wizard.php';
-if ( !function_exists( 'wplogger' ) ) {
-	require_once(WPV_PATH_EMBEDDED) . '/toolset/toolset-common/wplogger.php';
-}
 if ( !function_exists( 'wpv_debuger' ) ) { 
 	require_once(WPV_PATH_EMBEDDED) . '/inc/wpv-query-debug.class.php';
 }
@@ -113,22 +118,19 @@ require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-search-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-search.php');
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-category-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-category.php');
-require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-custom-field-embedded.php');
-require_once( WPV_PATH . '/inc/filters/wpv-filter-custom-field.php');
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-parent-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-parent.php');
-require_once( WPV_PATH . '/inc/filters/wpv-filter-taxonomy-term.php'); // NOTE why don't we have an embedded version of this?
+require_once( WPV_PATH . '/inc/filters/wpv-filter-taxonomy-term.php');
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-post-relationship-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-post-relationship.php');
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-id-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-id.php');
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-date-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-date.php');
-//Filters for users. 
 require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-users-embedded.php');
 require_once( WPV_PATH . '/inc/filters/wpv-filter-users.php');
-require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-usermeta-field-embedded.php');
-require_once( WPV_PATH . '/inc/filters/wpv-filter-user-field.php');
+require_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-meta-field-embedded.php');
+require_once( WPV_PATH . '/inc/filters/wpv-filter-meta-field.php');
 
 
 require WPV_PATH . '/inc/wpv-plugin.class.php';
@@ -159,10 +161,14 @@ require WPV_PATH . '/inc/wpv-import-export.php';
     
 require WPV_PATH_EMBEDDED . '/inc/wpv-condition.php';
 
-require WPV_PATH_EMBEDDED . '/toolset/toolset-common/WPML/wpml-string-shortcode.php';
 require WPV_PATH_EMBEDDED . '/inc/WPML/wpv_wpml.php';
 require WPV_PATH . '/inc/wpv-wpml.php';
 
+require WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/shortcode_generator/shortcode-generator.class.php';
+require WPV_PATH_EMBEDDED . '/inc/classes/wpv-shortcode-generator.php';
+
+
+global $WP_Views;
 $WP_Views = new WP_Views_plugin;
 
 require WPV_PATH_EMBEDDED . '/inc/views-templates/functions-templates.php';
@@ -177,17 +183,10 @@ require WPV_PATH . '/inc/wpv-admin-notices.php';
 
 require WPV_PATH_EMBEDDED . '/inc/wpv-api.php';
 
-register_activation_hook(__FILE__, 'wpv_views_plugin_activate');
-register_deactivation_hook(__FILE__, 'wpv_views_plugin_deactivate');
-
-add_action('admin_init', 'wpv_views_plugin_redirect');
-
-add_filter( 'plugin_action_links', 'wpv_views_plugin_action_links', 10, 2 );
+//add_filter( 'plugin_action_links', 'wpv_views_plugin_action_links', 10, 2 );
 add_filter( 'plugin_row_meta', 'wpv_views_plugin_plugin_row_meta', 10, 4 );
 
-include_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/classes/class-toolset-admin-bar-menu.php';
-
-define( 'WPV_VERSION', '1.11.1' );
+define( 'WPV_VERSION', '2.0' );
 
 /**
 * toolset_is_views_available

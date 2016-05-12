@@ -56,9 +56,9 @@ function get_taxonomy_query( $view_settings ) {
     $WPVDebug->add_log( 'info', apply_filters( 'wpv-view-get-content-summary', '', $WP_Views->current_view, $view_settings ), 'short_query' );
 
     $tax_query_settings = array(
-        'hide_empty' => $view_settings['taxonomy_hide_empty'],
-        'hierarchical' => $view_settings['taxonomy_include_non_empty_decendants'],
-        'pad_counts' => $view_settings['taxonomy_pad_counts']
+        'hide_empty'	=> $view_settings['taxonomy_hide_empty'],
+        'hierarchical'	=> $view_settings['taxonomy_include_non_empty_decendants'],
+        'pad_counts'	=> $view_settings['taxonomy_pad_counts']
     );
 
     $WPVDebug->add_log( 'info', "Basic query arguments\n". print_r( $tax_query_settings, true ) , 'query_args' );
@@ -68,9 +68,9 @@ function get_taxonomy_query( $view_settings ) {
 	*
 	* This is where all the filters coming from the View settings to modify the query are (or should be) hooked
 	*
-	* @param $tax_query_settings the relevant elements of the View settings in an array to be used as arguments in a get_terms() call
-	* @param $view_settings the View settings
-	* @param $view_id the ID of the View being displayed
+	* @param $tax_query_settings	array	The relevant elements of the View settings in an array to be used as arguments in a get_terms() call
+	* @param $view_settings			array	The View settings
+	* @param $view_id				integer	The ID of the View being displayed
 	*
 	* @return $tax_query_settings
 	*
@@ -81,203 +81,29 @@ function get_taxonomy_query( $view_settings ) {
 
 	$WPVDebug->add_log( 'filters', "wpv_filter_taxonomy_query\n". print_r( $tax_query_settings, true ), 'filters', 'Filter arguments before the query using <strong>wpv_filter_taxonomy_query</strong>' );
 
-    if ( isset( $taxonomies[$view_settings['taxonomy_type'][0]] ) ) {
+	if ( 
+		isset( $tax_query_settings['wpv_force_empty_query'] ) 
+		&& $tax_query_settings['wpv_force_empty_query']
+	) {
+		$items = array();
+	} else if ( isset( $taxonomies[$view_settings['taxonomy_type'][0]] ) ) {
         $items = get_terms( $taxonomies[$view_settings['taxonomy_type'][0]]->name, $tax_query_settings );
     } else {
         // taxonomy no longer exists.
         $items = array();
     }
 
-    // get_terms doesn't sort by count when child count is included.
-    // we need to do it manually.
-    if ( $view_settings['taxonomy_orderby'] == 'count' ) {
-        if ( $view_settings['taxonomy_order'] == 'ASC' ) {
-            usort( $items, '_wpv_taxonomy_sort_asc' );
-        } else {
-            usort( $items, '_wpv_taxonomy_sort_dec' );
-        }
-    }
-
-    // Filter by parent if required.
-    // Note: We could use the 'parent' siggin in the tax_query_settings but
-    // this doesn't return the correct post count.
-
-    $parent_id = null;
-    if (
-		isset( $view_settings['taxonomy_parent_mode'] ) 
-		&& isset( $view_settings['taxonomy_parent_mode'][0] ) 
-	) {
-		switch ( $view_settings['taxonomy_parent_mode'][0] ) {
-			case 'current_view':
-				$parent_id = $WP_Views->get_parent_view_taxonomy();
-				break;
-			case 'current_archive_loop':
-				if ( 
-					is_category() 
-					|| is_tag() 
-					|| is_tax() 
-				) {
-					$queried_object = get_queried_object();
-					$parent_id = $queried_object->term_id;
-				}
-				break;
-			case 'this_parent':
-				$parent_id = $view_settings['taxonomy_parent_id'];
-				if ( 
-					isset( $view_settings['taxonomy_type'][0] ) 
-					&& ! empty( $parent_id ) 
-				) {
-					// WordPress 4.2 compatibility - split terms
-					$candidate_term_id_splitted = wpv_compat_get_split_term( $parent_id, $view_settings['taxonomy_type'][0] );
-					if ( $candidate_term_id_splitted ) {
-						$parent_id = $candidate_term_id_splitted;
-					}
-					// Adjust for WPML support
-					$parent_id = apply_filters( 'translate_object_id', $parent_id, $view_settings['taxonomy_type'][0], true, null );
-				}
-				break;
-		}
-    }
-
-    if ( $parent_id !== null ) {
-        foreach( $items as $index => $item ) {
-            if ( $item->parent != $parent_id ) {
-                unset( $items[$index] );
-            }
-        }
-        $WPVDebug->add_log( 'filters', "Filter by parent with ID {$parent_id}\n". print_r( $items, true ), 'filters', 'Filter by parent term' );
-    }
-
-    if ( isset( $view_settings['taxonomy_terms_mode'] ) ) {
-		switch ( $view_settings['taxonomy_terms_mode'] ) {
-			case 'CURRENT_PAGE':
-				if ( isset( $taxonomies[$view_settings['taxonomy_type'][0]] ) ) {
-					global $post;
-					if ( isset( $post ) ) {
-						$terms = get_the_terms( $post->ID, $view_settings['taxonomy_type'][0] );
-					} else {
-						$terms = array();
-					}
-					if ( ! is_array( $terms ) ) {
-						$terms = array();
-					}
-					$filtered_terms = array();
-					$terms_info = array();
-					foreach ( $items as $item ) {
-						foreach( $terms as $term ) {
-							if ( $item->term_id == $term->term_id ) {
-								// only add the terms in the 'taxonomy_terms' array.
-								$filtered_terms[] = $item;
-								$terms_info[] = $term->name . ' (id=' . $term->term_id . ')';
-							}
-						}
-					}
-					$items = $filtered_terms;
-					$WPVDebug->add_log( 'filters', "Filter by terms from the current page " . implode( ', ' , $terms_info ) . "\n" . print_r( $items, true ), 'filters', 'Filter by terms from the current page' );
-				} else {
-					$items = array();
-					$WPVDebug->add_log( 'filters', "Filter by terms from the current page but for a taxonomy that no longer exists \n" . print_r( $items, true ), 'filters', 'Filter by terms from the current page' );
-				}
-				break;
-			case 'THESE':
-				if (
-					isset( $view_settings['taxonomy_terms'] )
-					&& sizeof( $view_settings['taxonomy_terms'] ) 
-				) {
-					$filtered_terms = array();
-					if ( 
-						isset( $view_settings['taxonomy_type'][0] ) 
-						&& ! empty( $view_settings['taxonomy_terms'] ) 
-					) {
-						$adjusted_term_ids = array();
-						foreach ( $view_settings['taxonomy_terms'] as $candidate_term_id ) {
-							// WordPress 4.2 compatibility - split terms
-							$candidate_term_id_splitted = wpv_compat_get_split_term( $candidate_term_id, $view_settings['taxonomy_type'][0] );
-							if ( $candidate_term_id_splitted ) {
-								$candidate_term_id = $candidate_term_id_splitted;
-							}
-							// WPML support
-							$candidate_term_id = apply_filters( 'translate_object_id', $candidate_term_id, $view_settings['taxonomy_type'][0], true, null );
-							$adjusted_term_ids[] = $candidate_term_id;
-						}
-						$view_settings['taxonomy_terms'] = $adjusted_term_ids;
-					}
-					foreach ( $items as $item ) {
-						if ( in_array( $item->term_id, $view_settings['taxonomy_terms'] ) ) {
-							// only add the terms in the 'taxonomy_terms' array.
-							$filtered_terms[] = $item;
-						}
-					}
-					$items = $filtered_terms;
-					$WPVDebug->add_log( 'filters', "Filter by specific terms " . implode( ',  ' , $view_settings['taxonomy_terms'] ) . "\n". print_r( $items, true ), 'filters', 'Filter by specific terms' );
-				}
-				break;
-			case 'framework':
-				global $WP_Views_fapi;
-				if ( $WP_Views_fapi->framework_valid ) {
-					if (
-						isset( $view_settings['taxonomy_terms_framework'] ) 
-						&& '' != $view_settings['taxonomy_terms_framework']
-					) {
-						$taxonomy_terms_framework = $view_settings['taxonomy_terms_framework'];
-						$taxonomy_terms_candidates = $WP_Views_fapi->get_framework_value( $taxonomy_terms_framework, array() );
-						if ( ! is_array( $taxonomy_terms_candidates ) ) {
-							$taxonomy_terms_candidates = explode( ',', $taxonomy_terms_candidates );
-						}
-						$taxonomy_terms_candidates = array_map( 'esc_attr', $taxonomy_terms_candidates );
-						$taxonomy_terms_candidates = array_map( 'trim', $taxonomy_terms_candidates );
-						// is_numeric does sanitization
-						$taxonomy_terms_candidates = array_filter( $taxonomy_terms_candidates, 'is_numeric' );
-						if ( count( $taxonomy_terms_candidates ) ) {
-							$filtered_terms = array();
-							if ( isset( $view_settings['taxonomy_type'][0] ) ) {
-								$adjusted_term_ids = array();
-								foreach ( $taxonomy_terms_candidates as $candidate_term_id ) {
-									// WordPress 4.2 compatibility - split terms
-									$candidate_term_id_splitted = wpv_compat_get_split_term( $candidate_term_id, $view_settings['taxonomy_type'][0] );
-									if ( $candidate_term_id_splitted ) {
-										$candidate_term_id = $candidate_term_id_splitted;
-									}
-									// WPML support
-									$candidate_term_id = apply_filters( 'translate_object_id', $candidate_term_id, $view_settings['taxonomy_type'][0], true, null );
-									$adjusted_term_ids[] = $candidate_term_id;
-								}
-								$taxonomy_terms_candidates = $adjusted_term_ids;
-							}
-							foreach ( $items as $item ) {
-								if ( in_array( $item->term_id, $taxonomy_terms_candidates ) ) {
-									// only add the terms in the 'taxonomy_terms' array.
-									$filtered_terms[] = $item;
-								}
-							}
-							$items = $filtered_terms;
-						}
-					}
-				}
-				break;
-		}
-    }
-
-	if ( 
-		isset( $wpdb->queries ) 
-		&& ! empty( $wpdb->queries ) 
-	) {
-		$WPVDebug->add_log( 'mysql_query', $wpdb->queries , 'taxonomy' );
-	}
-
 	$WPVDebug->add_log( 'info', print_r( $items, true ), 'query_results', '', true );
-
-    $items = array_values( $items );
 
     /**
 	* Filter wpv_filter_taxonomy_post_query
 	*
 	* Filter applied to the results of the get_terms() call
 	*
-	* @param $items array of terms returned by the get_terms() call
-	* @param $tax_query_settings the relevant elements of the View settings in an array to be used as arguments in a get_terms() call
-	* @param $view_settings the View settings
-	* @param $view_id the ID of the View being displayed
+	* @param $items					array	List of terms returned by the get_terms() call
+	* @param $tax_query_settings	array	The relevant elements of the View settings in an array to be used as arguments in a get_terms() call
+	* @param $view_settings			array	The View settings
+	* @param $view_id				integer	The ID of the View being displayed
 	*
 	* @return $items
 	*
@@ -287,6 +113,8 @@ function get_taxonomy_query( $view_settings ) {
     $items = apply_filters( 'wpv_filter_taxonomy_post_query', $items, $tax_query_settings, $view_settings, $view_id );
 
     $WPVDebug->add_log( 'filters', "wpv_filter_taxonomy_post_query\n" . print_r( $items, true ), 'filters', 'Filter the returned query using <strong>wpv_filter_taxonomy_post_query</strong>' );
+	
+	$items = array_values( $items );
 
     return $items;
 }
@@ -379,7 +207,7 @@ function wpv_filter_tax_requires_current_page( $state, $view_settings ) {
 	}
     if (
 		isset( $view_settings['taxonomy_terms_mode'] ) 
-		&& $view_settings['taxonomy_terms_mode'] == 'CURRENT_PAGE'
+		&& in_array( $view_settings['taxonomy_terms_mode'], array( 'CURRENT_PAGE', 'top_current_post' ) )
 	) {
         $state = true;
     }
@@ -387,13 +215,37 @@ function wpv_filter_tax_requires_current_page( $state, $view_settings ) {
 
 }
 
+
+/**
+* wpv_filter_tax_requires_parent_post
+*
+* Check if the current filter by post parent needs info about the parent post
+*
+* @since unknown
+*/
+
+add_filter( 'wpv_filter_requires_parent_post', 'wpv_filter_tax_requires_parent_post', 10, 2 );
+
+function wpv_filter_tax_requires_parent_post( $state, $view_settings ) {
+	if ( $state ) {
+		return $state; // Already set
+	}
+    if (
+		isset( $view_settings['taxonomy_terms_mode'] ) 
+		&& in_array( $view_settings['taxonomy_terms_mode'], array( 'current_post_or_parent_post_view' ) )
+	) {
+        $state = true;
+    }
+	return $state;
+}
+
 /**
 * wpv_filter_tax_requires_framework_values
 *
 * Whether the current View requires framework valus for the filter by specific terms
 *
-* @param $state (boolean) the state of this need until this filter is applied
-* @param $view_settings
+* @param $state				boolean	State of this need until this filter is applied
+* @param $view_settings		array
 *
 * @return $state (boolean)
 *
@@ -421,8 +273,8 @@ function wpv_filter_tax_requires_framework_values( $state, $view_settings ) {
 *
 * Whether the current View is nested and requires the user set by the parent View for any filter
 *
-* @param $state (boolean) the state of this need until this filter is applied
-* @param $view_settings
+* @param $state				boolean	State of this need until this filter is applied
+* @param $view_settings		array
 *
 * @return $state (boolean)
 *
@@ -438,7 +290,7 @@ function wpv_filter_tax_requires_parent_term( $state, $view_settings ) {
 	if (
 		isset( $view_settings['taxonomy_parent_mode'] ) 
 		&& isset( $view_settings['taxonomy_parent_mode'][0] ) 
-		&& $view_settings['taxonomy_parent_mode'][0] == 'current_view'
+		&& in_array( $view_settings['taxonomy_parent_mode'][0], array( 'current_view', 'current_taxonomy_view' ) )
 	) {
         $state = true;
     }
@@ -450,8 +302,8 @@ function wpv_filter_tax_requires_parent_term( $state, $view_settings ) {
 *
 * Whether the current View requires the current archive for the taxonomy parent filter
 *
-* @param $state (boolean) the state of this need until this filter is applied
-* @param $view_settings
+* @param $state				boolean	State of this need until this filter is applied
+* @param $view_settings		array
 *
 * @return $state (boolean)
 *
@@ -473,4 +325,271 @@ function wpv_filter_tax_requires_current_archive( $state, $view_settings ) {
     }
 	return $state;
 
+}
+
+/**
+* wpv_filter_taxonomy_term
+*
+* Apply include settings to Views listing taxonomy terms
+* Might move this to the filter by ID file
+*
+* @since 1.12
+*/
+
+add_filter( 'wpv_filter_taxonomy_query', 'wpv_filter_taxonomy_term', 20, 3 );
+
+function wpv_filter_taxonomy_term( $tax_query_settings, $view_settings, $view_id ) {
+	$taxonomies = get_taxonomies( '', 'objects' );
+	if ( isset( $view_settings['taxonomy_terms_mode'] ) ) {
+		$terms_to_include = array();
+		$force_empty_query = false;
+		switch ( $view_settings['taxonomy_terms_mode'] ) {
+			case 'CURRENT_PAGE': // @deprecated on 1.12.1
+			case 'top_current_post':
+				$force_empty_query = true;
+				if ( isset( $taxonomies[$view_settings['taxonomy_type'][0]] ) ) {
+					$current_page = apply_filters( 'wpv_filter_wpv_get_top_current_post', null );
+					if ( $current_page ) {
+						$terms_to_include_objects = get_the_terms( $current_page->ID, $view_settings['taxonomy_type'][0] );
+						if ( is_array( $terms_to_include_objects ) ) {
+							$terms_to_include = wp_list_pluck( $terms_to_include_objects, 'term_id' );
+						} else {
+							$terms_to_include = array();
+						}
+					} else {
+						$terms_to_include = array();
+					}
+				} else {
+					$terms_to_include = array();
+				}
+				break;
+			case 'current_post_or_parent_post_view':
+				$force_empty_query = true;
+				if ( isset( $taxonomies[$view_settings['taxonomy_type'][0]] ) ) {
+					$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
+					if ( $current_page ) {
+						$terms_to_include_objects = get_the_terms( $current_page->ID, $view_settings['taxonomy_type'][0] );
+						if ( is_array( $terms_to_include_objects ) ) {
+							$terms_to_include = wp_list_pluck( $terms_to_include_objects, 'term_id' );
+						} else {
+							$terms_to_include = array();
+						}
+					} else {
+						$terms_to_include = array();
+					}
+				} else {
+					$terms_to_include = array();
+				}
+				break;
+				break;
+			case 'THESE':
+				if (
+					isset( $view_settings['taxonomy_terms'] )
+					&& sizeof( $view_settings['taxonomy_terms'] ) 
+				) {
+					$force_empty_query = true;
+					if ( 
+						isset( $view_settings['taxonomy_type'][0] ) 
+						&& ! empty( $view_settings['taxonomy_terms'] ) 
+					) {
+						foreach ( $view_settings['taxonomy_terms'] as $candidate_term_id ) {
+							// WordPress 4.2 compatibility - split terms
+							$candidate_term_id_splitted = wpv_compat_get_split_term( $candidate_term_id, $view_settings['taxonomy_type'][0] );
+							if ( $candidate_term_id_splitted ) {
+								$candidate_term_id = $candidate_term_id_splitted;
+							}
+							// WPML support
+							$candidate_term_id = apply_filters( 'translate_object_id', $candidate_term_id, $view_settings['taxonomy_type'][0], true, null );
+							$terms_to_include[] = $candidate_term_id;
+						}
+					}
+				}
+				break;
+			case 'by_url':
+				if (
+					isset( $view_settings['taxonomy_terms_url'] ) 
+					&& '' != $view_settings['taxonomy_terms_url']
+				) {
+					$id_parameter = $view_settings['taxonomy_terms_url'];
+					if ( isset( $_GET[ $id_parameter ] ) ) {
+						$ids_to_load = $_GET[ $id_parameter ];
+						if ( is_array( $ids_to_load ) ) {
+							if ( 
+								0 != count( $ids_to_load ) 
+								&& '' != $ids_to_load[0] 
+							) {
+								$force_empty_query = true;
+								$ids_to_load = array_map( 'trim', $ids_to_load );
+								$ids_to_load = array_filter( $ids_to_load, 'is_numeric' );
+								foreach ( $ids_to_load as $id_candidate ) {
+									$terms_to_include[] = (int) $id_candidate;
+								}
+							}
+						} else {
+							$ids_to_load = trim( $ids_to_load );
+							if ( '' != $ids_to_load ) {
+								$force_empty_query = true;
+								if ( is_numeric( $ids_to_load ) ) {
+									$terms_to_include[] = (int) $ids_to_load;
+								}
+							}
+						}
+					}
+				}
+				break;
+			case 'shortcode':
+				if (
+					isset( $view_settings['taxonomy_terms_shortcode'] ) 
+					&& '' != $view_settings['taxonomy_terms_shortcode']
+				) {
+					global $WP_Views;
+					$shortcode_attr = $view_settings['taxonomy_terms_shortcode'];
+					$view_attrs = $WP_Views->get_view_shortcodes_attributes();
+					if ( 
+						isset( $view_attrs[ $shortcode_attr ] ) 
+						&& '' != $view_attrs[ $shortcode_attr ]
+					) {
+						$force_empty_query = true;
+						$ids_to_load = explode( ',', $view_attrs[ $shortcode_attr ] );
+						$ids_to_load = array_map( 'trim', $ids_to_load );
+						$ids_to_load = array_filter( $ids_to_load, 'is_numeric' );
+						foreach ( $ids_to_load as $id_candidate ) {
+							$terms_to_include[] = (int) $id_candidate;
+						}
+					}
+				}
+				break;
+			case 'framework':
+				global $WP_Views_fapi;
+				if ( $WP_Views_fapi->framework_valid ) {
+					if (
+						isset( $view_settings['taxonomy_terms_framework'] ) 
+						&& '' != $view_settings['taxonomy_terms_framework']
+					) {
+						$taxonomy_terms_framework = $view_settings['taxonomy_terms_framework'];
+						$taxonomy_terms_candidates = $WP_Views_fapi->get_framework_value( $taxonomy_terms_framework, array() );
+						if ( ! is_array( $taxonomy_terms_candidates ) ) {
+							$taxonomy_terms_candidates = explode( ',', $taxonomy_terms_candidates );
+						}
+						$taxonomy_terms_candidates = array_map( 'esc_attr', $taxonomy_terms_candidates );
+						$taxonomy_terms_candidates = array_map( 'trim', $taxonomy_terms_candidates );
+						// is_numeric does sanitization
+						$taxonomy_terms_candidates = array_filter( $taxonomy_terms_candidates, 'is_numeric' );
+						if ( count( $taxonomy_terms_candidates ) ) {
+							$force_empty_query = true;
+							if ( isset( $view_settings['taxonomy_type'][0] ) ) {
+								foreach ( $taxonomy_terms_candidates as $candidate_term_id ) {
+									// WordPress 4.2 compatibility - split terms
+									$candidate_term_id_splitted = wpv_compat_get_split_term( $candidate_term_id, $view_settings['taxonomy_type'][0] );
+									if ( $candidate_term_id_splitted ) {
+										$candidate_term_id = $candidate_term_id_splitted;
+									}
+									// WPML support
+									$candidate_term_id = apply_filters( 'translate_object_id', $candidate_term_id, $view_settings['taxonomy_type'][0], true, null );
+									$terms_to_include[] = $candidate_term_id;
+								}
+							}
+						}
+					}
+				}
+				break;
+		}
+		if (
+			$force_empty_query 
+			&& empty( $terms_to_include )
+		) {
+			$tax_query_settings['wpv_force_empty_query'] = true;
+			$tax_query_settings['wpv_force_empty_query_reason'] = 'filter_taxonomy_term';
+		} else {
+			$tax_query_settings['include'] = $terms_to_include;
+		}
+    }
+	
+	return $tax_query_settings;
+}
+
+/**
+* wpv_taxonomy_query_remove_duplicated_terms
+*
+* It seems that get_terms() with meta_query entries can return duplicated items when a term has two termmeta values with the same key
+*
+* @see https://core.trac.wordpress.org/ticket/35137
+*
+* @note once the bug is fixed, we will be able to remove this one
+*
+* @since 1.12
+*/
+
+add_filter( 'wpv_filter_taxonomy_post_query', 'wpv_taxonomy_query_remove_duplicated_terms', 999, 4 );
+
+function wpv_taxonomy_query_remove_duplicated_terms( $items, $tax_query_settings, $view_settings, $view_id ) {
+	if (
+		! empty( $items ) 
+		&& isset( $tax_query_settings['meta_query'] )
+	) {
+		$items_corrected = array();
+		foreach ( $items as $term ) {
+			$items_corrected[ $term->term_id ] = $term;
+		}
+		$items = array_values( $items_corrected );
+	}
+	return $items;
+}
+
+/**
+* wpv_filter_register_taxonomy_term_shortcode_attributes
+*
+* Register the filter by taxonomy term on the method to get View shortcode attributes
+*
+* @since 1.10
+*/
+
+add_filter( 'wpv_filter_register_shortcode_attributes_for_taxonomy', 'wpv_filter_register_taxonomy_term_shortcode_attributes', 10, 2 );
+
+function wpv_filter_register_taxonomy_term_shortcode_attributes( $attributes, $view_settings ) {
+	if (
+		isset( $view_settings['taxonomy_terms_mode'] ) 
+		&& $view_settings['taxonomy_terms_mode'] == 'shortcode' 
+	) {
+		$attributes[] = array(
+			'query_type'	=> $view_settings['query_type'][0],
+			'filter_type'	=> 'taxonomy_term',
+			'filter_label'	=> __( 'Taxonomy term', 'wpv-views' ),
+			'value'			=> $view_settings['taxonomy_terms_shortcode'],
+			'attribute'		=> $view_settings['taxonomy_terms_shortcode'],
+			'expected'		=> 'numberlist',
+			'placeholder'	=> '1, 2',
+			'description'	=> __( 'Please type a comma separated list of term IDs', 'wpv-views' )
+		);
+	}
+	return $attributes;
+}
+
+/**
+* wpv_filter_register_taxonomy_term_url_parameters
+*
+* Register the filter by taxonomy terms on the method to get URL parameters
+*
+* @since 1.11
+*/
+
+add_filter( 'wpv_filter_register_url_parameters_for_taxonomy', 'wpv_filter_register_taxonomy_term_url_parameters', 10, 2 );
+
+function wpv_filter_register_taxonomy_term_url_parameters( $attributes, $view_settings ) {
+	if (
+		isset( $view_settings['taxonomy_terms_mode'] ) 
+		&& $view_settings['taxonomy_terms_mode'] == 'by_url' 
+	) {
+		$attributes[] = array(
+			'query_type'	=> $view_settings['query_type'][0],
+			'filter_type'	=> 'taxonomy_term',
+			'filter_label'	=> __( 'Taxonomy term', 'wpv-views' ),
+			'value'			=> $view_settings['taxonomy_terms_url'],
+			'attribute'		=> $view_settings['taxonomy_terms_url'],
+			'expected'		=> 'numberlist',
+			'placeholder'	=> '1, 2',
+			'description'	=> __( 'Please type a comma separated list of term IDs', 'wpv-views' )
+		);
+	}
+	return $attributes;
 }

@@ -388,29 +388,29 @@
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/dark-skin/fullscreen-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/fullscreen-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/fullscreen-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-close {
   background-image: url(assets/images/iLightbox/dark-skin/x-mark-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/x-mark-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/x-mark-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/dark-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/arrow-next-icon-ie.png')\9;
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/dark-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/arrow-prev-icon-ie.png')\9;
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-play {
   background-image: url(assets/images/iLightbox/dark-skin/play-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/play-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/play-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.dark a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/dark-skin/pause-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/dark-skin/pause-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/dark-skin/pause-icon-ie.png')\9;
 }
 .ilightbox-holder.dark .ilightbox-inner-toolbar .ilightbox-title {
   font-size: 18px;
@@ -621,29 +621,29 @@
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/light-skin/fullscreen-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/fullscreen-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/fullscreen-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-close {
   background-image: url(assets/images/iLightbox/light-skin/x-mark-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/x-mark-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/x-mark-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/light-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/arrow-next-icon-ie.png')\9;
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/light-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/arrow-prev-icon-ie.png')\9;
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-play {
   background-image: url(assets/images/iLightbox/light-skin/play-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/play-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/play-icon-ie.png')\9;
 }
 .isMobile .ilightbox-toolbar.light a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/light-skin/pause-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/light-skin/pause-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/light-skin/pause-icon-ie.png')\9;
 }
 /* Style thumbnails */
 .ilightbox-thumbnails.light .ilightbox-thumbnails-grid .ilightbox-thumbnail img {
@@ -868,37 +868,37 @@
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/mac-skin/resize-50.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/resize-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/resize-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-close {
   background-image: url(assets/images/iLightbox/mac-skin/close-50.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/close-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/close-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/mac-skin/forward-50.png);
   background-position: 52% 50% !important;
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/forward-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/forward-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/mac-skin/back-50.png);
   background-position: 48% 50% !important;
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/back-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/back-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-play {
   background-image: url(assets/images/iLightbox/mac-skin/play-50.png);
   background-size: 80%;
   background-position: 70% 50% !important;
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/play-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/play-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.mac a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/mac-skin/pause-50.png);
   background-size: 80%;
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/mac-skin/pause-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/mac-skin/pause-ie.png')\9;
   /* IE7-8 */
 }
 .ilightbox-holder.mac .ilightbox-inner-toolbar .ilightbox-title {
@@ -1113,34 +1113,34 @@
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/metro-black-skin/fullscreen-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/fullscreen-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/fullscreen-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-close {
   background-image: url(assets/images/iLightbox/metro-black-skin/x-mark-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/x-mark-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/x-mark-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/metro-black-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/arrow-next-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/metro-black-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/arrow-prev-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-play {
   background-image: url(assets/images/iLightbox/metro-black-skin/play-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/play-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/play-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-black a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/metro-black-skin/pause-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-black-skin/pause-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-black-skin/pause-icon-ie.png')\9;
   /* IE7-8 */
 }
 .ilightbox-holder.metro-black .ilightbox-inner-toolbar .ilightbox-title {
@@ -1324,76 +1324,76 @@
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/metro-white-skin/fullscreen-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/fullscreen-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/fullscreen-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-fullscreen:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/fullscreen-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/fullscreen-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/fullscreen-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-close {
   background-image: url(assets/images/iLightbox/metro-white-skin/x-mark-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/x-mark-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/x-mark-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-close:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/x-mark-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/x-mark-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/x-mark-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-next-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-next-button:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-next-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-next-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-next-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-next-button.disabled {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-next-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-prev-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-prev-button:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-prev-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-prev-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-prev-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-prev-button.disabled {
   background-image: url(assets/images/iLightbox/metro-white-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/arrow-prev-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-play {
   background-image: url(assets/images/iLightbox/metro-white-skin/play-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/play-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/play-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-play:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/play-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/play-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/play-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/metro-white-skin/pause-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/pause-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/pause-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.metro-white a.ilightbox-pause:hover {
   background-image: url(assets/images/iLightbox/metro-white-skin/pause-hover-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/metro-white-skin/pause-hover-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/metro-white-skin/pause-hover-icon-ie.png')\9;
   /* IE7-8 */
 }
 /* Style thumbnails */
@@ -1659,34 +1659,34 @@
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-fullscreen {
   background-image: url(assets/images/iLightbox/smooth-skin/fullscreen-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/fullscreen-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/fullscreen-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-close {
   background-image: url(assets/images/iLightbox/smooth-skin/x-mark-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/x-mark-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/x-mark-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-next-button {
   background-image: url(assets/images/iLightbox/smooth-skin/arrow-next-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/arrow-next-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/arrow-next-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 52% 50%;
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-prev-button {
   background-image: url(assets/images/iLightbox/smooth-skin/arrow-prev-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/arrow-prev-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/arrow-prev-icon-ie.png')\9;
   /* IE7-8 */
   background-position: 48% 50%;
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-play {
   background-image: url(assets/images/iLightbox/smooth-skin/play-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/play-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/play-icon-ie.png')\9;
   /* IE7-8 */
 }
 .isMobile .ilightbox-toolbar.smooth a.ilightbox-pause {
   background-image: url(assets/images/iLightbox/smooth-skin/pause-icon-64.png);
-  -: ;background-image/*\**/: url(~'assets/images/iLightbox/smooth-skin/pause-icon-ie.png')\9;
+  -: ;background-image/*\**/: url('assets/images/iLightbox/smooth-skin/pause-icon-ie.png')\9;
   /* IE7-8 */
 }
 .ilightbox-holder.smooth .ilightbox-inner-toolbar .ilightbox-title {

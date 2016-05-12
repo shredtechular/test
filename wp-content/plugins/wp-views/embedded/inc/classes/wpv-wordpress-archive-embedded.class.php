@@ -82,4 +82,14 @@ class WPV_WordPress_Archive_Embedded extends WPV_View_Base {
 
         return $selected_loops;
     }
+
+
+	/**
+	 * Determine if this is a WPA and not a View.
+	 * @return bool
+	 * @since 1.12
+	 */
+    public function is_a_wordpress_archive() {
+        return true;
+    }
 }

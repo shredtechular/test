@@ -2,9 +2,11 @@
 
 /**
  * Add a filter to add the query by author to the $query
+ *
+ * We need to set a higher priority than the limit filter has because we use $query['post__in'] = array('0') on failure
  */
 
-add_filter( 'wpv_filter_query', 'wpv_filter_post_id', 13, 2 ); // we need to set a higher priority than the limit filter has because we use $query['post__in'] = array('0') on failure
+add_filter( 'wpv_filter_query', 'wpv_filter_post_id', 13, 2 );
 
 function wpv_filter_post_id( $query, $view_settings ) {
 	// @todo are IDs adjusted in WPML? Maybe yes, because it filters the post__in and post__not_in arguments
@@ -25,7 +27,9 @@ function wpv_filter_post_id( $query, $view_settings ) {
 				) {
 					$id_ids_list = explode( ',', $view_settings['post_id_ids_list'] );
 					foreach ( $id_ids_list as $id_candidate ) {
-						$show_id_array[] = (int) trim( $id_candidate );
+						$id_candidate = (int) trim( $id_candidate );
+						$id_candidate = apply_filters( 'translate_object_id', $id_candidate, 'any', true, null );
+						$show_id_array[] = $id_candidate;
 					}
 				}
 				else {
@@ -48,14 +52,18 @@ function wpv_filter_post_id( $query, $view_settings ) {
 								$show_id_array = null;
 							} else {
 								foreach ( $ids_to_load as $id_candidate ) {
-									$show_id_array[] = (int) trim( $id_candidate );
+									$id_candidate = (int) trim( $id_candidate );
+									$id_candidate = apply_filters( 'translate_object_id', $id_candidate, 'any', true, null );
+									$show_id_array[] = $id_candidate;
 								}
 							}
 						} else {
 							if ( '' == $ids_to_load ) {
 								$show_id_array = null;
 							} else {
-								$show_id_array[] = (int) trim( $ids_to_load );
+								$id_candidate = (int) trim( $ids_to_load );
+								$id_candidate = apply_filters( 'translate_object_id', $id_candidate, 'any', true, null );
+								$show_id_array[] = $id_candidate;
 							}
 						}
 					} else {
@@ -78,7 +86,9 @@ function wpv_filter_post_id( $query, $view_settings ) {
 						$ids_to_load = explode( ',', $view_attrs[$id_shortcode] );
 						if ( count( $ids_to_load ) > 0 ) {
 							foreach ( $ids_to_load as $id_candidate ) {
-								$show_id_array[] = (int) trim( $id_candidate );
+								$id_candidate = (int) trim( $id_candidate );
+								$id_candidate = apply_filters( 'translate_object_id', $id_candidate, 'any', true, null );
+								$show_id_array[] = $id_candidate;
 							}
 						}
 					} else {
@@ -101,7 +111,9 @@ function wpv_filter_post_id( $query, $view_settings ) {
 						if ( count( $post_ids_candidates ) > 0 ) {
 							foreach ( $post_ids_candidates as $id_candidate ) {
 								if ( is_numeric( $id_candidate ) ) {
-									$show_id_array[] = (int) trim( $id_candidate );
+									$id_candidate = (int) trim( $id_candidate );
+									$id_candidate = apply_filters( 'translate_object_id', $id_candidate, 'any', true, null );
+									$show_id_array[] = $id_candidate;
 								}
 							}
 						}
@@ -111,28 +123,35 @@ function wpv_filter_post_id( $query, $view_settings ) {
 				}
 				break;
 		}
-		// TODO check if needed the ignore_sticky_posts argument here, seems not because we are adding it by default
-		// See: http://codex.wordpress.org/Class_Reference/WP_Query#Post_.26_Page_Parameters
-		if ( isset( $show_id_array ) ) { // only modify the query if the URL parameter is present and not empty
+		if ( isset( $show_id_array ) ) {
 			if ( count( $show_id_array ) > 0 ) {
 				if ( $include ) {
 					if ( isset( $query['post__in'] ) ) {
-						$query['post__in'] = array_merge( (array)$query['post__in'], $show_id_array );
+						$query['post__in'] = array_intersect( (array) $query['post__in'], $show_id_array );
+						$query['post__in'] = array_values( $query['post__in'] );
+						if ( empty( $query['post__in'] ) ) {
+							$query['post__in'] = array( '0' );
+						}
 					} else {
 						$query['post__in'] = $show_id_array;
 					}
 				} else {
 					if ( isset( $query['post__not_in'] ) ) {
-						$query['post__not_in'] = array_merge( (array)$query['post__not_in'], $show_id_array );
+						$query['post__not_in'] = array_merge( (array) $query['post__not_in'], $show_id_array );
 					} else {
 						$query['post__not_in'] = $show_id_array;
 					}
 				}
 			} else {
+				// @todo review this, we might not want to apply only when ( ! isset )
 				if ( $include ) {
-					if ( ! isset( $query['post__in'] ) ) $query['post__in'] = array('0');
+					if ( ! isset( $query['post__in'] ) ) {
+						$query['post__in'] = array('0');
+					}
 				} else {
-					if ( ! isset( $query['post__not_in'] ) ) $query['post__not_in'] = array('0');
+					if ( ! isset( $query['post__not_in'] ) ) {
+						$query['post__not_in'] = array('0');
+					}
 				}
 			}
 		}	

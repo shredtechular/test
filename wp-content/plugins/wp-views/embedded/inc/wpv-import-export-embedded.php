@@ -52,9 +52,6 @@ class WPV_Export_Import_Embedded {
 		$this->import_messages = array();
 		
 		add_action( 'wp_loaded', array( $this, 'import_on_form_submit' ) );
-		if ( is_admin() ) {
-            add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
-        }
 		add_action( 'admin_notices', array( $this, 'import_notices_errors' ) );
 		add_action( 'admin_notices', array( $this, 'import_notices_messages' ) );
 		
@@ -477,20 +474,6 @@ class WPV_Export_Import_Embedded {
 	}
 	
 	/**
-	* admin_enqueue_scripts
-	*
-	* Enqueue assets on the import/export page
-	*
-	* @since 1.10
-	*/
-	
-	function admin_enqueue_scripts( $hook ) {
-		if ( $hook == 'views_page_views-import-export' ) {
-            wp_enqueue_style( 'views-admin-css' );
-        }
-	}
-	
-	/**
 	* import_notices_errors
 	*
 	* Display admin notices related to import errors
@@ -519,11 +502,20 @@ class WPV_Export_Import_Embedded {
 	
 	function import_notices_messages() {
 		if ( sizeof( $this->import_messages ) ) {
-			foreach ( $this->import_messages as $message ) {
-				?>
-				<div class="message updated"><p><?php echo $message ?></p></div>
+			?>
+			<div class="message updated">
+				<h3><?php _e( 'Views import summary', 'wpv-views' ); ?></h3>
+				<ul>
 				<?php
-			}
+				foreach ( $this->import_messages as $message ) {
+					?>
+					<li><?php echo $message ?></li>
+					<?php
+				}
+				?>
+				</ul>
+			</div>
+			<?php
 		}
 	}
 	
@@ -930,9 +922,6 @@ class WPV_Export_Import_Embedded {
 					do_action( 'wpv_action_wpv_import_item', $idflag );
 				}
 
-				// Juan - add images importing
-				// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
-
 				if ( 
 					$idflag 
 					&& ! empty( $template_images ) 
@@ -1254,8 +1243,6 @@ class WPV_Export_Import_Embedded {
 					$view_images = array( $view['attachments'] );
 					unset( $view['attachments'] );
 				}
-				// SRDJAN - https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142389966/comments
-				// Fix URLs
 				if (
 					! empty( $import_data['site_url'] ) 
 					&& ! empty( $import_data['fileupload_url'] ) 
@@ -1295,9 +1282,6 @@ class WPV_Export_Import_Embedded {
 						);
 					}
 				}
-				// TODO Move all of this to a proper adjustment method
-				// SRDJAN - fix term_ids
-				// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142382866/comments
 				if ( 
 					! empty( $meta['_wpv_settings']['taxonomy_terms']['taxonomy_term'] ) 
 					&& is_array( $meta['_wpv_settings']['taxonomy_terms']['taxonomy_term'] ) 
@@ -1524,9 +1508,6 @@ class WPV_Export_Import_Embedded {
 					// Remove the _toolset_edit_last postmeta flag if it exists
 					do_action( 'wpv_action_wpv_import_item', $idflag );
 				}
-				// Juan - add images importing
-				// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
-
 				if ( 
 					$idflag 
 					&& ! empty( $view_images ) 
@@ -1771,7 +1752,8 @@ class WPV_Export_Import_Embedded {
 		}
 		if ( $force_settings_overwrite ) {
 			// Reset options
-			foreach ( $WPV_settings as $option_name => $option_value ) {
+			$settings_array = $WPV_settings->get();
+			foreach ( $settings_array as $option_name => $option_value ) {
 				if ( 
 					strpos( $option_name, 'view_' ) !== 0 
 					&& strpos( $option_name, 'views_template_' ) !== 0 
@@ -1864,7 +1846,8 @@ class WPV_Export_Import_Embedded {
 		}
 		// @todo check if this should be an else-if instead
 		if ( ! empty( $data['settings'] ) ) {
-			foreach ( $WPV_settings as $option_name => $option_value ) {
+			$settings_array = $WPV_settings->get();
+			foreach ( $settings_array as $option_name => $option_value ) {
 				if ( 
 					$force_settings_overwrite_views
 					&& strpos( $option_name, 'view_' ) === 0 
@@ -2007,13 +1990,15 @@ function wpv_api_import_from_file( $args = array() ) {
 * @param $file_name (string) OPtional URL to the file to import, will render a file input otherwise
 *
 * @since unknown
+*
+* @note this is NOT deprecated, used in the legacy theme import
 */
 
 function wpv_admin_import_form( $file_name = '' ) {
     ?>
-    <div class="wpv-setting-container">
+    <div class="toolset-setting-container">
 
-        <div class="wpv-settings-header">
+        <div class="toolset-settings-header">
             <?php if ( $file_name != '' ): ?>
                 <h2><?php _e('Import Views, WordPress Archives and Content Templates for your Theme','wpv-views'); ?></h2>
             <?php else: ?>
@@ -2023,8 +2008,8 @@ function wpv_admin_import_form( $file_name = '' ) {
 
         <form name="View_import" enctype="multipart/form-data" action="" method="post">
 
-            <div class="wpv-setting">
-				<div class="wpv-advanced-setting">
+            <div class="toolset-setting">
+				<div class="toolset-advanced-setting">
 				<h3><?php _e( 'Import options', 'wpv-views' ); ?></h3>
                 <ul>
                     <li>
@@ -2052,7 +2037,7 @@ function wpv_admin_import_form( $file_name = '' ) {
 
 				<?php if ( $file_name != '' ) { ?>
 				
-				<div class="wpv-advanced-setting">
+				<div class="toolset-advanced-setting">
 				<h3><?php _e( 'Import the Views XML file placed in the Views Embedded folder', 'wpv-views' ); ?></h3>
                 <p>
                     <input type="hidden" id="upload-views-file" name="import-file" value="<?php echo $file_name; ?>" />
@@ -2062,7 +2047,7 @@ function wpv_admin_import_form( $file_name = '' ) {
 				
 				<?php } else { ?>
                 
-				<div class="wpv-advanced-setting">
+				<div class="toolset-advanced-setting">
 				<h3><?php _e( 'Select the Views XML file to upload from your computer', 'wpv-views' ); ?></h3>
                 <p>
                     <label for="upload-views-file"><?php _e('Upload file','wpv-views'); ?>:</label>
@@ -2072,7 +2057,7 @@ function wpv_admin_import_form( $file_name = '' ) {
 				</div>
 				<?php } ?>
 
-                <p class="update-button-wrap">
+                <p class="toolset-update-button-wrap">
 					<input id="wpv-import" type="hidden" value="wpv-import" name="import" />
 					<button id="wpv-import-button" class="button-primary"><?php _e( 'Import', 'wpv-views' ); ?></button>
                 </p>
@@ -2299,7 +2284,6 @@ function wpv_admin_import_export_simplexml2array( $element ) {
     if ( !empty( $element ) && is_object( $element ) ) {
         $element = (array) $element;
     }
-    // SRDJAN - slider settings that have 0 values are imported as empty string https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142382765/comments
     if ( !is_array( $element ) && strval( $element ) == '0' ) {
         $element = 0;
     } else if ( empty( $element ) ) {
@@ -3223,6 +3207,8 @@ function _wpv_adjust_view_parametric_for_import( $view_settings = array(), $view
 		if ( isset( $view_settings[ $filter_control ][ $filter_control ] ) ) {
 			if ( is_array( $view_settings[ $filter_control ][ $filter_control ] ) ) {
 				$view_settings[ $filter_control ] = $view_settings[ $filter_control ][ $filter_control ];
+			} else if ( is_string( $view_settings[ $filter_control ][ $filter_control ] ) ) {
+				$view_settings[ $filter_control ] = array( $view_settings[ $filter_control ][ $filter_control ] );
 			}
 			unset( $view_settings[ $filter_control ][ $filter_control ] );
 		}

@@ -26,12 +26,13 @@ function wpv_filter_post_relationship( $query, $view_settings ) {
         $post_owner_id = 0; // the parent ID when it is just one
         $post_owner_data = array(); // we will store the data (parent ID and post_type) here to perform the auxiliar wp_query
 		switch ( $view_settings['post_relationship_mode'][0] ) {
-			case 'current_page':
-				global $WP_Views;
-				$current_page = $WP_Views->get_top_current_page();
+			case 'current_page': // @deprecated in 1.12.1
+			case 'top_current_post':
+				$current_page = apply_filters( 'wpv_filter_wpv_get_top_current_post', null );
 				if ( is_archive() ) {
 					// For archive pages, the "current page" as "post where this View is inserted" is this
-					$current_page = $WP_Views->get_current_page();
+					// @todo check if this is also needed for flters by post author, post parent or post taxonomy
+					$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
 				}
 				if ( $current_page ) {
 					$post_owner_id = $current_page->ID;
@@ -48,9 +49,9 @@ function wpv_filter_post_relationship( $query, $view_settings ) {
 					$post_owner_data[$post_type][] = $post_owner_id;
 				}
 				break;
-			case 'parent_view':
-				global $WP_Views;
-				$current_page = $WP_Views->get_current_page();
+			case 'parent_view': // @deprecated in 1.12.1
+			case 'current_post_or_parent_post_view':
+				$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
 				if ( $current_page ) {
 					$post_owner_id = $current_page->ID;
 				}
@@ -360,9 +361,13 @@ function wpv_filter_post_relationship( $query, $view_settings ) {
 			$aux_relationship_query = new WP_Query( $query_here );
 			
 			if ( is_array( $aux_relationship_query->posts ) ) {
-				if ( count( $aux_relationship_query->posts ) ) { // TODO now sure about this: array_merge merges,not calculates intersection. Future check.
+				if ( count( $aux_relationship_query->posts ) ) {
 					if (isset($query['post__in'])) {
-						$query['post__in'] = array_merge($query['post__in'], $aux_relationship_query->posts);
+						$query['post__in'] = array_intersect( (array) $query['post__in'], $aux_relationship_query->posts );
+						$query['post__in'] = array_values( $query['post__in'] );
+						if ( empty( $query['post__in'] ) ) {
+							$query['post__in'] = array( '0' );
+						}
 					} else {
 						$query['post__in'] = $aux_relationship_query->posts;
 					}
@@ -413,10 +418,21 @@ function wpv_filter_post_relationship_requires_current_page( $state, $view_setti
 		return $state; // Already set
 	}
     if ( isset( $view_settings['post_relationship_mode'][0] ) ) {   
-        if ( $view_settings['post_relationship_mode'][0] == 'current_page' ) {
+        if ( in_array( $view_settings['post_relationship_mode'][0], array( 'current_page', 'top_current_post' ) ) ) {
             $state = true;
         }
-        if ( $view_settings['post_relationship_mode'][0] == 'parent_view' ) {
+	}
+    return $state;
+}
+
+add_filter( 'wpv_filter_requires_parent_post', 'wpv_filter_post_relationship_requires_parent_post', 10, 2 );
+
+function wpv_filter_post_relationship_requires_parent_post( $state, $view_settings ) {
+	if ( $state ) {
+		return $state; // Already set
+	}
+    if ( isset( $view_settings['post_relationship_mode'][0] ) ) {   
+        if ( in_array( $view_settings['post_relationship_mode'][0], array( 'parent_view', 'current_post_or_parent_post_view' ) ) ) {
             $state = true;
         }
 	}
@@ -501,6 +517,24 @@ function wpv_filter_register_post_relationship_url_parameters( $attributes, $vie
 			'placeholder'	=> '103',
 			'description'	=> __( 'Please type a post ID to get its children', 'wpv-views' )
 		);
+		
+		$returned_post_types = $view_settings['post_type'];
+		$ancestor_post_types = array();
+		if ( ! empty( $returned_post_types ) ) {
+			$ancestor_post_types = wpv_get_post_type_ancestors( $returned_post_types );
+		}
+		foreach ( $ancestor_post_types as $ancestor_slug ) {
+			$attributes[] = array(
+				'query_type'	=> $view_settings['query_type'][0],
+				'filter_type'	=> 'post_relationship',
+				'filter_label'	=> __( 'Post relationship', 'wpv-views' ),
+				'value'			=> 'ancestor_id',
+				'attribute'		=> $view_settings['post_relationship_url_parameter'] . '-' . $ancestor_slug,
+				'expected'		=> 'number',
+				'placeholder'	=> '103',
+				'description'	=> __( 'Please type a post ID to get its children', 'wpv-views' )
+			);
+		}
 	}
 	return $attributes;
 }

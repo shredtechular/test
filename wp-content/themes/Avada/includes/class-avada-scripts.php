@@ -38,7 +38,7 @@ class Avada_Scripts {
 		}
 
 		if ( ! Avada()->settings->get( 'status_gmap' ) ) {
-			$map_api = 'http' . ( ( is_ssl() ) ? 's' : '' ) . '://maps.googleapis.com/maps/api/js?sensor=false&amp;language=' . substr( get_locale(), 0, 2 );
+			$map_api = 'http' . ( ( is_ssl() ) ? 's' : '' ) . '://maps.googleapis.com/maps/api/js?language=' . substr( get_locale(), 0, 2 );
 			wp_register_script( 'google-maps-api', $map_api, array(), $theme_info->get( 'Version' ), false );
 			wp_register_script( 'google-maps-infobox', 'http' . ( ( is_ssl() ) ? 's' : '' ) . '://google-maps-utility-library-v3.googlecode.com/svn/trunk/infobox/src/infobox_packed.js', array(), $theme_info->get( 'Version' ), false );
 		}
@@ -61,9 +61,9 @@ class Avada_Scripts {
 			wp_register_script( 'cssua', get_template_directory_uri() . '/assets/js/cssua.js', array(), $theme_info->get( 'Version' ), true );
 			wp_enqueue_script( 'cssua' );
 
-			wp_deregister_script( 'easyPieChart' );
-			wp_register_script( 'easyPieChart', get_template_directory_uri() . '/assets/js/easyPieChart.js', array(), $theme_info->get( 'Version' ), true );
-			wp_enqueue_script( 'easyPieChart' );
+			wp_deregister_script( 'jquery.easyPieChart' );
+			wp_register_script( 'jquery.easyPieChart', get_template_directory_uri() . '/assets/js/jquery.easyPieChart.js', array(), $theme_info->get( 'Version' ), true );
+			wp_enqueue_script( 'jquery.easyPieChart' );
 
 			wp_deregister_script( 'excanvas' );
 			wp_register_script( 'excanvas', get_template_directory_uri() . '/assets/js/excanvas.js', array(), $theme_info->get( 'Version' ), true );
@@ -276,6 +276,7 @@ class Avada_Scripts {
 			'blog_pagination_type'			=> Avada()->settings->get( 'blog_pagination_type' ),
 			'body_font_size'				=> Avada()->settings->get( 'body_font_size' ),
 			'carousel_speed'				=> Avada()->settings->get( 'carousel_speed' ),
+			'content_break_point'			=> fusion_strip_unit( Avada()->settings->get( 'content_break_point' ) ),			
 			'custom_icon_image_retina'		=> Avada()->settings->get( 'custom_icon_image_retina' ),
 			'disable_mobile_animate_css'	=> Avada()->settings->get( 'disable_mobile_animate_css' ),
 			'disable_mobile_image_hovers'	=> Avada()->settings->get( 'disable_mobile_image_hovers' ),
@@ -289,6 +290,7 @@ class Avada_Scripts {
 			'header_sticky_tablet'			=> Avada()->settings->get( 'header_sticky_tablet' ),
 			'header_sticky_mobile'			=> Avada()->settings->get( 'header_sticky_mobile' ),
 			'header_sticky_type2_layout'	=> Avada()->settings->get( 'header_sticky_type2_layout' ),
+			'sticky_header_shrinkage'		=> Avada()->settings->get( 'header_sticky_shrinkage' ),
 			'is_responsive' 				=> Avada()->settings->get( 'responsive' ),
 			'is_ssl'						=> is_ssl() ? 'true' : 'false',
 			'isotope_type'					=> $isotope_type,
@@ -315,7 +317,7 @@ class Avada_Scripts {
 			'megamenu_max_width'			=> Avada()->settings->get( 'megamenu_max_width' ),
 			'mobile_menu_design'			=> Avada()->settings->get( 'mobile_menu_design' ),
 			'nav_height'					=> Avada()->settings->get( 'nav_height' ),
-			'nav_highlight_border'			=> Avada()->settings->get( 'nav_highlight_border' ),
+			'nav_highlight_border'			=> ( Avada()->settings->get( 'nav_highlight_border' ) ) ? Avada()->settings->get( 'nav_highlight_border' ) : '0',
 			'page_title_fading'				=> Avada()->settings->get( 'page_title_fading' ),
 			'pagination_video_slide'		=> Avada()->settings->get( 'pagination_video_slide' ),
 			'related_posts_speed'			=> Avada()->settings->get( 'related_posts_speed' ),
@@ -325,7 +327,7 @@ class Avada_Scripts {
 			'side_header_break_point'		=> fusion_strip_unit( Avada()->settings->get( 'side_header_break_point' ) ),
 			'sidenav_behavior'				=> Avada()->settings->get( 'sidenav_behavior' ),
 			'site_width'					=> Avada()->settings->get( 'site_width' ),
-			'slider_position'				=> strtolower( Avada()->settings->get( 'slider_position' ) ),
+			'slider_position'				=> ( get_post_meta( $this->page_id(), 'pyre_slider_position', true ) && get_post_meta( $this->page_id(), 'pyre_slider_position', true ) != 'default' ) ? get_post_meta( $this->page_id(), 'pyre_slider_position', true ) : strtolower( Avada()->settings->get( 'slider_position' ) ),
 			'slideshow_autoplay'			=> Avada()->settings->get( 'slideshow_autoplay' ),
 			'slideshow_speed'				=> Avada()->settings->get( 'slideshow_speed' ),
 			'smooth_scrolling'				=> Avada()->settings->get( 'smooth_scrolling' ),
@@ -344,8 +346,7 @@ class Avada_Scripts {
 			'typography_responsive'			=> Avada()->settings->get( 'typography_responsive' ),
 			'typography_sensitivity'		=> Avada()->settings->get( 'typography_sensitivity' ),
 			'typography_factor'				=> Avada()->settings->get( 'typography_factor' ),
-			'woocommerce_shop_page_columns'	=> Avada()->settings->get( 'woocommerce_shop_page_columns' ),
-			'sticky_header_shrinkage'		=> Avada()->settings->get( 'header_sticky_shrinkage' )
+			'woocommerce_shop_page_columns'	=> Avada()->settings->get( 'woocommerce_shop_page_columns' )
 		);
 
 		if ( class_exists( 'WooCommerce' ) ) {

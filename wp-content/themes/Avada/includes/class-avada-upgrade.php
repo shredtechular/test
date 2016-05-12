@@ -8,15 +8,13 @@ class Avada_Upgrade {
 	private $current_user;
 
 	public function __construct() {
-
-		$this->debug();
-
 		$this->database_theme_version = get_option( 'avada_version', false );
 		$this->previous_theme_version = get_option( 'avada_previous_version', false );
 		$this->current_theme_version  = Avada::$version;
 		$this->avada_options = get_option( 'Avada_options', array() );
-		
-		add_action( 'init', array( $this, 'set_user_date' ) );
+
+		add_action( 'init', array( $this, 'set_user_data' ) );
+		add_action( 'after_setup_theme', array( $this, 'migrate' ) );
 
 		if ( empty( $this->avada_options ) ) {
 			// This is a fresh installation
@@ -27,14 +25,86 @@ class Avada_Upgrade {
 			add_action( 'init', array( $this, 'update_installation' ) );
 		}
 	}
-	
+
 	/**
-	 * Set the WP user data, done on init hook
-	 */	
-	public function set_user_date() {
-		global $current_user;
-		
-		$this->current_user = $current_user;
+	 * Actions to run on a fresh installation
+	 */
+	public function fresh_installation() {
+		$this->update_version();
+	}
+
+	/**
+	 * Migrate script to decode theme options
+	 */
+	public function migrate() {
+		if ( get_option( 'avada_38_migrate' ) != 'done' ) {
+			$theme_version = get_option( 'avada_theme_version' );
+
+			if ( $theme_version == '1.0.0' ) { // child theme check failure
+				Avada()->init->set_theme_version();
+			}
+
+			if ( version_compare( $theme_version, '3.8', '>=' ) && version_compare( $theme_version, '3.8.5', '<' ) ) {
+				$smof_data_to_decode = get_option( 'Avada_options' );
+
+				$encoded_field_names = array( 'google_analytics', 'space_head', 'space_body', 'custom_css' );
+
+				foreach ( $encoded_field_names as $field_name ) {
+					$decoded_field_value = rawurldecode( $smof_data_to_decode[ $field_name ] );
+
+					if ( $decoded_field_value ) {
+						$smof_data_to_decode[ $field_name ] = $decoded_field_value;
+					}
+				}
+
+				update_option( 'Avada_options', $smof_data_to_decode );
+				update_option( 'avada_38_migrate', 'done' );
+			}
+		}
+	}
+
+	/**
+	 * Actions to run on an update installation
+	 */
+	public function update_installation() {
+		if ( version_compare( $this->current_theme_version, $this->database_theme_version, '>' ) ) {
+			// Delete the update notice dismiss flag, so that the flag is reset
+			delete_user_meta( $this->current_user->ID, 'avada_pre_385_notice' );
+			delete_user_meta( $this->current_user->ID, 'avada_update_notice' );
+			
+			// Delete the TGMPA update notice dismiss flag, so that the flag is reset
+			delete_user_meta( $this->current_user->ID, 'tgmpa_dismissed_notice_tgmpa' );
+
+			$this->update_version();
+
+			// The previous version was less than 3.8.5
+			if ( version_compare( $this->database_theme_version, '3.8.5', '<' ) ) {
+				$this->pre_385();
+			}
+
+			// The previous version was less than 3.8.7
+			if ( version_compare( $this->database_theme_version, '3.8.7', '<' ) ) {
+				$this->pre_387();
+			}
+
+			// The previous version was less than 3.9
+			if ( version_compare( $this->database_theme_version, '3.9', '<' ) ) {
+				$this->pre_390();
+			}
+			
+			// The previous version was less than 3.9.2
+			if ( version_compare( $this->database_theme_version, '3.9.2', '<' ) ) {
+				$this->pre_392();
+			}			
+		}
+
+		// Hook the dismiss notice functionality
+		add_action( 'admin_init', array( $this, 'notices_action' ) );
+
+		// Show upgrade notices
+		if ( version_compare( $this->current_theme_version, '3.9.2', '<' ) ) {
+			add_action( 'admin_notices', array( $this, 'upgrade_notice' ) );
+		}
 	}
 
 	/**
@@ -52,39 +122,14 @@ class Avada_Upgrade {
 	}
 
 	/**
-	 * Actions to run on a fresh installation
+	 * Set the WP user data, done on init hook
 	 */
-	public function fresh_installation() {
-		$this->update_version();
-	}
+	public function set_user_data() {
+		global $current_user;
 
-	/**
-	 * Actions to run on an update installation
-	 */
-	public function update_installation() {
-		if ( version_compare( $this->current_theme_version, $this->database_theme_version, '>' ) ) {
-			// Delete the update notice dismiss flag, so that the flag is reset
-			delete_user_meta( $this->current_user->ID, 'avada_pre_385_notice' );
-			delete_user_meta( $this->current_user->ID, 'avada_update_notice' );
+		$this->current_user = $current_user;
 
-			$this->update_version();
-
-			// The previous version was less than 3.8.5
-			if ( version_compare( $this->database_theme_version, '3.8.5', '<' ) ) {
-				$this->pre_385();
-			}
-
-			// The previous version was less than 3.8.7
-			if ( version_compare( $this->database_theme_version, '3.8.7', '<' ) ) {
-				$this->pre_387();
-			}
-		}
-
-		// Hook the dismiss notice functionality
-		add_action( 'admin_init', array( $this, 'notices_action' ) );
-
-		// Show upgrade notices
-		add_action( 'admin_notices', array( $this, 'upgrade_notice' ) );
+		$this->debug();
 	}
 
 	/**
@@ -147,6 +192,47 @@ class Avada_Upgrade {
 	}
 
 	/**
+	 * Run if previous version is < 390
+	 */
+	public function pre_390() {
+		$options = $this->avada_options;
+
+		// Increase the height of top menu dropdown for woo cart change #2006
+		if ( isset( $options['topmenu_dropwdown_width'] ) && intval( $options['topmenu_dropwdown_width'] ) <= 180 ) {
+			$options['topmenu_dropwdown_width'] = '180px';
+		}
+
+		// Increase the height of top menu dropdown for woo cart change #2006
+		if ( isset( $options['dropdown_menu_width'] ) && intval( $options['dropdown_menu_width'] ) <= 180 ) {
+			$options['dropdown_menu_width'] = '180px';
+		}
+
+		// Update the options with our modifications.
+		update_option( 'Avada_options', $options );
+
+		// Reset the css
+		update_option( 'avada_dynamic_css_posts', array() );
+	}
+
+	/**
+	 * Run if previous version is < 392
+	 */
+	public function pre_392() {
+		$options = $this->avada_options;
+
+		// Increase the height of top menu dropdown for woo cart change #2006
+		if ( ! isset( $options['contact_comment_position'] )  ) {
+			$options['contact_comment_position'] = 'below';
+		}
+
+		// Update the options with our modifications.
+		update_option( 'Avada_options', $options );
+
+		// Reset the css
+		update_option( 'avada_dynamic_css_posts', array() );
+	}
+
+	/**
 	 * Notices that will show to users that upgrade
 	 */
 	public function upgrade_notice() {
@@ -183,6 +269,16 @@ class Avada_Upgrade {
 					</ol>
 					<?php
 				}
+
+				if ( version_compare( $this->previous_theme_version, '3.9.0', '<' ) ) {
+					?>
+					<p><strong>The following important changes were made to Avada 3.9:</strong></p>
+					<ol>
+					<li><strong>CHANGED:</strong> The woo cart / my account dropdown width is now controlled by the dropdown width theme option for main and top menu.</li>
+					<li><strong>CHANGED:</strong> The footer center option now allows each column to be fully centered.</li>
+					</ol>
+					<?php
+				}
 	    		printf( '<p><strong>' . __( '<a href="%1$s" class="%2$s" target="_blank">View Changelog</a>', 'Avada' ), 'http://theme-fusion.com/avada-documentation/changelog.txt', 'view-changelog button-primary' );
 	        	printf( __( '<a href="%1$s" class="%2$s" style="margin:0 4px;">Dismiss this notice</a>', 'Avada' ) . '</strong></p>', esc_url( add_query_arg( 'avada_update_notice', '1' ) ), 'dismiss-notice button-secondary' );
 	    	echo '</div>';
@@ -205,7 +301,7 @@ class Avada_Upgrade {
 
 			delete_user_meta( $current_user->ID, 'avada_update_notice' );
 			delete_option( 'avada_version' );
-			update_option( 'avada_version', '3.8.6.1' );
+			update_option( 'avada_version', '3.9' );
 			delete_option( 'avada_previous_version' );
 			delete_option( 'Avada_options' );
 			var_dump("Current Version: " . Avada::$version);

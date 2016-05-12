@@ -191,7 +191,7 @@ class Avada_Dynamic_CSS {
 				 * The mapped domain of the site
 				 */
 				$mapped_domain   = domain_mapping_siteurl( false );
-				$mapped_domain   = str_replace( 'https://', '//', $domain_mapping );
+				$mapped_domain   = str_replace( 'https://', '//', $mapped_domain );
 				$mapped_domain   = str_replace( 'http://', '//', $mapped_domain );
 				/**
 				 * The original domain of the site
@@ -580,7 +580,7 @@ class Avada_Dynamic_CSS {
 		/**
 		 * Clear Varnish caches
 		 */
-		if ( 'file' == self::$mode && Avada()->settings->get( 'cache_server_ip' ) ) {
+		if ( Avada()->settings->get( 'dynamic_css_compiler' ) && Avada()->settings->get( 'cache_server_ip' ) ) {
 			$this->clear_varnish_cache( self::file( 'url' ) );
 		}
 

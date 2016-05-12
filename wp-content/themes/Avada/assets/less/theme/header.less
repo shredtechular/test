@@ -382,8 +382,11 @@ body.side-header-left {
 
 	#side-header {
 		left: 0;
-		border-right-width: 1px;
-		border-right-style: solid;
+		
+		.side-header-border {
+			border-right-width: 1px;
+			border-right-style: solid;
+		}
 
 		.fusion-main-menu > ul > li > ul, .fusion-main-menu .login-box, .fusion-main-menu .cart-contents, .fusion-main-menu .main-nav-search-form { left: 279px; top: 0; }
 
@@ -401,8 +404,11 @@ body.side-header-right {
 
 	#side-header {
 		right: 0;
-		border-left-width: 1px;
-		border-left-style: solid;
+		
+		.side-header-border {
+			border-left-width: 1px;
+			border-left-style: solid;
+		}
 
 		.fusion-main-menu .fusion-megamenu-wrapper .fusion-megamenu {
 			float: right;
@@ -438,11 +444,26 @@ body.side-header-right {
 	width: 280px;
 	height: 100%;
 	position: absolute;
-	z-index: 120;
+	z-index: 3000;
 	-webkit-backface-visibility: hidden;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
+
+	.side-header-background,
+	.side-header-border {
+		z-index: -1;
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		min-height: 100vh;
+		width: 280px;
+		pointer-events: none;
+	}
+	
+	.side-header-border {
+		z-index: 0;
+	}
 
 	.side-header-wrapper {
 		padding-bottom: 20px;
@@ -635,6 +656,7 @@ body.side-header-right {
 		margin: 0;
 		padding: 0;
 		position: relative;
+		cursor: pointer;
 	}
 	a {
 		display: block;
@@ -750,6 +772,27 @@ body.side-header-right {
 			}
 		}
 	}
+
+  .fusion-widget-cart-counter {
+    > a {
+      font-family: @icon-font;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &:before {
+        border-radius: 50% 50% 50% 50%;
+        content: '\f07a';
+        margin-right: 5px;
+      }
+
+      &:after {
+        display: none;
+      }
+    }
+  }
+
 }
 
 /* Secondary Menu Styles
@@ -785,11 +828,7 @@ body.side-header-right {
 	}
 
 	.iclflag {
-		margin-top: 2px;
-	}
-
-	> ul > li > a .iclflag {
-		position: relative; top: 50%;
+		margin-top: -2px;
 	}
 
 	.sub-menu {
@@ -948,7 +987,7 @@ body.side-header-right {
 .fusion-menu-cart-item {
 	a {
 		border-bottom: 1px solid transparent;
-		padding: 15px;
+		padding: 14px;
 		line-height: normal;
 		height: auto;
 		display: block;
@@ -957,7 +996,7 @@ body.side-header-right {
 	img {
 		display: inline-block;
 		max-width: 36px;
-		margin-right: 6px;
+		margin-right: 13px;
 		border: 1px solid transparent;
 	}
 
@@ -968,7 +1007,7 @@ body.side-header-right {
 
 .fusion-menu-cart-item-details {
 	display: inline-block;
-	width: 102px;
+	max-width: ~'calc(100% - 49px)';
 	text-align: left;
 }
 
@@ -983,7 +1022,7 @@ body.side-header-right {
 
 .fusion-menu-cart-checkout {
 	.clearfix();
-	padding: 0 15px;
+	padding: 0 14px;
 }
 
 .fusion-menu-cart-link, .fusion-menu-cart-checkout-link {
@@ -1031,6 +1070,7 @@ body.side-header-right {
 
 .fusion-menu-login-box {
 	.fusion-custom-menu-item-contents {
+		left: 0;
 		border: 1px solid transparent;
 		width: 187px;
 		padding: 20px;
@@ -1088,6 +1128,22 @@ body.side-header-right {
 	&.col-span-12 .fusion-megamenu {
 		table-layout: fixed;
 		width: 100%;
+	}
+
+	&.col-sm-12 {
+		width: 100%;
+	}
+	&.col-sm-6 {
+		width: 50%;
+	}
+	&.col-sm-4 {
+		width: 33.33333333%;
+	}
+	&.col-sm-3 {
+		width: 25%;
+	}
+	&.col-sm-2 {
+		width: 16.66666667%;
 	}
 
 	.fusion-megamenu-submenu {
@@ -1256,7 +1312,7 @@ body.side-header-right {
 		.fusion-sticky-shadow {
 			-webkit-box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
 			box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
-			
+
 			.layout-boxed-mode & {
 				-webkit-box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
 				box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
@@ -1283,11 +1339,11 @@ body.side-header-right {
 
 				-webkit-box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
 				box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
-				
+
 				.layout-boxed-mode & {
 					-webkit-box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
 					box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
-				}				
+				}
 			}
 		}
 	}
@@ -1303,11 +1359,11 @@ body.side-header-right {
 
 				-webkit-box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
 				box-shadow: rgba(0, 0, 0, 0.117647) 0px 1px 3px;
-				
+
 				.layout-boxed-mode & {
 					-webkit-box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
 					box-shadow:rgba(0, 0, 0, 0.118) 0 4px 3px -3px ;
-				}				
+				}
 			}
 		}
 	}

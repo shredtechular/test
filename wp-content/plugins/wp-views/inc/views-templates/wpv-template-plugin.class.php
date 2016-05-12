@@ -27,8 +27,8 @@ class WPV_template_plugin extends WPV_template
 		) {
 			die( "Undefined nonce" );
 		}
-        $view_template_id = $_POST['view_template_id'];
-		$type = $_POST['type'];
+        $view_template_id = intval( $_POST['view_template_id'] );
+		$type = sanitize_text_field( $_POST['type'] );
 		wpv_update_dissident_posts_from_template( $view_template_id, $type);
         die();
     }

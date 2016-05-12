@@ -32,7 +32,7 @@ function wpv_users_default_settings( $view_settings ) {
 */
 
 function get_users_query( $view_settings ) {
-    global $WP_Views, $wplogger, $WPVDebug, $wpdb;
+    global $WP_Views, $WPVDebug, $wpdb;
 
 	$view_id = $WP_Views->get_current_view();
     $items = array();
@@ -40,7 +40,7 @@ function get_users_query( $view_settings ) {
 
     $WPVDebug->add_log( 'info' , apply_filters('wpv-view-get-content-summary', '', $WP_Views->current_view, $view_settings) , 'short_query' );
 
-    $wplogger->log($args, WPLOG_DEBUG);
+    toolset_wplog( $args, 'debug', __FILE__, 'get_users_query', 43 );
 
     $WPVDebug->add_log( 'info' , "Basic query arguments\n". print_r($args, true) , 'query_args' );
 

@@ -1,7 +1,7 @@
 <?php get_header(); ?>
+<div class="facetwp-template">
 	<div id="content" <?php Avada()->layout->add_class( 'content_class' ); ?> <?php Avada()->layout->add_style( 'content_style' ); ?>>
-		<?php if ( have_posts() && strlen( trim(get_search_query()) ) != 0 ) : ?>
-		
+		<?php if ( have_posts()/* && strlen( trim(get_search_query()) ) != 0 */) : ?>
 		<?php
 		if ( Avada()->settings->get( 'search_new_search_position' ) == 'bottom' ) {
 			get_template_part( 'templates/blog', 'layout' );
@@ -65,6 +65,7 @@
 	</div>
 	<?php endif; ?>
 	</div>
+</div>
 	<?php do_action( 'fusion_after_content' ); ?>
 <?php get_footer();
 

@@ -96,11 +96,6 @@ get_template_part( 'framework/custom_functions' );
 require_once( 'includes/avada-functions.php' );
 
 /**
- * Instantiate googlemaps
- */
-new Avada_GoogleMap();
-
-/**
  * WPML Config
  */
 if ( defined( 'ICL_SITEPRESS_VERSION' ) ) {
@@ -446,6 +441,7 @@ function avada_email_login_auth( $user, $username, $password ) {
 if( isset( $_POST['fusion_woo_login_box'] ) && $_POST['fusion_woo_login_box'] == 'true' ) {
 	add_action( 'init', 'avada_load_login_redirect_support' );
 }
+
 function avada_load_login_redirect_support() {
 	if ( class_exists( 'WooCommerce' ) ) {
 
@@ -466,10 +462,14 @@ function avada_login_fail( $url = '', $raw_url = '', $user = '' ) {
 			$referer_array = parse_url( $_SERVER['HTTP_REFERER'] );
 			$referer = '//' . $referer_array['host'] . $referer_array['path'];
 
-			// if there's a valid referrer, and it's not the default log-in screen
+			// If there's a valid referrer, and it's not the default log-in screen
 			if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
-				// let's append some information (login=failed) to the URL for the theme to use
-				wp_redirect( $referer . '?login=failed' );
+				if ( is_wp_error( $user ) ) {
+					// Let's append some information (login=failed) to the URL for the theme to use
+					wp_redirect( add_query_arg( array( 'login' => 'failed' ), $referer ) );
+				} else {
+					wp_redirect( $referer );
+				}
 				exit;
 			} else {
 				return $url;
@@ -477,9 +477,7 @@ function avada_login_fail( $url = '', $raw_url = '', $user = '' ) {
 		} else {
 			return $url;
 		}
-
 	}
-
 }
 
 /**
@@ -566,6 +564,16 @@ function avada_get_sermon_content( $archive = false ) {
 	}
 
 	return $sermon_content;
+}
+
+// WIP, please ignore below:
+
+add_theme_support( 'fusion-builder-demos' );
+
+if ( get_option( 'avada_imported_demo' ) == 'true' ) {
+	flush_rewrite_rules();
+
+	update_option( 'avada_imported_demo', 'false' );
 }
 
 // Omit closing PHP tag to avoid "Headers already sent" issues.

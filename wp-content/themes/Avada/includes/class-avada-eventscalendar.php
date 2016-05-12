@@ -10,6 +10,7 @@ class Avada_EventsCalendar {
 		//add_filter( 'tribe_the_next_event_link', array( $this, 'remove_arrow_from_next_link' ) );
 
 		add_filter( 'tribe_events_mobile_breakpoint', array( $this, 'set_mobile_breakpoint' ) );
+		add_action( 'tribe_events_bar_after_template', array( $this, 'add_clearfix' ) );
 	}
 
 	public function before_the_title() {
@@ -29,7 +30,7 @@ class Avada_EventsCalendar {
 	}
 
 	public function set_mobile_breakpoint() {
-		return intval( Avada()->settings->get( 'side_header_break_point' ) );
+		return intval( Avada()->settings->get( 'content_break_point' ) );
 	}
 
 	public static function render_single_event_title() {
@@ -49,4 +50,7 @@ class Avada_EventsCalendar {
 		<?php
 	}
 
+	public function add_clearfix() {
+		echo '<div class="clearfix"></div>';
+	}
 }

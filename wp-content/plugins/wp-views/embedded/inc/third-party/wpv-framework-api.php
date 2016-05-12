@@ -9,21 +9,17 @@
 */
 
 /**
-* wpv_api_register_framework
-*
-* API function to register framework integration with Views
-*
-* @param $framework_id (string) Framework ID
-* @param $framework_data (array) Framework data
-*		@param 'name' (string) (optional) The name of the framework, will default to $framework_id
-*		@param 'api_mode' (string) <function|option> The kind of framework API
-*		@param 'api_handler' (string) The name of the function|option that can be used to get values from option slugs
-*
-* @return (boolean) True if the framework was registered, false otherwise or if it was already registered
-*
-* @since 1.8.0
-*/
-
+ * API function to register framework integration with Views
+ *
+ * @param $framework_id (string) Framework ID
+ * @param $framework_data (array) Framework data:
+ *         'name' (string) (optional) The name of the framework, will default to $framework_id
+ *         'api_mode' (string) <function|option> The kind of framework API
+ *         'api_handler' (string) The name of the function|option that can be used to get values from option slugs
+ * @return bool (boolean) True if the framework was registered, false otherwise or if it was already registered
+ *
+ * @since 1.8.0
+ */
 function wpv_api_register_framework( $framework_id, $framework_data ) {
 	global $WP_Views_fapi;
 	if ( ! isset( $WP_Views_fapi ) ) {
@@ -39,7 +35,6 @@ function wpv_api_register_framework( $framework_id, $framework_data ) {
 *
 * @since 1.8.0
 */
-
 class WP_Views_Integration_API {
 	
 	public function __construct() {
@@ -121,6 +116,8 @@ class WP_Views_Integration_API {
 		* example_register
 		*
 		* Code example to register manually
+		*
+		* @nore Not used anywhere since 2.0
 		*/
 		
 		$this->example_register_key = "<pre><code style='display:block'>add_action( 'wpv_action_wpv_register_integration_keys', 'prefix_register_framework_keys' );\n"
@@ -133,36 +130,42 @@ class WP_Views_Integration_API {
 				. '}'
 				. "</code></pre>";
 		
-		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'init', array( $this, 'register_saved_auto_detected' ), 99 );
+		add_action( 'init',												array( $this, 'init' ) );
+		add_action( 'init',												array( $this, 'register_saved_auto_detected' ), 99 );
 		
-		add_action( 'wp_loaded', array( $this, 'wp_loaded' ) );
+		add_action( 'wp_loaded',										array( $this, 'wp_loaded' ) );
 		
-		add_action( 'admin_menu', array( $this, 'admin_menu' ), 30 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ), 20 );
+		add_filter( 'toolset_filter_toolset_register_settings_section',	array( $this, 'register_settings_views_integration_section' ), 31 );
+		add_filter( 'toolset_filter_toolset_register_settings_views-integration_section',	array( $this, 'views_integration_autodetect_options' ) );
+		add_filter( 'toolset_filter_toolset_register_settings_views-integration_section',	array( $this, 'views_integration_registered_options' ), 20 );
+		add_filter( 'toolset_filter_toolset_register_settings_views-integration_section',	array( $this, 'views_integration_error_options' ), 30 );
+		add_filter( 'toolset_filter_toolset_register_settings_views-integration_section',	array( $this, 'views_integration_manual_options' ), 40 );
+		
+		add_action( 'toolset_enqueue_scripts',							array( $this, 'toolset_enqueue_scripts' ) );
 		
 		// Bring the frameworks shortcode into the Views GUI
-		add_filter( 'wpv_filter_wpv_shortcodes_gui_data', array( $this, 'register_shortcode_in_gui' ) );
-		add_filter( 'editor_addon_menus_wpv-views', array( $this, 'add_shortcode_to_editor' ), 99 );
+		add_filter( 'wpv_filter_wpv_shortcodes_gui_data',				array( $this, 'register_shortcode_in_gui' ) );
+		add_filter( 'editor_addon_menus_wpv-views',						array( $this, 'add_shortcode_to_editor' ), 99 );
 		
-		add_action( 'wp_ajax_wpv_register_auto_detected_framework', array( $this, 'wpv_register_auto_detected_framework' ) );
-		add_action( 'wp_ajax_wpv_update_framework_integration_keys', array( $this, 'wpv_update_framework_integration_keys' ) );
+		add_action( 'wp_ajax_wpv_register_auto_detected_framework',		array( $this, 'wpv_register_auto_detected_framework' ) );
+		add_action( 'wp_ajax_wpv_update_framework_integration_keys',	array( $this, 'wpv_update_framework_integration_keys' ) );
 		
 		// Extend Views settings to allow for registered framework options
-		add_filter( 'wpv_filter_extend_limit_options', array( $this, 'extend_view_settings_as_array_options' ), 10 );
-		add_filter( 'wpv_filter_extend_offset_options', array( $this, 'extend_view_settings_as_array_options' ), 10 );
-		add_filter( 'wpv_filter_extend_posts_per_page_options', array( $this, 'extend_view_settings_as_array_options' ), 10 );
+		add_filter( 'wpv_filter_extend_limit_options',					array( $this, 'extend_view_settings_as_array_options' ), 10 );
+		add_filter( 'wpv_filter_extend_offset_options',					array( $this, 'extend_view_settings_as_array_options' ), 10 );
+		add_filter( 'wpv_filter_extend_posts_per_page_options',			array( $this, 'extend_view_settings_as_array_options' ), 10 );
 		
 		// Extend Views filters to allow for registered framework options
-		add_filter( 'wpv_filter_extend_framework_options_for_post_author', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_post_id', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_post_relationship', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_parent', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_category', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_custom_field', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_taxonomy_term', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_users', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
-		add_filter( 'wpv_filter_extend_framework_options_for_usermeta_field', array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_post_author',			array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_post_id',				array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_post_relationship',	array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_parent',				array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_category',				array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_custom_field',			array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_taxonomy_term',		array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_termmeta_field',		array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_users',				array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
+		add_filter( 'wpv_filter_extend_framework_options_for_usermeta_field',		array( $this, 'extend_view_settings_as_array_options_for_filters' ), 10 );
 		
     }
 	
@@ -177,8 +180,9 @@ class WP_Views_Integration_API {
 	function init() {
 		wp_register_script( 'views-framework-integration-js' , WPV_URL_EMBEDDED . '/res/js/views_framework_integration.js', array( 'jquery', 'toolset-utils', 'underscore' ), WPV_VERSION );
 		$framework_translations = array(
-			'warning_change' => __( "Please note that changing the registered framework will restart the registered options", 'wpv-views'),
-			'wpv_close' => __( 'Close', 'wpv-views') 
+			'warning_change'	=> __( "Please note that changing the registered framework will restart the registered options", 'wpv-views'),
+			'wpv_close'			=> __( 'Close', 'wpv-views'),
+			'nonce'				=> wp_create_nonce( 'wpv_framework_integration_nonce' )
 		);
 		wp_localize_script( 'views-framework-integration-js', 'views_framework_integration_texts', $framework_translations );
 		add_shortcode( 'wpv-theme-option', array( $this, 'wpv_shortcode_wpv_theme_option' ) );
@@ -193,16 +197,16 @@ class WP_Views_Integration_API {
 	*/
 	
 	function register_saved_auto_detected() {
-		global $WPV_settings;
+		$settings = WPV_Settings::get_instance();
 		$auto_detected = $this->auto_detect();
 		if ( 
 			! $this->framework_valid
 			&& ! empty( $auto_detected )
-			&& isset( $WPV_settings->wpv_saved_auto_detected_framework )
-			&& ! empty( $WPV_settings->wpv_saved_auto_detected_framework ) 
-			&& in_array( $WPV_settings->wpv_saved_auto_detected_framework, $auto_detected )
+			&& isset( $settings->wpv_saved_auto_detected_framework )
+			&& ! empty( $settings->wpv_saved_auto_detected_framework ) 
+			&& in_array( $settings->wpv_saved_auto_detected_framework, $auto_detected )
 		) {
-			$saved_auto_detected_data = $this->auto_detect_list[$WPV_settings->wpv_saved_auto_detected_framework];
+			$saved_auto_detected_data = $this->auto_detect_list[$settings->wpv_saved_auto_detected_framework];
 			$this->register_framework( $saved_auto_detected_data['id'], $saved_auto_detected_data );
 			if ( $this->framework_valid ) {
 				$this->framework_is_autodetected = true;
@@ -230,35 +234,329 @@ class WP_Views_Integration_API {
 	}
 	
 	/**
-	* admin_menu
+	* toolset_enqueue_scripts
 	*
-	* Add a submenu item in the Views menu for the theme framework integration
+	* Toolset Common callback for loading assets in shared pages
 	*
-	* @since 1.8.0
+	* @since 2.0
 	*/
 	
-	function admin_menu() {
-		$cap = 'manage_options';
-		global $WP_Views;
-		if ( ! $WP_Views->is_embedded() ) {
-			$this->framework_integration_page = add_submenu_page( 'views', __( 'Views Integration', 'wpv-views' ), __( 'Views Integration', 'wpv-views' ), $cap, 'views-framework-integration', array( $this, 'render_framework_integration_page' ) );
-			add_action( 'load-' . $this->framework_integration_page, array( $this, 'help_tab' ) );
+	function toolset_enqueue_scripts( $current_page ) {
+		switch ( $current_page ) {
+			case 'toolset-settings':
+				wp_enqueue_script( 'views-framework-integration-js' );
+				break;
 		}
 	}
 	
 	/**
-	* enqueue_scripts
+	* register_settings_views_integration_section
 	*
-	* Enqueue the script for the Views theme framework integration
+	* Add the Views Integration tab in the Toolset Settings page
 	*
-	* @since 1.8.0
+	* @since 2.0
 	*/
 	
-	function enqueue_scripts( $hook ) {
-		if ( $hook == 'views_page_views-framework-integration' ) {
-			wp_enqueue_script( 'views-framework-integration-js' );
-			wp_enqueue_style( 'views-admin-css' );
+	function register_settings_views_integration_section( $sections ) {
+		$sections['views-integration'] = array(
+			'slug'	=> 'views-integration',
+			'title'	=> __( 'Views Integration', 'wpv-views' )
+		);
+		return $sections;
+	}
+	
+	/**
+	* views_integration_autodetect_options
+	*
+	* Add the Views Integration autodetect section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function views_integration_autodetect_options( $sections ) {
+		$section_content = '';
+		ob_start();
+		$this->render_autodetected_frameworks_selection();
+		$section_content = ob_get_clean();
+		
+		$sections['views-autodetected-frameworks'] = array(
+			'slug'		=> 'views-autodetected-frameworks',
+			'title'		=> __( 'Autodetected frameworks', 'wpv-views' ),
+			'content'	=> $section_content
+		);
+		
+		if (
+			$this->framework 
+			&& ! $this->framework_valid
+		) {
+			$sections['views-autodetected-frameworks']['hidden'] = true;
 		}
+		
+		return $sections;
+	}
+	
+	/**
+	* render_autodetected_frameworks_selection
+	*
+	* Render the autodetect section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function render_autodetected_frameworks_selection() {
+		$settings = WPV_Settings::get_instance();
+		$saved_auto_detected = $settings->wpv_saved_auto_detected_framework;
+		$auto_detected = $this->auto_detect();
+		if (
+			! $this->framework_valid
+			|| $this->framework_is_autodetected
+		) {
+			?>
+			<div class="toolset-advanced-setting">
+				<p><?php _e( 'We have detected the following frameworks on your site:', 'wpv-views' ); ?></p>
+				<ul>
+					<li>
+						<input type="radio" name="wpv-framework-auto" <?php checked( $saved_auto_detected, '' ); ?> id="wpv-framework-auto" data-id="" class="js-wpv-framework-auto" value="" autocomplete="off" />
+						<label for="wpv-framework-auto"><?php _e( 'Do not register any framework automatically', 'wpv-views' ); ?></label>
+					</li>
+					<?php
+					foreach ( $this->auto_detect_list as $auto_detect_key => $auto_detect_offer ) {
+						?>
+						<li>
+							<input type="radio" name="wpv-framework-auto" <?php checked( $saved_auto_detected, $auto_detect_key ); ?> id="wpv-framework-auto-<?php echo $auto_detect_offer['id']; ?>" data-id="<?php echo esc_attr( $auto_detect_offer['id'] ); ?>" <?php disabled( ! in_array( $auto_detect_key , $auto_detected ) ); ?> class="js-wpv-framework-auto" value="<?php echo $auto_detect_key; ?>" autocomplete="off" />
+							<label for="wpv-framework-auto-<?php echo $auto_detect_offer['id']; ?>"><?php echo $auto_detect_offer['name']; ?></label>
+							- <a href="<?php echo esc_url( $auto_detect_offer['link'] ); ?>" target="_blank">
+							<?php 
+							echo sprintf(
+								__( 'Check the details for %s', 'wpv-views' ),
+								$auto_detect_offer['name']
+							); 
+							?>
+							</a>
+						</li>
+						<?php
+					}
+					?>
+				</ul>
+			</div>
+			<p class="toolset-alert toolset-alert-info js-wpv-autodetect-frameworks-selection-warning" style="display:none">
+				<?php
+				_e( 'Please note that changing the registered framework will restart the registered options', 'wpv-views' );
+				?>
+				<br /><br />
+				<button class="button js-wpv-autodetect-frameworks-selection-warning-action js-wpv-autodetect-frameworks-selection-warning-cancel"><?php _e( 'Cancel', 'wpv-views' ); ?></button>
+				<button class="button button-primary js-wpv-autodetect-frameworks-selection-warning-action js-wpv-autodetect-frameworks-selection-warning-apply"><?php _e( 'Apply', 'wpv-views' ); ?></button>
+			</p>
+			<?php
+		}
+	}
+	
+	/**
+	* views_integration_registered_options
+	*
+	* Add the Views Integration registered section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function views_integration_registered_options( $sections ) {
+		$section_content = '';
+		
+		$sections['views-registered-framework'] = array(
+			'slug'		=> 'views-registered-framework',
+			'title'		=> __( 'Registered framework', 'wpv-views' ),
+			'content'	=> ''
+		);
+		
+		if ( 
+			$this->framework 
+			&& $this->framework_valid
+		) {
+			ob_start();
+			echo $this->render_registered_framework_settings();
+			$section_content = ob_get_clean();
+			$sections['views-registered-framework']['content'] = $section_content;
+		} else {
+			$sections['views-registered-framework']['hidden'] = true;
+		}
+		
+		return $sections;
+	}
+	
+	/**
+	* render_registered_framework_settings
+	*
+	* Render the registered section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function render_registered_framework_settings() {
+		if ( $this->framework_valid ) {
+			$framework_data = $this->framework_data;
+			$framework_registered_keys = $this->get_stored_framework_keys();
+			?>
+			<div class="toolset-advanced-setting wpv-add-item-settings js-toolset-views-registered-framework-<?php echo esc_attr( $this->framework ); ?>">
+				<p>
+					<?php
+					if ( $this->framework_is_autodetected ) {
+						echo sprintf( __( 'You have selected the <strong>%s</strong> options framework to be used with Views.', 'wpv-views' ), $framework_data['name'] );
+					} else {
+						echo sprintf( __( 'Your theme has registered the <strong>%s</strong> options framework to be used with Views.', 'wpv-views' ), $framework_data['name'] );
+					}
+					echo WPV_MESSAGE_SPACE_CHAR;
+					echo sprintf(
+						__( 'For details, check the <a href="%s" title="Documentation for Views theme framework integration">documentation page</a>', 'wpv-views' ),
+						WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
+					); 
+					?>
+				</p>
+				<?php
+				if (
+					isset( $this->framework_registered_keys[$this->framework] ) 
+					&& ! empty( $this->framework_registered_keys[$this->framework] )
+				) {
+					echo '<h3>'
+						. __( 'Auto-registered options', 'wpv-views' )
+						. '</h3>'
+						. '<p>'
+						. __( 'Those options were registered using the Views Integration API.', 'wpv-views' )
+						. '</p>'
+						. '<ul class="toolset-taglike-list">';
+					foreach( $this->framework_registered_keys[$this->framework] as $reg_key ) {
+						echo '<li>'
+							. $reg_key
+							. '</li>';
+					}
+					echo '</ul>';
+				}
+				?>
+				<h3><?php _e( 'Declare theme options', 'wpv-views' ); ?></h3>
+				<p>
+					<?php
+					_e( 'You can use the theme options as a source of values in several settings of Views.', 'wpv-views' );
+					echo WPV_MESSAGE_SPACE_CHAR;
+					_e( 'To do that, you need to declare here which theme options should be available to be used inside Views.', 'wpv-views' );
+					?>
+				</p>
+				<p>
+					<?php
+					_e( 'Use the form below to register options.', 'wpv-views' );
+					echo WPV_MESSAGE_SPACE_CHAR;
+					_e( 'Also, note that you can delete options that no longer need to be available.', 'wpv-views' );
+					?>
+				</p>
+				<div class="js-wpv-add-item-settings-wrapper">
+					<ul class="toolset-taglike-list js-wpv-add-item-settings-list js-custom-shortcode-list">
+						<?php
+						foreach ( $framework_registered_keys as $fw_key ) {
+								?>
+								<li class="js-<?php echo $fw_key; ?>-item">
+									<span class=""><?php echo $fw_key; ?></span>
+									<i class="icon-remove-sign fa fa-times-circle js-wpv-framework-slug-delete" data-target="<?php echo esc_attr( $fw_key ); ?>"></i>
+								</li>
+								<?php
+							}
+						?>
+					</ul>
+					<form class="js-wpv-add-item-settings-form js-wpv-framework-integration-form-add">
+						<input type="text" placeholder="<?php _e( 'Option slug', 'wpv-views' ); ?>" class="js-wpv-add-item-settings-form-newname js-wpv-framework-integration-newname" />
+						<button class="button button-secondary js-wpv-add-item-settings-form-button js-wpv-framework-slug-add" type="button" disabled><i class="icon-plus fa fa-plus"></i> <?php _e( 'Add', 'wpv-views' ); ?></button>
+						<span class="toolset-alert toolset-alert-error hidden js-wpv-cs-error"><?php _e( 'Only latin letters, numbers, underscores and dashes', 'wpv-views' ); ?></span>
+						<span class="toolset-alert toolset-alert-info hidden js-wpv-cs-dup"><?php _e( 'That option was already declared', 'wpv-views' ); ?></span>
+						<span class="toolset-alert toolset-alert-info hidden js-wpv-cs-ajaxfail"><?php _e( 'An error ocurred', 'wpv-views' ); ?></span>
+					</form>
+				</div>
+			</div>
+			<?php
+		}
+	}
+	
+	/**
+	* views_integration_error_options
+	*
+	* Add the Views Integration error section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function views_integration_error_options( $sections ) {
+		$section_content = '';
+		ob_start();
+		?>
+		<p>
+			<?php _e( 'Your framework was not correctly registered. Remember that you need to register your framework as follows:', 'wpv-views' ); ?>
+		</p>	
+		<?php
+		echo $this->example_register;
+		?>
+		<p>
+			<?php
+			echo sprintf(
+				__( 'For details, check the <a href="%s" title="Documentation for Views theme framework integration">documentation page</a>', 'wpv-views' ),
+				WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
+			); 
+			?>
+		</p>	
+		<?php
+		$section_content = ob_get_clean();
+		
+		$sections['views-error-framework'] = array(
+			'slug'		=> 'views-error-framework',
+			'title'		=> __( 'Broken integration', 'wpv-views' ),
+			'content'	=> $section_content
+		);
+		
+		if ( 
+			! $this->framework 
+			|| $this->framework_valid
+		) {
+			$sections['views-error-framework']['hidden'] = true;
+		}
+		
+		return $sections;
+	}
+	
+	/**
+	* views_integration_manual_options
+	*
+	* Add the Views Integration manual section in the Toolset Settings page
+	*
+	* @since 2.0
+	*/
+	
+	function views_integration_manual_options( $sections ) {
+		$section_content = '';
+		ob_start();
+		?>
+		<p>
+			<?php _e( 'You can register your framework manually as follows:', 'wpv-views' ); ?>
+		</p>	
+		<?php
+		echo $this->example_register;
+		?>
+		<p>
+			<?php
+			echo sprintf(
+				__( 'For details, check the <a href="%s" title="Documentation for Views theme framework integration">documentation page</a>', 'wpv-views' ),
+				WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
+			); 
+			?>
+		</p>	
+		<?php
+		$section_content = ob_get_clean();
+		
+		$sections['views-manual-framework'] = array(
+			'slug'		=> 'views-manual-framework',
+			'title'		=> __( 'Register your framework manually', 'wpv-views' ),
+			'content'	=> $section_content
+		);
+		
+		if ( $this->framework ) {
+			$sections['views-manual-framework']['hidden'] = true;
+		}
+		
+		return $sections;
 	}
 	
 	/**
@@ -320,15 +618,39 @@ class WP_Views_Integration_API {
         }
 		$auto_detected = $this->auto_detect();
 		$framework = isset( $_POST['framework'] ) ? sanitize_text_field( $_POST['framework'] ) : '';
+		$include_section = isset( $_POST['include_section'] ) ? sanitize_text_field( $_POST['include_section'] ) : '';
 		if (
 			empty( $framework )
-			|| isset( $this->auto_detect_list[$framework] )
+			|| isset( $this->auto_detect_list[ $framework ] )
 		) {
-			global $WPV_settings;
-			$WPV_settings['wpv_saved_auto_detected_framework'] = $framework;
-			$WPV_settings->save();
-			wp_send_json_success();
+			$data = array();
+			
+			$settings = WPV_settings::get_instance();
+			$settings['wpv_saved_auto_detected_framework'] = $framework;
+			$settings->save();
+			
+			$this->framework = null;
+			$this->framework_valid = false;
+			$this->register_saved_auto_detected();
+			$section_content = '';
+			$data['section'] = '';
+			
+			if ( 
+				! empty( $include_section ) 
+				&& $include_section == $framework 
+			) {
+				do_action( 'wpv_action_wpv_register_integration_keys', $this );
+				ob_start();
+				echo $this->render_registered_framework_settings();
+				$section_content = ob_get_clean();
+				$data['section'] = $section_content;
+			}
+			
+			wp_send_json_success( $data );
 		} else {
+			$data = array(
+				'message'	=> __( 'The framework does not exist', 'wpv-views' )
+			);
 			wp_send_json_error();
 		}
 	}
@@ -442,7 +764,7 @@ class WP_Views_Integration_API {
 		$return = '';
 		if ( $show_flag ) {
 			$return .= '<span class="wpv-filter-title-notice wpv-filter-title-notice-error">'
-			. '<i class="icon-bookmark fa fa-bookmark icon-rotate-270 fa-rotate-270 icon-large fa-lg" title="This filters needs some action"></i>'
+			. '<i class="icon-bookmark fa fa-bookmark fa-rotate-270 icon-large fa-lg" title="This filters needs some action"></i>'
 			. '</span>';
 		}
 		if ( $item ) {
@@ -635,157 +957,13 @@ class WP_Views_Integration_API {
 	}
 	
 	/**
-	* help_tab
-	*
-	*
-	* @since 1.10
-	*/
-	
-	function help_tab() {
-		$screen = get_current_screen();
-		if ( $screen->id != $this->framework_integration_page ) {
-			return;
-		}
-		$screen->add_help_tab(
-			array(
-				'id'		=> 'wpv_framework_integration_help_tab_register_framework',
-				'title'		=> __( 'Register a framework', 'wpv-views' ),
-				'content'	=> '<p>'
-					. __( '<strong>Views</strong> will auto-detect the most used frameworks and, if they are available on your site, you will be able to register one of them with a single click.', 'wpv-views' )
-					. '</p>'
-					. '<p>'
-					. sprintf(
-						__( 'However, you can also integrate a framework within Views using <a href="%s" target="_blank">our API</a>:', 'wpv-views' ),
-						WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
-						)
-					. $this->example_register
-					. '</p>'
-					. '<p>'
-					. __( 'Once you have integrated your framework, you need to register the options that should be available for use as Views settings.', 'wpv-views' )
-					. '</p>'
-			)
-		);
-		$screen->add_help_tab(
-			array(
-				'id'		=> 'wpv_framework_integration_help_tab_register_option',
-				'title'		=> __( 'Register framework options', 'wpv-views' ),
-				'content'	=> '<p>'
-					. __( 'After integrating a framework, you need to register the options that should be available for use as View settings.', 'wpv-views' )
-					. '</p>'
-					. '<p>'
-					. sprintf(
-						__( 'You can use the provided form to add or remove registered options. In addition, you can also use <a href="%s" target="_blank">our API</a>:', 'wpv-views' ),
-						WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
-						)
-					. $this->example_register_key
-					. '</p>'
-					. '<p>'
-					. __( 'Once you have registered some options, you will be able to use them in different View settings, like the <em>limit</em> or the <em>offset</em>.', 'wpv-views' )
-					. '</p>'
-			)
-		);
-		$auto_detect_help_tab = '';
-		foreach ( $this->auto_detect_list as $auto_detected_fw ) {
-			$auto_detect_help_tab .= '<li>'
-				. sprintf(
-						__('%s - <code>framework_slug: %s</code> - <a href="%s" target="_blank">documentation</a>', 'wpv-views' ),
-						$auto_detected_fw['name'],
-						$auto_detected_fw['id'],
-						$auto_detected_fw['link']
-					)
-				. '</li>';
-		}
-		$screen->add_help_tab(
-			array(
-				'id'		=> 'wpv_framework_integration_help_tab_auto_detect',
-				'title'		=> __( 'Auto-detected frameworks', 'wpv-views' ),
-				'content'	=> '<p>'
-					. __( '<strong>Views</strong> can auto-detect whether one of the following frameworks is installed on your site and register it with just a single click:', 'wpv-views' )
-					. '</p>'
-					. '<ul>'
-					. $auto_detect_help_tab
-					. '</ul>'
-			)
-		);
-	}
-	
-	/**
-	* framework_integration_page
-	*
-	* Render the admin page for Views theme framework integration
-	*
-	* @since 1.8.0
-	*/
-	
-	function render_framework_integration_page() {
-		?>
-		<div class="wrap">
-			<h1><?php _e( 'Views integration', 'wpv-views' ); ?></h1>
-			<?php
-			if ( $this->framework ) {
-				if ( $this->framework_valid ) {
-					echo '<div class="wpv-setting-container wpv-add-item-settings">'
-						. $this->get_registered_framework_management_structure()
-						. '</div>';
-					$this->display_auto_supported_selection();
-				} else {
-					echo '<div class="wpv-setting-container">'
-						. '<div class="wpv-settings-header">'
-						. '<h2>'
-						. __( 'Something went wrong', 'wpv-views' )
-						. '</h2>'
-						. '</div>'
-						. '<div class="wpv-setting">'
-						. '<p>'
-						. __( 'Your framework was not correctly registered. Remember that you need to register your framework as follows:', 'wpv-views' )
-						. '</p>';
-						echo $this->example_register;
-					echo '</div>';
-					echo '</div>';
-					//$this->display_auto_supported_selection();
-				}
-			} else {
-				$this->display_auto_supported_selection();
-				echo '<div class="wpv-setting-container">'
-					. '<div class="wpv-settings-header">'
-					. '<h2>'
-					. __( 'Register your framework manually', 'wpv-views' )
-					. '</h2>'
-					. '</div>'
-					. '<div class="wpv-setting">'
-					. '<p>'
-					. __( 'You can register your framework manually as follows:', 'wpv-views' )
-					. '</p>';
-					echo $this->example_register;
-				echo '</div>';
-				echo '</div>';
-			}
-			?>
-			<div class="wpv-setting-container">
-				<p class="toolset-alert toolset-alert-info">
-					<?php 
-					echo sprintf(
-						__( 'For details, check the <a href="%s" title="Documentation for Views theme framework integration">documentation page</a>', 'wpv-views' ),
-						WPV_LINK_FRAMEWORK_INTEGRATION_DOCUMENTATION
-					); 
-					?>
-				</p>
-			</div>
-			<?php 
-			wp_nonce_field( 'wpv_framework_integration_nonce', 'wpv_framework_integration_nonce' ); 
-			?>
-		</div>
-		<?php
-	}
-	
-	/**
-	* auto_detect
-	*
-	* Check for familiar frameworks and offer them for registration.
-	*
-	* @since 1.10
-	*/
-	
+	 * auto_detect
+	 *
+	 * Check for familiar frameworks and offer them for registration.
+	 *
+	 * @return array An array of detected framework names.
+	 * @since 1.10
+	 */
 	function auto_detect() {
 		$auto_detected = array();
 		foreach ( $this->auto_detect_list as $thiz_present => $thiz_data ) {
@@ -797,69 +975,6 @@ class WP_Views_Integration_API {
 			}
 		}
 		return $auto_detected;
-	}
-	
-	/**
-	* display_auto_supported_selection
-	*
-	* Display the section to select one supported framework.
-	*
-	* @note Only offer to select one when there is no registered framework OR the one registered is one of the auto-detectable
-	* @note Checks the registered one
-	* @note Disables the ones not detected
-	*
-	* @since 1.10
-	*/
-	
-	function display_auto_supported_selection() {
-		global $WPV_settings;
-		$saved_auto_detected = $WPV_settings->wpv_saved_auto_detected_framework;
-		$auto_detected = $this->auto_detect();
-		if (
-			! $this->framework_valid
-			|| $this->framework_is_autodetected
-		) {
-		?>
-		<div class="wpv-setting-container js-wpv-framework-auto-detect-selection">
-			<div class="wpv-settings-header">
-				<h2><?php _e( 'Autodetected frameworks', 'wpv-views' ); ?></h2>
-			</div>
-			<div class="wpv-setting">
-				<div class="wpv-advanced-setting">
-					<p><?php _e( 'We have detected the following frameworks on your site:', 'wpv-views' ); ?></p>
-					<ul>
-						<li>
-							<input type="radio" name="wpv-framework-auto" <?php checked( $saved_auto_detected, '' ); ?> id="wpv-framework-auto" class="js-wpv-framework-auto" value="" autocomplete="off" />
-							<label for="wpv-framework-auto"><?php _e( 'Do not register any framework automatically', 'wpv-views' ); ?></label>
-						</li>
-						<?php
-						foreach ( $this->auto_detect_list as $auto_detect_key => $auto_detect_offer ) {
-							?>
-							<li>
-								<input type="radio" name="wpv-framework-auto" <?php checked( $saved_auto_detected, $auto_detect_key ); ?> id="wpv-framework-auto-<?php echo $auto_detect_offer['id']; ?>" <?php disabled( ! in_array( $auto_detect_key , $auto_detected ) ); ?> class="js-wpv-framework-auto" value="<?php echo $auto_detect_key; ?>" autocomplete="off" />
-								<label for="wpv-framework-auto-<?php echo $auto_detect_offer['id']; ?>"><?php echo $auto_detect_offer['name']; ?></label>
-								- <a href="<?php echo esc_url( $auto_detect_offer['link'] ); ?>" target="_blank">
-								<?php 
-								echo sprintf(
-									__( 'Check the details for %s', 'wpv-views' ),
-									$auto_detect_offer['name']
-								); 
-								?>
-								</a>
-							</li>
-							<?php
-						}
-						?>
-					</ul>
-					<p class="update-button-wrap">
-						<span class="js-wpv-message-container"></span>
-						<button id="js-wpv-framework-auto-save" class="button button-secondary" disabled="disabled"><?php _e( 'Save', 'wpv-views' ); ?></button>
-					</p>
-				</div>
-			</div>
-		</div>
-		<?php
-		}
 	}
 	
 	/**
@@ -881,7 +996,7 @@ class WP_Views_Integration_API {
 				<h2><?php echo $this->framework_data['name']; ?></h2>
 			</div>
 			<div class="wpv-setting">
-				<div class="wpv-advanced-setting">
+				<div class="wpv-advanced-setting wpv-add-item-settings">
 					<p>
 						<?php
 						if ( $this->framework_is_autodetected ) {
@@ -902,7 +1017,7 @@ class WP_Views_Integration_API {
 							. '<p>'
 							. __( 'Those options were registered using the Views Integration API.', 'wpv-views' )
 							. '</p>'
-							. '<ul class="wpv-taglike-list">';
+							. '<ul class="toolset-taglike-list">';
 						foreach( $this->framework_registered_keys[$this->framework] as $reg_key ) {
 							echo '<li>'
 								. $reg_key
@@ -927,7 +1042,7 @@ class WP_Views_Integration_API {
 						?>
 					</p>
 					<div class="js-wpv-add-item-settings-wrapper">
-						<ul class="wpv-taglike-list js-wpv-add-item-settings-list js-custom-shortcode-list">
+						<ul class="toolset-taglike-list js-wpv-add-item-settings-list js-custom-shortcode-list">
 							<?php
 							foreach ( $framework_registered_keys as $fw_key ) {
 									?>
@@ -970,14 +1085,14 @@ class WP_Views_Integration_API {
 		if ( is_null( $this->framework ) ) {
 			return $return;
 		}
-		global $WPV_settings;
+		$settings = WPV_Settings::get_instance();
 		if ( 
-			isset( $WPV_settings->wpv_framework_keys )
-			&& is_array( $WPV_settings->wpv_framework_keys )
-			&& isset( $WPV_settings->wpv_framework_keys[$this->framework] ) 
-			&& is_array( $WPV_settings->wpv_framework_keys[$this->framework] ) 
+			isset( $settings->wpv_framework_keys )
+			&& is_array( $settings->wpv_framework_keys )
+			&& isset( $settings->wpv_framework_keys[$this->framework] ) 
+			&& is_array( $settings->wpv_framework_keys[$this->framework] ) 
 		) {
-			$return = $WPV_settings->wpv_framework_keys[$this->framework];
+			$return = $settings->wpv_framework_keys[$this->framework];
 		}
 		
 		/**
@@ -1069,18 +1184,18 @@ class WP_Views_Integration_API {
 			return;
 		}
         
-		global $WPV_settings;
+		$settings = WPV_Settings::get_instance();
 		if ( 
-			isset( $WPV_settings->wpv_framework_keys )
-			&& is_array( $WPV_settings->wpv_framework_keys )
+			isset( $settings->wpv_framework_keys )
+			&& is_array( $settings->wpv_framework_keys )
 		) {
-			$wpv_framework_settings = $WPV_settings->wpv_framework_keys;
+			$wpv_framework_settings = $settings->wpv_framework_keys;
 		} else {
 			$wpv_framework_settings = array();
 		}
 		$wpv_framework_settings[$this->framework] = $fw_keys;
-		$WPV_settings->wpv_framework_keys = $wpv_framework_settings;
-		$WPV_settings->save();
+		$settings->wpv_framework_keys = $wpv_framework_settings;
+		$settings->save();
 	}
 	
 	/**

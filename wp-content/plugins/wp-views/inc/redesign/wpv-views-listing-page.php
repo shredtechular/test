@@ -408,7 +408,7 @@ function wpv_admin_view_listing_table( $views_pre_query_data, $current_post_stat
 							</td>
 							<td class="wpv-admin-listing-col-scan">
 								<button class="button js-scan-button" data-view-id="<?php echo $post->ID; ?>">
-									<i class="icon-barcode fa fa-barcode"></i> <?php _e( 'Scan', 'wp-views' ); ?>
+									<i class="icon-barcode fa fa-barcode"></i> <?php _e( 'Scan', 'wpv-views' ); ?>
 								</button>
 								<span class="js-nothing-message hidden"><?php _e( 'Nothing found', 'wpv-views' ); ?></span>
 							</td>
@@ -534,7 +534,7 @@ function wpv_admin_menu_views_listing_row($post_id) {
 			</select>
 		</td>
 		<td>
-			<button class="button js-scan-button" data-view-id="<?php echo $post->ID; ?>"><?php _e('Scan','wp-views') ?></button>
+			<button class="button js-scan-button" data-view-id="<?php echo $post->ID; ?>"><?php _e('Scan','wpv-views') ?></button>
             <span class="js-nothing-message hidden"><?php _e('Nothing found','wpv-views');?></span>
 		</td>
 		<td>

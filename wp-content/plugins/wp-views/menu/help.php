@@ -80,7 +80,7 @@
 	<p><?php
 	printf(
 		__( 'For retrieving debug information if asked by a support person, use the <a href="%s">debug information</a> page.', 'wpv-views' ),
-		admin_url('admin.php?page=views-debug-information')
+		admin_url('admin.php?page=toolset-debug-information')
 	);
 	?></p>
 </div>

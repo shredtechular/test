@@ -7,7 +7,7 @@ if ( defined( 'WPV_VERSION' ) ) {
 
 // EMBEDDED VERSION
 
-define( 'WPV_VERSION', '1.11.1' );
+define( 'WPV_VERSION', '2.0' );
 
 /*
  * Note: This modification was not authorized, but might be in the future. I'll dare to just leave it here. --Jan
@@ -60,19 +60,15 @@ if( defined('WPV_URL_EMBEDDED') ){
     // load on the go resources
 	require WPV_PATH_EMBEDDED . '/toolset/onthego-resources/loader.php';
 	onthego_initialize(WPV_PATH_EMBEDDED . '/toolset/onthego-resources/', WPV_URL_EMBEDDED . '/toolset/onthego-resources/');
-}
-
-if (!defined('EDITOR_ADDON_RELPATH')) {
-    define('EDITOR_ADDON_RELPATH', WPV_URL . '/toolset/toolset-common/visual-editor');
-}
-
-if ( !function_exists( 'wplogger' ) ) {
-	require_once(WPV_PATH_EMBEDDED) . '/toolset/toolset-common/wplogger.php';
+	require WPV_PATH_EMBEDDED . '/toolset/toolset-common/loader.php';
+	toolset_common_initialize(WPV_PATH_EMBEDDED . '/toolset/toolset-common/', WPV_URL_EMBEDDED . '/toolset/toolset-common/');
 }
 
 if ( !function_exists( 'wpv_debuger' ) ) { 
 	require_once(WPV_PATH_EMBEDDED) . '/inc/wpv-query-debug.class.php';
 }
+
+require_once WPV_PATH_EMBEDDED . '/inc/classes/wpv-cache.class.php';
 
 require WPV_PATH_EMBEDDED . '/inc/constants-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-admin-messages.php';
@@ -93,7 +89,7 @@ require WPV_PATH_EMBEDDED . '/inc/wpv-filter-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-pagination-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-archive-loop.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-category-embedded.php';
-require WPV_PATH_EMBEDDED . '/inc/wpv-filter-custom-field-embedded.php';
+require WPV_PATH_EMBEDDED . '/inc/wpv-filter-meta-field-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-order-by-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-post-types-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-search-embedded.php';
@@ -101,7 +97,6 @@ require WPV_PATH_EMBEDDED . '/inc/wpv-filter-status-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-sticky-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-author-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-users-embedded.php';
-require WPV_PATH_EMBEDDED . '/inc/wpv-filter-usermeta-field-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-id-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-date-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-filter-parent-embedded.php';
@@ -120,9 +115,10 @@ require WPV_PATH_EMBEDDED . '/inc/wpv.class.php';
 
 require WPV_PATH_EMBEDDED . '/inc/wpv-condition.php';
 
-require WPV_PATH_EMBEDDED . '/toolset/toolset-common/WPML/wpml-string-shortcode.php';
 require WPV_PATH_EMBEDDED . '/inc/WPML/wpv_wpml.php';
 
+require WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/shortcode_generator/shortcode-generator.class.php';
+require WPV_PATH_EMBEDDED . '/inc/classes/wpv-shortcode-generator.php';
 
 if (is_admin()) {
     require WPV_PATH_EMBEDDED . '/inc/wpv-import-export-embedded.php';
@@ -138,10 +134,10 @@ global $WPV_templates;
 $WPV_templates = new WPV_template();
 
 // Views Settings (Read-Only)
-require_once WPV_PATH_EMBEDDED . '/inc/wpv-settings-embedded.php';
+require_once WPV_PATH_EMBEDDED . '/inc/wpv-settings.class.php';
 
 global $WPV_settings;
-$WPV_settings = new WPV_Settings_Embedded;
+$WPV_settings = WPV_Settings::get_instance();
 
 // Views object wrappers
 require_once WPV_PATH_EMBEDDED . '/inc/classes/wpv-post-object-wrapper.class.php';
@@ -154,6 +150,9 @@ require WPV_PATH_EMBEDDED . '/inc/wpv-summary-embedded.php';
 require WPV_PATH_EMBEDDED . '/inc/wpv-readonly-embedded.php';
 
 require WPV_PATH_EMBEDDED . '/inc/wpv-api.php';
+
+require_once WPV_PATH_EMBEDDED . '/inc/third-party/hooks-api.php';
+WPV_API_Embedded::initialize();
 
 if (!is_admin()) {
 
@@ -174,21 +173,13 @@ if (!is_admin()) {
 
 add_filter( 'toolset_is_views_embedded_available', '__return_true' );
 
-
-/* ************************************************************************* *\
-        Add Toolset promotion pop-up.
-\* ************************************************************************* */
-
-include_once( WPV_PATH_EMBEDDED . '/toolset/toolset-common/classes/class.toolset.promo.php' );
-
-new Toolset_Promotion;
-
 /**
  * Register screen IDs where Toolset promotion pop-up should be available.
  *
  * Currently we use it on embedded listing pages.
  *
  * @since 1.8
+ * @since 2.0	Register the new screen IDs after mergint Toolset into one shared menu
  */
 add_filter( 'toolset_promotion_screen_ids', 'wpv_register_toolset_promotion_screen_ids' );
 
@@ -196,7 +187,12 @@ function wpv_register_toolset_promotion_screen_ids( $screen_ids ) {
     if( is_array( $screen_ids ) ) {
         $screen_ids = array_merge(
             $screen_ids,
-            array( 'toplevel_page_embedded-views', 'views_page_embedded-views-templates', 'views_page_embedded-views-archives' ) );
+            array( 
+				'toplevel_page_embedded-views',
+				'views_page_embedded-views-templates', 'views_page_embedded-views-archives', //DEPRECATED
+				'toolset_page_embedded-views', 'toolset_page_embedded-views-templates', 'toolset_page_embedded-views-archives'
+			) 
+		);
     }
     return $screen_ids;
 }

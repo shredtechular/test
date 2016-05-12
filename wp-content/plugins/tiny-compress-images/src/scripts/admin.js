@@ -8,6 +8,7 @@
     var element = jQuery(event.target)
     element.attr('disabled', 'disabled')
     element.closest('td').find('.spinner').removeClass('hidden')
+    element.closest('td').find('span.dashicons').addClass('hidden')
     jQuery.ajax({
       url: ajaxurl,
       type: "POST",
@@ -79,12 +80,12 @@
       } else if (data.failed > 0) {
         status.addClass('failed')
         row.find('.bar').css('width', '100%')
-        row.find('.percent').html(data.success + " " + tinyCompress.L10nCompressions)
+        row.find('.percent').html(data.success + " " + (data.success == 1 ? tinyCompress.L10nCompression : tinyCompress.L10nCompressions))
         row.find('.progress').attr("title", data.message)
       } else {
         status.addClass('success')
         row.find('.bar').css('width', '100%')
-        row.find('.percent').html(data.success + " " + tinyCompress.L10nCompressions)
+        row.find('.percent').html(data.success + " " + (data.success == 1 ? tinyCompress.L10nCompression : tinyCompress.L10nCompressions))
       }
 
       if (data.status) {
@@ -136,7 +137,7 @@
     bulk_compress_item(items, 0)
   }
 
-  if (adminpage === "upload-php") {
+  if (typeof adminpage !== "undefined" && adminpage === "upload-php") {
     if (typeof jQuery.fn.on === "function") {
       jQuery('table').on('click', 'button.tiny-compress', compress_image)
     } else {
@@ -153,14 +154,51 @@
     jQuery('<option>').val('tiny_bulk_compress').text(tinyCompress.L10nBulkAction).appendTo('select[name="action2"]')
   }
 
-  if (adminpage === "options-media-php") {
+  if (typeof adminpage !== "undefined" && adminpage === "options-media-php") {
     jQuery('#tiny-compress-status').load(ajaxurl + '?action=tiny_compress_status')
+    jQuery('#tiny-compress-savings').load(ajaxurl + '?action=tiny_compress_savings')
 
-    jQuery('input[name*="tinypng_sizes"]').on("click", function() {
+    jQuery('input[name*="tinypng_sizes"], input#tinypng_resize_original_enabled').on("click", function() {
       // Unfortunately, we need some additional information to display the correct notice.
       totalSelectedSizes = jQuery('input[name*="tinypng_sizes"]:checked').length
-      jQuery('#tiny-image-sizes-notice').load(ajaxurl + '?action=tiny_image_sizes_notice&image_sizes_selected=' + totalSelectedSizes)
+      var image_count_url = ajaxurl + '?action=tiny_image_sizes_notice&image_sizes_selected=' + totalSelectedSizes
+      if (jQuery('input#tinypng_resize_original_enabled').prop('checked') && jQuery('input#tinypng_sizes_0').prop('checked')) {
+        image_count_url += '&resize_original=true'
+      }
+      jQuery('#tiny-image-sizes-notice').load(image_count_url)
     })
+
+    function update_resize_settings() {
+      if (jQuery('#tinypng_sizes_0').prop('checked')) {
+        jQuery('.tiny-resize-available').show()
+        jQuery('.tiny-resize-unavailable').hide()
+      } else {
+        jQuery('.tiny-resize-available').hide()
+        jQuery('.tiny-resize-unavailable').show()
+      }
+
+      var elements = jQuery('#tinypng_resize_original_width, #tinypng_resize_original_height')
+      for (var i = 0; i < elements.length; i++) {
+        elements[i].disabled = !jQuery('#tinypng_resize_original_enabled').prop('checked')
+      }
+    }
+
+    function update_preserve_settings() {
+      if (jQuery('#tinypng_sizes_0').prop('checked')) {
+        jQuery('.tiny-preserve').show()
+      } else {
+        jQuery('.tiny-preserve').hide()
+        jQuery('#tinypng_preserve_data_copyright').attr('checked', false)
+      }
+    }
+
+    function update_settings() {
+      update_resize_settings()
+      update_preserve_settings()
+    }
+
+
+    jQuery('#tinypng_sizes_0, #tinypng_resize_original_enabled').click(update_settings)
   }
 
   jQuery('.tiny-notice a.tiny-dismiss').click(dismiss_notice)

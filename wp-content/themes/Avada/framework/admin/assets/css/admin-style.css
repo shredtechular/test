@@ -205,7 +205,9 @@ border-radius: 2px;
 #of_container #of-nav li.backup a:before {content: "\e63e";}
 #of_container #of-nav li.autoupdates a:before {content: "\e63c";}
 #of_container #of-nav li.sidebars a:before {content: "\e634";}
+#of_container #of-nav li.bbpress a:before {font-family: dashicons; content: "\f307";}
 #of_container #of-nav li.ec a:before {font-family: dashicons; content: "\f145";}
+#of_container #of-nav li.responsive a:before {font-family: dashicons; content: "\f169";}
 
 #of_container #content {
 	float: left;
@@ -224,7 +226,7 @@ border-radius: 2px;
 	margin-bottom: 10px;
 	overflow: hidden;
 }
-#of_container #content .section h3.heading {
+#of_container #content .section h4.heading {
 	margin: 10px 0 10px 0;
 	padding: 7px 0px;
 	border-bottom: 1px solid #e7e7e7;
@@ -261,8 +263,8 @@ border-radius: 2px;
 	overflow: hidden;
 	cursor: pointer;
 }
-#of_container #content .section-info h3.heading,
-#of_container #content .section-accordion h3.heading {
+#of_container #content .section-info h4.heading,
+#of_container #content .section-accordion h4.heading {
 	display:none;
 }
 #of_container #content .section-info .controls,

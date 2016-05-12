@@ -103,6 +103,23 @@
 		__( 'Heading Area', 'Avada' ),
 		__( 'Enter the heading for your slide. This field can take HTML markup and Fusion Shortcodes.', 'Avada' )
 	);
+	$this->select(
+		'heading_separator',
+		__( 'Heading Separator', 'Avada' ),
+		array(	'none'				=> __( 'None', 'Avada' ),
+				'single solid'		=> __( 'Single Solid', 'Avada' ),
+				'single dashed'		=> __( 'Single Dashed', 'Avada' ),
+				'single dotted'		=> __( 'Single Dotted', 'Avada' ),
+				'double solid'	 	=> __( 'Double Solid', 'Avada' ),
+				'double dashed'		=> __( 'Double Dashed', 'Avada' ),
+				'double dotted'		=> __( 'Double Dotted', 'Avada' ),
+				'underline solid'	=> __( 'Underline Solid', 'Avada' ),
+				'underline dashed'	=> __( 'Underline Dashed', 'Avada' ),
+				'underline dotted'	=> __( 'Underline Dotted', 'Avada' ),
+				
+		),
+		__( 'Choose the heading separator you want to use.', 'Avada' )
+	);	
 	$this->text(
 		'heading_font_size',
 		__( 'Heading Font Size', 'Avada' ),
@@ -129,6 +146,23 @@
 		__( 'Caption Area', 'Avada' ),
 		__( 'Enter the caption for your slide. This field can take HTML markup and Fusion Shortcodes.', 'Avada' )
 	);
+	$this->select(
+		'caption_separator',
+		__( 'Caption Separator', 'Avada' ),
+		array(	'none'				=> __( 'None', 'Avada' ),
+				'single solid'		=> __( 'Single Solid', 'Avada' ),
+				'single dashed'		=> __( 'Single Dashed', 'Avada' ),
+				'single dotted'		=> __( 'Single Dotted', 'Avada' ),
+				'double solid'	 	=> __( 'Double Solid', 'Avada' ),
+				'double dashed'		=> __( 'Double Dashed', 'Avada' ),
+				'double dotted'		=> __( 'Double Dotted', 'Avada' ),
+				'underline solid'	=> __( 'Underline Solid', 'Avada' ),
+				'underline dashed'	=> __( 'Underline Dashed', 'Avada' ),
+				'underline dotted'	=> __( 'Underline Dotted', 'Avada' ),
+				
+		),
+		__( 'Choose the caption separator you want to use.', 'Avada' )
+	);	
 	$this->text(
 		'caption_font_size',
 		__( 'Caption Font Size', 'Avada' ),

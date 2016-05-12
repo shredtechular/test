@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: WP Views Embedded
+Plugin Name: Toolset Views Embedded
 Plugin URI: http://wp-types.com/?utm_source=viewsplugin&utm_campaign=views&utm_medium=plugins-list-embbedded-version&utm_term=Visit plugin site
 Description: Views will query the content from the database, iterate through it and let you display it with flair. This is the embedded version of the plugin, so you will not be able to edit any component.
 Author: OnTheGoSystems
 Author URI: http://www.onthegosystems.com
-Version: 1.11.1
+Version: 2.0
 */
 
 /**
@@ -16,7 +16,8 @@ Version: 1.11.1
 * @since 1.6.2
 */
 
-
+// @todo this is happening also on views.php which is included right after this if posible, so we might want to remove it here
+// no point of loading this if the plugin is to be deactivated
 require dirname(__FILE__) . '/toolset/onthego-resources/loader.php';
 if ( ( defined( 'FORCE_SSL_ADMIN' ) && FORCE_SSL_ADMIN ) || is_ssl() ) {
 	onthego_initialize(dirname(__FILE__) . '/toolset/onthego-resources/',
@@ -26,7 +27,16 @@ if ( ( defined( 'FORCE_SSL_ADMIN' ) && FORCE_SSL_ADMIN ) || is_ssl() ) {
 								   plugins_url() . '/' . basename( dirname( __FILE__ ) ) . '/toolset/onthego-resources/');
 }
 
-add_action( 'plugins_loaded', 'wpv_embedded_load_or_deactivate' );
+/**
+* wpv_embedded_load_or_deactivate
+*
+* This must happen early, as Toolset Common loads some of its assets at plugins_loaded:10 and we include it on views.php
+*
+* @since unknown
+* @since 2.0		Change priority to 1
+*/
+
+add_action( 'plugins_loaded', 'wpv_embedded_load_or_deactivate', 1 );
 
 function wpv_embedded_load_or_deactivate() {
 	if ( class_exists( 'WP_Views' ) ) {

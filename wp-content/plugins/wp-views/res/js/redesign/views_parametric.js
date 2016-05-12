@@ -130,7 +130,7 @@ var WPV_ParametricFilterWindow = function() {
 		spinner_hide = WPV_ParametricSpinnerButton.button.parent(),
 		reset_hide = WPV_ParametricResetButton.button.parent(),
 		submit_hide = WPV_ParametricSubmitButton.button.parent(),
-		fields_and_views_hide = jqp('.js-wpv-filter-edit-toolbar .js-code-editor-toolbar-button-v-icon'),
+		fields_and_views_hide = jqp('.js-wpv-filter-edit-toolbar .js-wpv-fields-and-views-in-toolbar'),
 		cred_hide = jqp('.js-wpv-filter-edit-toolbar .js-code-editor-toolbar-button-cred-icon').parent().parent(),
 		toolbar = jqp('.js-wpv-filter-extra-section .wpv-setting'),
 		pag_hide = [
@@ -279,7 +279,7 @@ var WPV_ParametricFilterWindow = function() {
 			if ( sendData.post_types ) {
 				proxy.loader.loadShow( jqp( this ).parent().parent() );
 				jqp( this ).prop( 'disabled', true );
-				proxy.ajaxCall( sendData, ajaxurl, 'post', ajaxCreateCallback, [ jqp( this ) ] );
+				proxy.ajaxCall( sendData, WPV_Parametric.ajaxurl, 'post', ajaxCreateCallback, [ jqp( this ) ] );
  			} else {
 				WPViews.view_edit_screen.codemirror_panel( codemirror_views_query, WPV_Parametric.select_post_types, true, 'error' );
 			}
@@ -324,7 +324,7 @@ var WPV_ParametricFilterWindow = function() {
 					) {
 						proxy.loader.loadShow( jqp( this ).parent().parent() );
 						jqp( this ).prop( 'disabled', true );
-						proxy.ajaxCall( params, ajaxurl, 'post', ajaxCreateCallback, [ jqp( this ) ] );
+						proxy.ajaxCall( params, WPV_Parametric.ajaxurl, 'post', ajaxCreateCallback, [ jqp( this ) ] );
 					} else {
 						WPViews.view_edit_screen.codemirror_panel( codemirror_views_query, WPV_Parametric.editing_manual_filter, true, 'error' );
 					}
@@ -744,7 +744,7 @@ var WPV_ParametricFilterWindow = function() {
 				return false;
 			}
 
-			proxy.ajaxCall( sendData, ajaxurl, 'post', ajaxCreateInsertCallback, [] );
+			proxy.ajaxCall( sendData, WPV_Parametric.ajaxurl, 'post', ajaxCreateInsertCallback, [] );
 
 			self.dialog.dialog( 'close' );
 		}
@@ -940,11 +940,11 @@ var WPV_ParametricFilterWindow = function() {
 					wpnonce: WPV_Parametric.wpv_parametric_validate_post_relationship_tree
 				};
 				jqp.ajax({
-					async:false,
-					type:"POST",
-					url:ajaxurl,
-					data:data,
-					success:function(response){
+					async: false,
+					type: "POST",
+					url: WPV_Parametric.ajaxurl,
+					data: data,
+					success: function(response){
 						if ( (typeof(response) !== 'undefined') ){
 							if (response != 'OK') {
 								message = response;
@@ -1021,7 +1021,7 @@ var WPV_ParametricFilterWindow = function() {
 					query_type: jQuery('input:radio.js-wpv-query-type:checked').val(),
 					nonce: jQuery('.js-wpv-filter-update-filters-list-nonce').val()
 				}
-				jQuery.post(ajaxurl, params, function(response) {
+				jQuery.post( WPV_Parametric.ajaxurl, params, function(response) {
 
 					if ( (typeof(response) !== 'undefined') ) {
 						decoded_response = jQuery.parseJSON(response);
@@ -1115,7 +1115,7 @@ var WPV_ParametricFilterWindow = function() {
 			action:'create_parametric_dialog',
 			wpv_parametric_create_dialog_nonce: WPV_Parametric.wpv_parametric_create_dialog_nonce
 		};
-		jqp.post( ajaxurl, params, function( response ) {
+		jqp.post( WPV_Parametric.ajaxurl, params, function( response ) {
 			if ( response ) {
 				self.dialog
 					.html( response )
@@ -1872,11 +1872,12 @@ var WPV_ParametricViewModel = function() {
 
 				var extra_query = '&field=' + field.field() + '&type=' + self.type();
 				jqp('.js-wpv-auto-fill-default').unbind('keydown').suggest(
-						ajaxurl + '?action=wpv_suggest_auto_fill_default' + extra_query,
+						WPV_Parametric.ajaxurl + '&action=wpv_suggest_auto_fill_default' + extra_query,
 						{
 							minchars: 1,
 							maxCacheSize: 0,
 							max_size: 0,
+							resultsClass: 'ac_results wpv-suggest-results',
 							onSelect: function() {
 								thevalue = this.value;
 								jqp('.js-wpv-auto-fill-default').val( thevalue );
@@ -2406,11 +2407,12 @@ var WPV_ParametricViewModel = function() {
 
 			var extra_query = '&field=' + field.field() + '&type=' + field.type();
 			jqp('.js-wpv-auto-fill-default').unbind('keydown').suggest(
-					ajaxurl + '?action=wpv_suggest_auto_fill_default' + extra_query,
+					WPV_Parametric.ajaxurl + '&action=wpv_suggest_auto_fill_default' + extra_query,
 					{
 						minchars: 1,
 						maxCacheSize: 0,
 						max_size: 0,
+						resultsClass: 'ac_results wpv-suggest-results',
 						onSelect: function() {
 							thevalue = this.value;
 							thevalue = thevalue.split(' #');
@@ -3514,14 +3516,14 @@ var WPV_ParametricSearchButton = function() {
 			filter_options: 'filter_by_search=1&post_search_value=&search_mode%5B%5D=manual&post_search_content=' + self.search_where,
 			wpnonce:WPV_Parametric.wpv_view_filter_search_nonce
 		};
-		jqp.post( ajaxurl, params, function( response ) {
+		jqp.post( WPV_Parametric.ajaxurl, params, function( response ) {
 			var prms = {
 				action: 'wpv_filter_update_filters_list',
 				id: WPV_Parametric.view_id,
 				query_type: jQuery('input:radio.js-wpv-query-type:checked').val(),
 				nonce: jQuery('.js-wpv-filter-update-filters-list-nonce').val()
 			};
-			jQuery.post( ajaxurl, prms, function( response ) {
+			jQuery.post( WPV_Parametric.ajaxurl, prms, function( response ) {
 				if ( ( typeof( response ) !== 'undefined' ) ) {
 					decoded_response = jQuery.parseJSON( response );
 					if ( decoded_response.success === prms.id ) {
@@ -4144,7 +4146,7 @@ var WPV_ParametricJsonStore = function() {
 	};
 
 	self.ajaxCall = function( data, url, method, callback, args, object ) {
-		var URI = url ? url : ajaxurl, 
+		var URI = url ? url : WPV_Parametric.ajaxurl, 
 		obj = data, 
 		type = method ? method : 'post';
 

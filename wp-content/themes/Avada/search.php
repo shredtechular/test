@@ -38,29 +38,30 @@
 	<div class="post-content">
 		<?php
 			$title = __( 'Couldn\'t find what you\'re looking for!', 'Avada' );
-			echo do_shortcode( sprintf( '[title size="2" content_align="left" style_type="default"]%s[/title]', $title ) );
+			echo Avada()->template->title_template( $title );
 		?>
 		<div class="error-page">
-			<?php
-			// First column
-			echo do_shortcode( sprintf( '[one_third last="no" spacing="yes"]<h1 class="oops %s">%s</h1>[/one_third]', ( $sidebar_css != 'display:none') ? 'sidebar-oops' : '', __( 'Oops!', 'Avada' ) ) );
-
-			// Second column
-			$subheading = sprintf( '<h3>%s</h3>', __( 'Here are some useful links:', 'Avada' ) );
-			$iconcolor = strtolower( Avada()->settings->get( 'checklist_icons_color' ) );
-			$list_css = sprintf( '<style type="text/css">.post-content #checklist-1 li:before{color:%s !important;}.rtl .post-content #checklist-1 li:after{color:%s !important;}</style>', $iconcolor, $iconcolor );
-			$useful_links_menu = wp_nav_menu( array( 'theme_location' => '404_pages', 'depth' => 1, 'container' => false, 'menu_id' => 'checklist-1', 'menu_class' => 'list-icon circle-yes list-icon-arrow', 'echo' => 0 ) );
-
-			echo do_shortcode( sprintf( '[one_third last="no" spacing="yes" class="useful-links"]%s%s%s[/one_third]', $subheading, $list_css, $useful_links_menu ) );
-
-
-			// Third column
-			$subheading = sprintf( '<h3>%s</h3>', __( 'Try again!', 'Avada' ) );
-			$info_text = sprintf( '<p>%s</p>', __( 'If you want to rephrase your query, here is your chance:', 'Avada' ) );
-			$search_form = get_search_form( FALSE );
-
-			echo do_shortcode( sprintf( '[one_third last="yes" spacing="yes"]%s%s%s[/one_third]', $subheading, $info_text, $search_form ) );
-			?>
+			<div class="fusion-columns fusion-columns-3">
+				<div class="fusion-column col-lg-4 col-md-4 col-sm-4">
+					<h1 class="oops"><?php _e( 'Oops!', 'Avada' ); ?></h1>
+				</div>
+				<div class="fusion-column col-lg-4 col-md-4 col-sm-4 useful-links">
+					<h3><?php _e( 'Here are some useful links:', 'Avada' ); ?></h3>
+					<?php					
+						if ( Avada()->settings->get( 'checklist_circle' ) ) {
+							$circle_class = 'circle-yes';
+						} else {
+							$circle_class = 'circle-no';
+						}
+						wp_nav_menu( array( 'theme_location' => '404_pages', 'depth' => 1, 'container' => false, 'menu_class' => 'error-menu list-icon list-icon-arrow ' . $circle_class, 'echo' => 1 ) );
+					?>
+				</div>
+				<div class="fusion-column col-lg-4 col-md-4 col-sm-4">
+					<h3><?php _e( 'Try again', 'Avada' ); ?></h3>
+					<p><?php _e('If you want to rephrase your query, here is your chance:', 'Avada' ); ?></p>
+					<?php echo get_search_form( false ); ?>
+				</div>
+			</div>
 		</div>
 	</div>
 	<?php endif; ?>

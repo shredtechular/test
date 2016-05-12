@@ -3,6 +3,16 @@
  * Wrapper for a Content Template.
  *
  * @since 1.8
+ *
+ * @property-read array $assigned_single_post_types
+ * @property-read string $content_raw
+ * @property-read string $description
+ * @property-read string $description_raw
+ * @property-read bool $is_owned_by_view
+ * @property-read int $loop_output_id
+ * @property-read null|object $wpml_element_language_details
+ * @property-read null|string $wpml_language
+ * @property-read int $wpml_trid
  */
 class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
 
@@ -489,6 +499,7 @@ class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
             // by it's slug and '1' if by it's title. Then we will sort results by priority and use the first one.
             // Notice the "LIMIT 2", which allows us to do this (with the limitation described above) but still
             // keeps the query as lightweight as possible.
+            /** @noinspection SqlResolve */
             $query = $wpdb->prepare(
                 "SELECT ID, IF( post_name = %s, '0', '1' ) AS priority
                 FROM {$wpdb->posts}
@@ -565,20 +576,21 @@ class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
         $args = wp_parse_args( $args, $default_args );
 
 		// If needed, switch WPML to default language, run the query, switch back.
-        global $sitepress;
+		$default_language = apply_filters( 'wpml_default_language', '' );
+		$current_language = apply_filters( 'wpml_current_language', '' );
 
-        $switch_languages = ( !$force_all_languages && isset( $sitepress ) );
+        $switch_languages = ( ! $force_all_languages );
 
         if( $switch_languages ) {
             //changes to the default language
-            $sitepress->switch_lang( $sitepress->get_default_language() );
+			do_action( 'wpml_switch_language', $default_language );
         }
 
         $query = new WP_Query( $args );
 
         if( $switch_languages ) {
             //changes to the current language
-            $sitepress->switch_lang( ICL_LANGUAGE_CODE );
+			do_action( 'wpml_switch_language', $current_language );
         }
 
         switch( $return_what ) {
@@ -677,7 +689,7 @@ class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
      * Zero if no owner exists.
      */
     protected function _get_loop_output_id() {
-        return (int) $this->get_postmeta('_view_loop_id');
+        return (int) $this->get_postmeta( WPV_Content_Template_Embedded::POSTMETA_LOOP_OUTPUT_ID );
     }
 
 
@@ -850,6 +862,8 @@ class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
             $translations = $sitepress->get_element_translations( $trid, WPV_Content_Template_Embedded::get_wpml_element_type(), false, true );
             return $translations;
         }
+
+		return null;
     }
 
 
@@ -929,7 +943,13 @@ class WPV_Content_Template_Embedded extends WPV_Post_Object_Wrapper {
 			if ( ! is_array( $post_types ) ) {
 				return null;
 			}
-		}
+
+	        // Querying by post types but no post types provided - no results (but no error technically speaking).
+	        if( empty( $post_types ) ) {
+		        return array();
+	        }
+
+        }
 
         if( !in_array( $output_format, array( 'count', 'by_post_type', 'flat_array' ) ) ) {
             return null;

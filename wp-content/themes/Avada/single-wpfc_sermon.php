@@ -95,7 +95,7 @@
 					ob_start();
 					the_author_posts_link();
 					$title = sprintf( '%s %s', __( 'About the Author:', 'Avada' ), ob_get_clean() );
-					echo do_shortcode( sprintf( '[title size="3" content_align="left" style_type="default"]%s[/title]', $title ) );
+					echo Avada()->template->title_template( $title, '3' );
 				?>
 				<div class="about-author-container">
 					<div class="avatar">

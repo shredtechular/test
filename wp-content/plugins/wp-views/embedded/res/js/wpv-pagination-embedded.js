@@ -114,12 +114,31 @@ jQuery( document ).on( 'click', '.js-wpv-column-header-click', function( e ) {
 	innerthis;
 	jQuery( 'form[name="wpv-filter-' + view_number + '"]' ).each( function() {
 		innerthis = jQuery( this );
-		innerthis.find( '#wpv_column_sort_id' ).val( name );
-		innerthis.find( '#wpv_column_sort_dir' ).val( direction );
 		WPViews.view_frontend_utils.add_url_controls_for_column_sort( data, innerthis );
+		if ( innerthis.find( '[name=wpv_sort_orderby]' ).length > 0 ) {
+			innerthis.find( '[name=wpv_sort_orderby]' ).val( name );
+		} else {
+			jQuery( '<input>' )
+				.attr({
+					type:	'hidden',
+					name:	'wpv_sort_orderby',
+					value:	name
+				})
+				.appendTo( innerthis );
+		}
+		if ( innerthis.find( '[name=wpv_sort_order]' ).length > 0 ) {
+			innerthis.find( '[name=wpv_sort_order]' ).val( direction );
+		} else {
+			jQuery( '<input>' )
+				.attr({
+					type:	'hidden',
+					name:	'wpv_sort_order',
+					value:	direction
+				})
+				.appendTo( innerthis );
+		}
 	});
 	jQuery( 'form[name="wpv-filter-' + view_number + '"]' ).submit();
-	return false;
 });
 
 WPViews.ViewFrontendUtils = function( $ ) {
@@ -169,11 +188,13 @@ WPViews.ViewFrontendUtils = function( $ ) {
 			var thiz_key = qs_part[0],
 			thiz_val = decodeURIComponent( qs_part[1].replace( /\+/g, " " ) );
 			// Adjust thiz_key to work with POSTed arrays
-			thiz_key = thiz_key.replace( "[]", "" );
-			thiz_key = thiz_key.replace( "%5B%5D", "" );
+			thiz_key = thiz_key.replace( /(\[)\d?(\])/, "" );
+			thiz_key = thiz_key.replace( "[]", "" );// Just in case
+			thiz_key = thiz_key.replace( /(%5B)\d?(%5D)/, "" );
+			thiz_key = thiz_key.replace( "%5B%5D", "" );// Just in case
 			if ( query_string_pairs.hasOwnProperty( thiz_key ) ) {
 				if ( query_string_pairs[thiz_key] != thiz_val ) {
-					// @hack alert!! WE can not avoid using this :-(
+					// @hack alert!! We can not avoid using this :-(
 					query_string_pairs[thiz_key] += '##URLARRAYVALHACK##' + thiz_val;
 				} else {
 					query_string_pairs[thiz_key] = thiz_val;
@@ -503,10 +524,14 @@ WPViews.ViewFrontendUtils = function( $ ) {
 	$( window ).on( 'resize', _.debounce(
 		function() {
 			$( '.js-wpv-layout-responsive' ).each( function() {
-				$( this ).css( 'width', $( this ).parent().width() );
+				$( this ).css( 'width', '' );
+			})
+			.promise()
+			.done( function() {
+				$( document ).trigger( 'js_event_wpv_layout_responsive_resize_completed' );
 			});
 		},
-		1000
+		wpv_pagination_local.resize_debounce_tolerance
 	));
 	
 	// ------------------------------------
@@ -544,6 +569,8 @@ WPViews.ViewPagination = function( $ ) {
 	self.pagination_effect_state_push = [ 'fade', 'slidev', 'slideh' ];
 	self.pagination_effect_state_replace = [];
 	self.pagination_effect_state_keep = [ 'infinite' ];
+	
+	self.init_scrolling_event_fired = false;
 		
 	self.slide_data_defaults = { 
 		view_number:		'',
@@ -575,11 +602,14 @@ WPViews.ViewPagination = function( $ ) {
 	*/
 	
 	self.get_ajax_pagination_url = function( data ) {
-		var url;
-		if ( wpv_pagination_local.ajax_pagination_url.slice( -'.php'.length ) === '.php' ) {
-			url = wpv_pagination_local.ajax_pagination_url + '?wpv-ajax-pagination=' + WPViews.view_frontend_utils.serialize_array( data );
+		var url,
+		appendix = WPViews.view_frontend_utils.serialize_array( data );
+		if ( ( wpv_pagination_local.ajax_pagination_url.length + appendix.length ) > 245 ) {
+			url = wpv_pagination_local.ajax_pagination_url_safe + '?wpv-ajax-pagination=' + appendix;
+		} else if ( wpv_pagination_local.ajax_pagination_url.slice( -'.php'.length ) === '.php' ) {
+			url = wpv_pagination_local.ajax_pagination_url + '?wpv-ajax-pagination=' + appendix;
 		} else {
-			url = wpv_pagination_local.ajax_pagination_url + WPViews.view_frontend_utils.serialize_array( data );
+			url = wpv_pagination_local.ajax_pagination_url + appendix;
 		}
 		return url;
 	};
@@ -598,12 +628,15 @@ WPViews.ViewPagination = function( $ ) {
 		data['page'] = page;
 		data['view_number'] = view_number;
 		var this_form = $( 'form.js-wpv-filter-form-' + view_number );
-		data['wpv_column_sort_id'] = this_form.find( 'input[name=wpv_column_sort_id]' ).val();
-		data['wpv_column_sort_dir'] = this_form.find( 'input[name=wpv_column_sort_dir]' ).val();
+		data['wpv_sort_orderby'] = this_form.data( 'orderby' );
+		data['wpv_sort_order'] = this_form.data( 'order' );
 		data['wpv_view_widget_id'] = this_form.data( 'viewwidgetid' );
 		data['view_hash'] = this_form.data( 'viewhash' );
-		if ( this_form.find( 'input[name=wpv_post_id]' ).length > 0 ) {
-			data['post_id'] = this_form.find( 'input[name=wpv_post_id]' ).val();
+		if ( this_form.find( 'input[name=wpv_aux_current_post_id]' ).length > 0 ) {
+			data['wpv_aux_current_post_id'] = this_form.find( 'input[name=wpv_aux_current_post_id]' ).val();
+		}
+		if ( this_form.find( 'input[name=wpv_aux_parent_post_id]' ).length > 0 ) {
+			data['wpv_aux_parent_post_id'] = this_form.find( 'input[name=wpv_aux_parent_post_id]' ).val();
 		}
 		if ( this_form.find( 'input[name=wpv_aux_parent_term_id]' ).length > 0 ) {
 			data['wpv_aux_parent_term_id'] = this_form.find( 'input[name=wpv_aux_parent_term_id]' ).val();
@@ -794,11 +827,11 @@ WPViews.ViewPagination = function( $ ) {
 				window.wpvPaginationQueue[view_number] = [];
 			}
 			window.wpvPaginationQueue[ view_number ].push( arguments );
-			return false;
+			return;
 		}
 		if ( ! view_number in self.paged_views ) {
 			window.wpvPaginationAnimationFinished[ view_number ] = true;
-			return false;
+			return;
 		}
 		window.wpvPaginationAnimationFinished[ view_number ] = false;
 		
@@ -836,7 +869,7 @@ WPViews.ViewPagination = function( $ ) {
 					.appendTo( wpvPaginatorFilter );
 			}
 			wpvPaginatorFilter[0].submit();
-			return false;
+			return;
 		}
 		// Using AJAX pagination
 		window.wpvPaginationAjaxLoaded[view_number] = false;
@@ -901,7 +934,7 @@ WPViews.ViewPagination = function( $ ) {
 			max_pages:		self.paged_views[ view_number ].max_pages 
 		});
 		this.historyP[ view_number ] = page;
-		return false;
+		return;
 	};
 	
 	/**
@@ -928,7 +961,7 @@ WPViews.ViewPagination = function( $ ) {
 		
 		slide_data.responseView = responseObj.find( '#wpv-view-layout-' + slide_data.view_number );
 		slide_data.responseFilter = responseObj.find( 'form[name=wpv-filter-' + slide_data.view_number + ']' ).html();
-		slide_data.pagination_page_permalink = responseObj.find( '#js-wpv-pagination-page-permalink' ).val();
+		slide_data.pagination_page_permalink = slide_data.responseView.data( 'pagepermalink' );
 		
 		// Wrap old layout in a div.wpv_slide_remove nd change its ID to ~-response
 		slide_data.wpvPaginatorLayout
@@ -1058,7 +1091,7 @@ WPViews.ViewPagination = function( $ ) {
 		view_number = thiz.data( 'viewnumber' ),
 		page = thiz.data( 'page' );
 		wpv_stop_rollover[ view_number ] = true;
-		return self.trigger_pagination( view_number, page );
+		self.trigger_pagination( view_number, page );
 	});
 	
 	/**
@@ -1073,7 +1106,7 @@ WPViews.ViewPagination = function( $ ) {
 		view_number = thiz.data( 'viewnumber' ),
 		page = thiz.val();
 		wpv_stop_rollover[ view_number ] = true
-		return self.trigger_pagination( view_number, page );
+		self.trigger_pagination( view_number, page );
 	});
 	
 	/**
@@ -1094,9 +1127,9 @@ WPViews.ViewPagination = function( $ ) {
 		// TODO this can be improved: we should not need a loop here at all
 		for ( i = 1; i <= data_collected.max_pages; i++ ) {
 			if ( i === data_collected.page ) {
-				$( '#wpv-page-link-' + data_collected.view_number + '-' + i ).addClass( 'wpv_page_current' );
+				$( '.js-wpv-page-link-' + data_collected.view_number + '-' + i ).addClass( 'wpv_page_current' );
 			} else {
-				$( '#wpv-page-link-' + data_collected.view_number + '-' + i ).removeClass( 'wpv_page_current' );
+				$( '.js-wpv-page-link-' + data_collected.view_number + '-' + i ).removeClass( 'wpv_page_current' );
 			}
 			
 		}
@@ -1138,6 +1171,19 @@ WPViews.ViewPagination = function( $ ) {
 	
 	$( document ).on( 'js_event_wpv_pagination_completed', function( event, data ) {
 		WPViews.view_frontend_utils.render_frontend_media_shortcodes( data.layout );
+		// Init pagination for any inner View that might be included inside the new page
+		self.init_paged_views( data.layout );
+		self.init_preload_images( data.layout );
+		self.init_preload_pages( data.layout );
+	});
+	
+	$( document ).on( 'js_event_wpv_parametric_search_results_updated', function( event, data ) {
+		// Init the pagination settings for this View results being updated
+		self.init_paged_view( data.view_unique_id );
+		// Init pagination for any inner View that might be included inside the new page
+		self.init_paged_views( data.layout );
+		self.init_preload_images( data.layout );
+		self.init_preload_pages( data.layout );
 	});
 	
 	// ------------------------------------
@@ -1160,7 +1206,7 @@ WPViews.ViewPagination = function( $ ) {
 				
 				if ( slide_data.page != ( self.paged_views[ slide_data.view_number ].page + 1 ) ) {
 					// This should never happen! See self.pagination_effects_conditions
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
 						$( this ).remove();
 					});
 					slide_data.wpvPaginatorLayout
@@ -1219,7 +1265,7 @@ WPViews.ViewPagination = function( $ ) {
 						);
 					}
 					data_for_events.layout = slide_data.wpvPaginatorLayout;
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
 						$( this ).remove();
 					});
 					slide_data.wpvPaginatorLayout
@@ -1264,7 +1310,7 @@ WPViews.ViewPagination = function( $ ) {
 						.parent()
 							.children()
 								.wrapAll( '<div style="width:5000px;" />' );
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut(function() {
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut(function() {
 						$( this ).remove();
 					});
 					new_height = slide_data.responseView.outerHeight();
@@ -1333,7 +1379,7 @@ WPViews.ViewPagination = function( $ ) {
 						.parent()
 							.children()
 								.wrapAll( '<div style="height:' + height +  ';width:' + ( slide_data.responseView.outerWidth() + slide_data.wpvPaginatorLayout.outerWidth() ) + 'px; margin-left:-' + ( slide_data.wpvPaginatorLayout.outerWidth() ) + 'px;" />' );
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
 						$( this ).remove();
 					});
 					new_height = slide_data.responseView.outerHeight();
@@ -1419,7 +1465,7 @@ WPViews.ViewPagination = function( $ ) {
 						.parent()
 							.children()
 								.wrapAll( '<div />' );
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function(){
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function(){
 						$( this ).remove();
 					});
 					new_height = slide_data.responseView.outerHeight();
@@ -1487,7 +1533,7 @@ WPViews.ViewPagination = function( $ ) {
 						.parent()
 							.children()
 								.wrapAll( '<div />' );
-					$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
+					$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
 						$( this ).remove();
 					});
 					new_height = slide_data.responseView.outerHeight();
@@ -1567,7 +1613,7 @@ WPViews.ViewPagination = function( $ ) {
 				data_for_history.effect						= 'fade';
 				data_for_history.pagination_page_permalink	= slide_data.pagination_page_permalink;
 				
-				$( '#wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
+				$( '.js-wpv_slide_loading_img_' + slide_data.view_number ).fadeOut( function() {
 					$( this ).remove();
 				});
 				
@@ -1626,34 +1672,42 @@ WPViews.ViewPagination = function( $ ) {
 	*
 	* Makes the history in the browser work with AJAX pagination, except infinite scrolling and sliders
 	*
+	* @note Some View IDs are stored in WPViews.rollower_ids as numbers, so we need to check parseInt( data.view_number ) too
+	*
 	* @param object data
 	*
 	* @since 1.11
 	*/
 	
 	self.manage_browser_history = function( data ) {
+		var num_view_number = $.isNumeric( data.view_number ) ? parseInt( data.view_number ) : data.view_number;
 		if ( 
 			! _.has( WPViews, 'rollower_ids' )
-			|| ! _.contains( WPViews.rollower_ids, data.view_number ) 
+			|| (
+				! _.contains( WPViews.rollower_ids, data.view_number ) 
+				&& ! _.contains( WPViews.rollower_ids, num_view_number ) 
+			)
 		) {
-			if ( self.add_paginated_history == true ) {
-				if ( ! _.contains( self.pagination_effect_state_keep, data.effect ) ) {
-					if ( _.contains( self.pagination_effect_state_replace, data.effect ) ) {
-						history.replaceState( null, '', data.pagination_page_permalink );
-					} else {
-						self.last_paginated_view.push( data.view_number );
-						state_obj = { 
-							view_number: data.view_number, 
-							page: data.page
-						};
-						history.pushState( state_obj, '', data.pagination_page_permalink );
-						// http://scrollsample.appspot.com/items
-						// http://html5.gingerhost.com/
-						self.paginated_history_reach = self.paginated_history_reach + 1;
+			if ( self.paged_views[ data.view_number ].manage_history == 'on' ) {
+				if ( self.add_paginated_history == true ) {
+					if ( ! _.contains( self.pagination_effect_state_keep, data.effect ) ) {
+						if ( _.contains( self.pagination_effect_state_replace, data.effect ) ) {
+							history.replaceState( null, '', data.pagination_page_permalink );
+						} else {
+							self.last_paginated_view.push( data.view_number );
+							state_obj = { 
+								view_number: data.view_number, 
+								page: data.page
+							};
+							history.pushState( state_obj, '', data.pagination_page_permalink );
+							// http://scrollsample.appspot.com/items
+							// http://html5.gingerhost.com/
+							self.paginated_history_reach = self.paginated_history_reach + 1;
+						}
 					}
+				} else {
+					self.add_paginated_history = true;
 				}
-			} else {
-				self.add_paginated_history = true;
 			}
 		}
 	};
@@ -1692,8 +1746,6 @@ WPViews.ViewPagination = function( $ ) {
 	*/
 	
 	$( document ).on( 'js_event_wpv_parametric_search_results_updated', function( event, data ) {
-		var pagination_page_permalink = data.layout.find( '#js-wpv-pagination-page-permalink' ).val();
-		self.paged_views[ data.view_unique_id ] = data.layout.data( 'pagination' );
 		window.wpvCachedPages[ data.view_unique_id ] = [];
 		self.last_paginated_view = [];
 		if ( self.paginated_history_reach > 0 ) {
@@ -1705,7 +1757,7 @@ WPViews.ViewPagination = function( $ ) {
 		// That is why we need to set a timeout here
 		// See https://code.google.com/p/chromium/issues/detail?id=529810
 		setTimeout( function() {
-			history.replaceState( null, '', pagination_page_permalink );
+			history.replaceState( null, '', data.pagepermalink );
 		}, 100 );
 	});
 	
@@ -1764,8 +1816,7 @@ WPViews.ViewPagination = function( $ ) {
 					+ 'top:' + ( Math.round( wpvPaginatorLayoutOffset.top ) + ( Math.round( wpvPaginatorLayout.height()/2 ) ) - ( Math.round( img.height/2 ) ) ) + 'px;'
 					+ 'left:' + ( Math.round( wpvPaginatorLayoutOffset.left ) + ( Math.round( wpvPaginatorLayout.width()/2 ) ) - ( Math.round( img.width/2 ) ) ) + 'px;'
 					+ '" '
-					+ 'id="wpv_slide_loading_img_' + view_number + '" '
-					+ 'class="wpv_slide_loading_img"'
+					+ 'class="wpv_slide_loading_img js-wpv_slide_loading_img_' + view_number + '"'
 					+ '>'
 					+ '</div>';
 				wpvPaginatorLayout
@@ -1788,8 +1839,7 @@ WPViews.ViewPagination = function( $ ) {
 					+ 'top:' + ( Math.round( wpvPaginatorLayoutOffset.top ) + ( wpvPaginatorLayout.height() ) - ( Math.round( img.height/2 ) ) ) + 'px;'
 					+ 'left:' + ( Math.round( wpvPaginatorLayoutOffset.left ) + ( Math.round( wpvPaginatorLayout.width()/2 ) ) - ( Math.round( img.width/2 ) ) ) + 'px;'
 					+ '" '
-					+ 'id="wpv_slide_loading_img_' + view_number + '" '
-					+ 'class="wpv_slide_loading_img"'
+					+ 'class="wpv_slide_loading_img js-wpv_slide_loading_img_' + view_number + '"'
 					+ '>'
 					+ '</div>';
 				wpvPaginatorLayout
@@ -1807,12 +1857,12 @@ WPViews.ViewPagination = function( $ ) {
 	* @since 1.11
 	*/
 	
-	self.init_paged_views = function() {
+	self.init_paged_views = function( container ) {
 		var init_scrolling_event = false;
 		this.historyP = this.historyP || [];
 		window.wpvCachedPages = window.wpvCachedPages || [];
 		window.wpvCachedImages = window.wpvCachedImages || [];
-		$( '.js-wpv-view-layout' ).each( function() {
+		$( '.js-wpv-view-layout', container ).each( function() {
 			var thiz = $( this ),
 			view_number = thiz.data( 'viewnumber' );
 			self.init_paged_view( view_number );
@@ -1823,7 +1873,10 @@ WPViews.ViewPagination = function( $ ) {
 				init_scrolling_event = true;
 			}
 		});
-		if ( init_scrolling_event ) {
+		if ( 
+			! self.init_scrolling_event_fired 
+			&& init_scrolling_event 
+		) {
 			self.init_scrolling_event_callback();
 		}
 	};
@@ -1838,8 +1891,10 @@ WPViews.ViewPagination = function( $ ) {
 	*/
 	
 	self.init_paged_view = function( view_number ) {
+		this.historyP = this.historyP || [];
 		self.paged_views[ view_number ] = $( '#wpv-view-layout-' + view_number ).data( 'pagination' );
 		self.paged_views_initial_page[ view_number ] = self.paged_views[ view_number ].page;
+		this.historyP[ view_number ] = self.paged_views[ view_number ].page;
 		window.wpvCachedPages[ view_number ] = [];
 		if ( 
 			self.paged_views[ view_number ].ajax != 'false' 
@@ -1847,6 +1902,10 @@ WPViews.ViewPagination = function( $ ) {
 		) {
 			// Infinite scrolling only can br triggered from the first page - individual URLs can not have that effect
 			$( '#wpv-view-layout-' + view_number ).removeClass( 'js-wpv-layout-infinite-scrolling' );
+		}
+		if ( $( '#wpv-view-layout-' + view_number ).parents( '.js-wpv-view-layout' ).length > 0 ) {
+			// Disable history management in inner Views in nested structures
+			self.paged_views[ view_number ].manage_history = 'off';
 		}
 	};
 	
@@ -1858,17 +1917,21 @@ WPViews.ViewPagination = function( $ ) {
 	* @param object	view_layout
 	*
 	* @since 1.11
+	* @since 2.0	Add a tolerance setting
+	* @since 2.0	Trigger the pagination when scrolling to the bottom of the page
 	*/
 	
 	self.is_infinite_triggable = function( view_layout ) {
-		var flag_element = view_layout;
+		var flag_element = view_layout,
+		view_number = view_layout.data( 'viewnumber' );
+		tolerance = self.paged_views[ view_number ].tolerance;
+		tolerance = ( isNaN( tolerance ) ) ? 0 : +tolerance;
 		if ( view_layout.find( '.js-wpv-loop' ).length > 0 ) {
 			flag_element = view_layout.find( '.js-wpv-loop' );
 		}
 		return (
-			( flag_element.offset().top + flag_element.outerHeight() ) 
-			<=
-			( $( window ).scrollTop() + $( window ).height() )
+			( flag_element.offset().top + flag_element.outerHeight() ) <= ( $( window ).scrollTop() + $( window ).height() + tolerance )
+			|| ( $( window ).scrollTop() + $(window).height() ) == $( document ).height()
 		);
 	};
 	
@@ -1891,7 +1954,7 @@ WPViews.ViewPagination = function( $ ) {
 							self.paged_views[ thiz_view_number ].page < self.paged_views[ thiz_view_number ].max_pages 
 							&& self.is_infinite_triggable( thiz )
 						) {
-							return self.trigger_pagination( thiz_view_number, self.paged_views[ thiz_view_number ].page + 1 );
+							self.trigger_pagination( thiz_view_number, self.paged_views[ thiz_view_number ].page + 1 );
 						}
 					});
 				},
@@ -1899,6 +1962,7 @@ WPViews.ViewPagination = function( $ ) {
 			),
 			1000
 		));
+		self.init_scrolling_event_fired = true;
 	};
 	
 	/**
@@ -1909,9 +1973,9 @@ WPViews.ViewPagination = function( $ ) {
 	* @since 1.9
 	*/
 	
-	self.init_preload_images = function() {
-		$('.js-wpv-layout-preload-images').css('visibility', 'hidden'); // TODO move it to the CSS file and test
-		$( '.js-wpv-layout-preload-images' ).each( function() {
+	self.init_preload_images = function( container ) {
+		$( '.js-wpv-layout-preload-images', container ).css( 'visibility', 'hidden' ); // TODO move it to the CSS file and test
+		$( '.js-wpv-layout-preload-images', container ).each( function() {
 			var preloadedImages = [],
 			element = $( this ),
 			images = element.find( 'img' );
@@ -1935,8 +1999,8 @@ WPViews.ViewPagination = function( $ ) {
 		});
 	};
 	
-	self.init_preload_pages = function() {
-		$( '.js-wpv-layout-preload-pages' ).each( function() {
+	self.init_preload_pages = function( container ) {
+		$( '.js-wpv-layout-preload-pages', container ).each( function() {
 			var thiz = $( this ),
 			view_number = thiz.data( 'viewnumber' ),
 			max_pages = parseInt( self.paged_views[ view_number ].max_pages, 10 ),
@@ -1957,9 +2021,11 @@ WPViews.ViewPagination = function( $ ) {
 		self.init_effects();
 		self.init_effects_conditions();
 		self.init_effects_spinner();
-		self.init_paged_views();
-		self.init_preload_images();
-		self.init_preload_pages();
+		// Init Views inside the html
+		var init_html = $( 'html' );
+		self.init_paged_views( init_html );
+		self.init_preload_images( init_html );
+		self.init_preload_pages( init_html );
 	}
 	
 	self.init();
@@ -1996,6 +2062,7 @@ WPViews.ViewParametricSearch = function( $ ) {
 			action: 'wpv_update_parametric_search',
 			valz: fil.serializeArray(),
 			viewid: view_id,
+			view_num: view_num,
 			getthis: ajax_get
 		},
 		attr_data = fil.find('.js-wpv-view-attributes'),
@@ -2015,38 +2082,41 @@ WPViews.ViewParametricSearch = function( $ ) {
 		
 		icl_lang = ( typeof icl_lang == 'undefined' ) ? false : icl_lang;
 		
-		ajax_data.type = "POST";
-		ajax_data.url = wpv_pagination_local.front_ajaxurl;
-		ajax_data.data = data;
-		
 		if ( icl_lang !== false ) {
 			ajax_data.xhrFields = {
 				withCredentials: true
 			};
+			data.lang = icl_lang;
 		}
+		
+		ajax_data.type = "POST";
+		ajax_data.url = wpv_pagination_local.front_ajaxurl;
+		ajax_data.data = data;
 		
 		return $.ajax( ajax_data );
 	};
 	
-	self.manage_update_results = function( lay, new_lay, view_num, ajax_before, ajax_after ) {
-		if ( ajax_before !== '' ) {
-			var ajax_before_func = window[ajax_before];
+	
+	self.manage_update_results = function( data ) {
+		if ( data.ajax_before !== '' ) {
+			var ajax_before_func = window[data.ajax_before];
 			if ( typeof ajax_before_func === "function" ) {
-				ajax_before_func( view_num );
+				ajax_before_func( data.view_num );
 			}
 		}
 		var data_for_events = {};
-		data_for_events.view_unique_id = view_num;
-		lay.fadeOut( 200, function() {
-			lay.html( new_lay.html() )
-				.attr( 'data-pagination', new_lay.attr( 'data-pagination' ) )
-				.data( 'pagination', new_lay.data( 'pagination' ) )
+		data_for_events.view_unique_id	= data.view_num;
+		data_for_events.pagepermalink	= data.pagepermalink;
+		data.layout.fadeOut( 200, function() {
+			data.layout.html( data.new_layout.html() )
+				.attr( 'data-pagination', data.new_layout.attr( 'data-pagination' ) )
+				.data( 'pagination', data.new_layout.data( 'pagination' ) )
 				.fadeIn( 'fast', function() {
-					var ajax_after_func = window[ajax_after];
+					var ajax_after_func = window[data.ajax_after];
 					if ( typeof ajax_after_func === "function" ) {
-						ajax_after_func( view_num );
+						ajax_after_func( data.view_num );
 					}
-					data_for_events.layout = lay;
+					data_for_events.layout = data.layout;
 					$( document ).trigger( 'js_event_wpv_parametric_search_results_updated', [ data_for_events ] );
 				});		
 		});
@@ -2079,7 +2149,8 @@ WPViews.ViewParametricSearch = function( $ ) {
 		new_content_full_layout,
 		spinnerContainer = fil.find( '.js-wpv-dps-spinner' ).add( additional_forms.find( '.js-wpv-dps-spinner' ) ),//TODO maybe add a view_num here to select all spinnerContainers
 		spinnerItems = spinnerContainer.length
-		data_for_events = {};
+		data_for_events = {},
+		data_for_manage_updated_results = {};
 		data_for_events.view_unique_id = view_num;
 		if ( fil.hasClass( 'js-wpv-form-only' ) ) {
 			view_type = 'form';
@@ -2133,7 +2204,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 							( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 							|| force_results_update
 						) {
-							self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+							data_for_manage_updated_results.layout			= lay;
+							data_for_manage_updated_results.new_layout		= new_content_full_layout;
+							data_for_manage_updated_results.view_num		= view_num;
+							data_for_manage_updated_results.ajax_before		= ajax_before;
+							data_for_manage_updated_results.ajax_after		= ajax_after;
+							data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+							self.manage_update_results( data_for_manage_updated_results );
 						}
 						spinnerContainer.hide();
 					}).fail(function() {
@@ -2184,7 +2261,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 							( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 							|| force_results_update
 						) {
-							self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+							data_for_manage_updated_results.layout			= lay;
+							data_for_manage_updated_results.new_layout		= new_content_full_layout;
+							data_for_manage_updated_results.view_num		= view_num;
+							data_for_manage_updated_results.ajax_before		= ajax_before;
+							data_for_manage_updated_results.ajax_after		= ajax_after;
+							data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+							self.manage_update_results( data_for_manage_updated_results );
 						}
 						spinnerContainer.hide();
 					}).fail(function() {
@@ -2237,7 +2320,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 							( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 							|| force_results_update
 						) {
-							self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+							data_for_manage_updated_results.layout			= lay;
+							data_for_manage_updated_results.new_layout		= new_content_full_layout;
+							data_for_manage_updated_results.view_num		= view_num;
+							data_for_manage_updated_results.ajax_before		= ajax_before;
+							data_for_manage_updated_results.ajax_after		= ajax_after;
+							data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+							self.manage_update_results( data_for_manage_updated_results );
 						}
 						spinnerContainer.hide();
 					}).fail(function() {
@@ -2275,7 +2364,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 							( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 							|| force_results_update
 						) {
-							self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+							data_for_manage_updated_results.layout			= lay;
+							data_for_manage_updated_results.new_layout		= new_content_full_layout;
+							data_for_manage_updated_results.view_num		= view_num;
+							data_for_manage_updated_results.ajax_before		= ajax_before;
+							data_for_manage_updated_results.ajax_after		= ajax_after;
+							data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+							self.manage_update_results( data_for_manage_updated_results );
 						}
 						spinnerContainer.hide();
 					}).fail(function() {
@@ -2327,7 +2422,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 								( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 								|| force_results_update
 							) {
-								self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+								data_for_manage_updated_results.layout			= lay;
+								data_for_manage_updated_results.new_layout		= new_content_full_layout;
+								data_for_manage_updated_results.view_num		= view_num;
+								data_for_manage_updated_results.ajax_before		= ajax_before;
+								data_for_manage_updated_results.ajax_after		= ajax_after;
+								data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+								self.manage_update_results( data_for_manage_updated_results );
 							}
 							spinnerContainer.hide();
 						}).fail(function() {
@@ -2385,7 +2486,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 								( fil.hasClass( 'js-wpv-ajax-results-enabled' ) && lay.length > 0 )
 								|| force_results_update
 							) {
-								self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+								data_for_manage_updated_results.layout			= lay;
+								data_for_manage_updated_results.new_layout		= new_content_full_layout;
+								data_for_manage_updated_results.view_num		= view_num;
+								data_for_manage_updated_results.ajax_before		= ajax_before;
+								data_for_manage_updated_results.ajax_after		= ajax_after;
+								data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+								self.manage_update_results( data_for_manage_updated_results );
 							}
 							spinnerContainer.hide();
 						}).fail(function() {
@@ -2415,7 +2522,13 @@ WPViews.ViewParametricSearch = function( $ ) {
 						//new_content_form_filter = new_content_form.find( '.js-wpv-filter-form' ).html();
 						//new_content_full_filter = new_content_full.find( '.js-wpv-filter-form' ).html();
 						new_content_full_layout = new_content_full.find( '.js-wpv-view-layout' );
-						self.manage_update_results( lay, new_content_full_layout, view_num, ajax_before, ajax_after );
+						data_for_manage_updated_results.layout			= lay;
+						data_for_manage_updated_results.new_layout		= new_content_full_layout;
+						data_for_manage_updated_results.view_num		= view_num;
+						data_for_manage_updated_results.ajax_before		= ajax_before;
+						data_for_manage_updated_results.ajax_after		= ajax_after;
+						data_for_manage_updated_results.pagepermalink	= decoded_response.pagepermalink;
+						self.manage_update_results( data_for_manage_updated_results );
 						spinnerContainer.hide();
 					}).fail(function() {
 						// an error occurred
@@ -2534,6 +2647,19 @@ WPViews.ViewParametricSearch = function( $ ) {
 			force_results_update: false
 		},
 		settings = $.extend( {}, defaults, data );
+		// When the form is not forced to be updated, but the results will be updated, and the layout has pagination
+		// we need to force update the form too, to update the pagination links it contains to be in sync with the new results, and default to page 1
+		if (
+			settings.force_form_update == false 
+			&& (
+				settings.force_results_update == true 
+				|| settings.form.hasClass( 'js-wpv-ajax-results-enabled' ) 
+			) && _.has( WPViews.view_pagination.paged_views, settings.form.data( 'viewnumber' ) ) 
+			&& _.has( WPViews.view_pagination.paged_views[ settings.form.data( 'viewnumber' ) ], 'has_controls_in_form' )
+			&& WPViews.view_pagination.paged_views[ settings.form.data( 'viewnumber' ) ].has_controls_in_form == 'on'
+		) {
+			settings.force_form_update = true;
+		}
 		self.manage_changed_form( settings.form, settings.force_form_update, settings.force_results_update );
 	});
 

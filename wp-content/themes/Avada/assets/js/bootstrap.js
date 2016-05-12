@@ -109,9 +109,14 @@
 
 		this.clear();
 
+	// ThemeFusion edit for Avada theme: added the full url anchors to the selector to make sure highlighting works correctly
+	var $current_href = window.location.href.split( '#' ),
+		$current_path = ( $current_href[0].charAt( $current_href[0].length - 1 ) == '/' ) ? $current_href[0] : $current_href[0] + '/';
+
 	var selector = this.selector +
 		'[data-target="' + target + '"],' +
-		this.selector + '[href="' + target + '"]';
+		this.selector + '[href="' + target + '"],' +
+		this.selector + '[href="' + $current_path + target + '"]';
 
 	var active = $(selector)
 		.parents('li')
@@ -178,51 +183,61 @@
 }(jQuery);
 
 /* ========================================================================
- * Bootstrap: transition.js v3.1.1
+ * Bootstrap: transition.js v3.3.6
  * http://getbootstrap.com/javascript/#transitions
  * ========================================================================
- * Copyright 2011-2014 Twitter, Inc.
+ * Copyright 2011-2015 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  * ======================================================================== */
 
-
 +function ($) {
-	'use strict';
+  'use strict';
 
-	// CSS TRANSITION SUPPORT (Shoutout: http://www.modernizr.com/)
-	// ============================================================
+  // CSS TRANSITION SUPPORT (Shoutout: http://www.modernizr.com/)
+  // ============================================================
 
-	function transitionEnd() {
-	var el = document.createElement('bootstrap');
+  function transitionEnd() {
+    var el = document.createElement('bootstrap');
 
-	var transEndEventNames = {
-		'WebkitTransition' : 'webkitTransitionEnd',
-		'MozTransition'	: 'transitionend',
-		'OTransition'	  : 'oTransitionEnd otransitionend',
-		'transition'	   : 'transitionend'
-	};
+    var transEndEventNames = {
+      WebkitTransition : 'webkitTransitionEnd',
+      MozTransition    : 'transitionend',
+      OTransition      : 'oTransitionEnd otransitionend',
+      transition       : 'transitionend'
+    };
 
-	for (var name in transEndEventNames) {
-		if (el.style[name] !== undefined) {
-		return { end: transEndEventNames[name] }
-		}
-	}
+    for (var name in transEndEventNames) {
+      if (el.style[name] !== undefined) {
+        return { end: transEndEventNames[name] };
+      }
+    }
 
-	return false; // explicit for ie8 (  ._.)
-	}
+    return false; // explicit for ie8 (  ._.)
+  }
 
-	// http://blog.alexmaccaw.com/css-transitions
-	$.fn.emulateTransitionEnd = function (duration) {
-	var called = false, $el = this;
-	$(this).one($.support.transition.end, function () { called = true });
-	var callback = function () { if (!called) $($el).trigger($.support.transition.end) };
-	setTimeout(callback, duration);
-	return this;
-	};
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false;
+    var $el = this;
+    $(this).one('bsTransitionEnd', function () { called = true });
+    var callback = function () { if (!called) $($el).trigger($.support.transition.end) };
+    setTimeout(callback, duration);
+    return this;
+  };
 
-	$(function () {
-	$.support.transition = transitionEnd();
-	})
+  $(function () {
+    $.support.transition = transitionEnd();
+
+    if (!$.support.transition) return;
+
+    $.event.special.bsTransitionEnd = {
+      bindType: $.support.transition.end,
+      delegateType: $.support.transition.end,
+      handle: function (e) {
+        if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments);
+      }
+    };
+  });
 
 }(jQuery);
 
@@ -696,6 +711,7 @@
 	var $target = $(selector);
 
 	this.activate($this.parent('li'), $ul);
+
 	this.activate($target, $target.parent(), function () {
 		$this.trigger({
 		type: 'shown.bs.tab',
@@ -705,40 +721,45 @@
 	};
 
 	Tab.prototype.activate = function (element, container, callback) {
-	var $active	= container.find('> .active');
-	var transition = callback
-		&& $.support.transition
-		&& $active.hasClass('fade');
+		var $active	= container.find('> .active');
+		var transition = callback
+			&& $.support.transition
+			&& $active.hasClass('fade');
 
-	function next() {
-		$active
-		.removeClass('active')
-		.find('> .dropdown-menu > .active')
-		.removeClass('active');
+		function next() {
+			$active
+			.removeClass('active')
+			.find('> .dropdown-menu > .active')
+			.removeClass('active');
 
-		element.addClass('active');
+			element.addClass('active');
 
-		if (transition) {
-		element[0].offsetWidth; // reflow for transition
-		element.addClass('in');
-		} else {
-		element.removeClass('fade');
+			// ThemeFusion edit for Avada theme: needed for mobile tabs setup
+			if ( element.parent( '.nav-tabs' ).length ) {
+				element.parents( '.fusion-tabs' ).find( '.nav' ).find( 'a[href=' + element.find( 'a' ).attr( 'href' ) + ']' ).parent().addClass( 'active' );
+			}
+
+			if (transition) {
+				element[0].offsetWidth; // reflow for transition
+				element.addClass('in');
+			} else {
+				element.removeClass('fade');
+			}
+
+			if (element.parent('.dropdown-menu')) {
+				element.closest('li.dropdown').addClass('active');
+			}
+
+			callback && callback();
 		}
 
-		if (element.parent('.dropdown-menu')) {
-		element.closest('li.dropdown').addClass('active');
-		}
+		transition ?
+			$active
+			.one($.support.transition.end, next)
+			.emulateTransitionEnd(150) :
+			next();
 
-		callback && callback();
-	}
-
-	transition ?
-		$active
-		.one($.support.transition.end, next)
-		.emulateTransitionEnd(150) :
-		next();
-
-	$active.removeClass('in');
+		$active.removeClass('in');
 	};
 
 
@@ -984,7 +1005,8 @@
 				.detach()
 				.css({ top: 0, left: 0, display: 'block' })
 				.addClass(placement)
-				.data('bs.' + this.type, this);
+				.data('bs.' + this.type, this)
+				.addClass(this.$element.data('class')); // ThemeFusion edit for Avada theme
 
 			this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element);
 			this.$element.trigger('inserted.bs.' + this.type);
@@ -1260,6 +1282,7 @@
 	Tooltip.prototype.destroy = function () {
 		var that = this;
 		clearTimeout(this.timeout);
+
 		this.hide(function () {
 			that.$element.off('.' + that.type).removeData('bs.' + that.type);
 			if (that.$tip) {

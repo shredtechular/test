@@ -6,6 +6,10 @@
  * Full version with setters & co.
  *
  * @since 1.9
+ *
+ * @property-write string $content
+ * @property-write string $content_raw
+ * @property int $loop_output_id
  */
 final class WPV_Content_Template extends WPV_Content_Template_Embedded {
 
@@ -148,42 +152,9 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      * @return null|string An unique title or null if the input was invalid.
      *
      * @since 1.9
-     *
-     * @todo consider moving this to WPV_Post_Object_Wrapper
      */
     public static function get_unique_title( $title_candidate, $except_id = 0 ) {
-
-        $title_candidate = trim( $title_candidate );
-        if( empty( $title_candidate ) ) {
-            return null;
-        }
-
-        // If the title is already unique, we're done.
-        if( ! WPV_Content_Template_Embedded::is_name_used( $title_candidate, $except_id ) ) {
-            return $title_candidate;
-        }
-
-        // If current title has a number at it's end, we'll use it and start incrementing it. If not,
-        // we will just add a number as a suffix.
-        $title_parts = explode( ' ', trim( $title_candidate ) );
-        // there will allways be at least one part
-        $last_title_part = $title_parts[ count( $title_parts ) - 1 ];
-
-        if( is_numeric( $last_title_part ) ) {
-            $numeric_suffix =  $last_title_part + 1;
-            $title_base = implode( ' ', array_slice( $title_parts, 0, -1 ) );
-        } else {
-            $numeric_suffix = 2;
-            $title_base = $title_candidate;
-        }
-
-        // Keep incrementing the suffix until an unique title is found.
-        do {
-            $title_candidate = "$title_base $numeric_suffix";
-            ++$numeric_suffix;
-        } while( WPV_Content_Template_Embedded::is_name_used( $title_candidate, $except_id ) );
-
-        return $title_candidate;
+        return WPV_Post_Object_Wrapper::get_unique_title_base( WPV_Content_Template_Embedded::POST_TYPE, $title_candidate, $except_id );
     }
 
 
@@ -239,7 +210,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * This CT will be set as a "single post template" for given posts.
      *
-     * @param $post_ids Array of post IDs.
+     * @param array $post_ids Array of post IDs.
      *
      * @return bool|int Number of updated posts or false if the action has failed.
      *
@@ -274,7 +245,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * @since 1.9
      */
-    public function clone_this( $title, $adjust_duplicate_title = true ) {
+    public function duplicate( $title, $adjust_duplicate_title = false ) {
 
         // Create new CT
         $cloned_ct = WPV_Content_Template::create( $title, $adjust_duplicate_title );
@@ -553,7 +524,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * Used by the Content Template edit page.
      *
-     * @param $assigned_post_types Array of (existing) post type slugs.
+     * @param array $assigned_post_types Array of (existing) post type slugs.
      *
      * @since 1.9
      *
@@ -573,7 +544,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
         $post_types = get_post_types( array( 'public' => true ), 'names' );
         $this->check_allowed_loops( $assigned_post_types, $post_types );
 
-        $this->update_content_template_assignment( $assigned_post_types, $post_types, WPV_Settings_Embedded::SINGLE_POST_TYPES_CT_ASSIGNMENT_PREFIX );
+        $this->update_content_template_assignment( $assigned_post_types, $post_types, WPV_Settings::SINGLE_POST_TYPES_CT_ASSIGNMENT_PREFIX );
     }
 
 
@@ -588,7 +559,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * Used by the Content Template edit page.
      *
-     * @param $assigned_post_archives Array of (existing) post type slugs. Only custom post types with
+     * @param array $assigned_post_archives Array of (existing) post type slugs. Only custom post types with
      *     archives are accepted.
      *
      * @since 1.9
@@ -608,7 +579,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
         $post_types = get_post_types( array( 'public' => true, '_builtin' => false, 'has_archive' => true ), 'names' );
         $this->check_allowed_loops( $assigned_post_archives, $post_types );
 
-        $this->update_content_template_assignment( $assigned_post_archives, $post_types, WPV_Settings_Embedded::CPT_ARCHIVES_CT_ASSIGNMENT_PREFIX );
+        $this->update_content_template_assignment( $assigned_post_archives, $post_types, WPV_Settings::CPT_ARCHIVES_CT_ASSIGNMENT_PREFIX );
     }
 
 
@@ -623,7 +594,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * Used by the Content Template edit page.
      *
-     * @param $assigned_taxonomy_archives Array of (existing) taxonomy slugs.
+     * @param array $assigned_taxonomy_archives Array of (existing) taxonomy slugs.
      *
      * @since 1.9
      *
@@ -650,7 +621,7 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
         // Throw an exception if we're trying to change assignment for non-existent taxonomy.
         $this->check_allowed_loops( $assigned_taxonomy_archives, $taxonomy_slugs );
 
-        $this->update_content_template_assignment( $assigned_taxonomy_archives, $taxonomy_slugs, WPV_Settings_Embedded::TAXONOMY_ARCHIVES_CT_ASSIGNMENT_PREFIX );
+        $this->update_content_template_assignment( $assigned_taxonomy_archives, $taxonomy_slugs, WPV_Settings::TAXONOMY_ARCHIVES_CT_ASSIGNMENT_PREFIX );
     }
 
 
@@ -793,8 +764,8 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
     /**
      * Check if all given loop names are allowed. Throw an exception if they're not.
      *
-     * @param $given_loops Array of given loop slugs.
-     * @param $allowed_loops Array of allowed loop slugs.
+     * @param array $given_loops Array of given loop slugs.
+     * @param array $allowed_loops Array of allowed loop slugs.
      *
      * @throws InvalidArgumentException if there is one or more unallowed loops.
      *
@@ -813,13 +784,13 @@ final class WPV_Content_Template extends WPV_Content_Template_Embedded {
      *
      * Ensure that given post types (and only those) have this CT assigned in a role given by the setting prefix.
      *
-     * @param $assigned_post_types Array of ALL post type or taxonomy slugs that should have this CT assigned.
-     * @param $all_post_types Array of all post types or taxonomies that should be checked.
+     * @param array $assigned_post_types Array of ALL post type or taxonomy slugs that should have this CT assigned.
+     * @param array $all_post_types Array of all post types or taxonomies that should be checked.
      * @param string $setting_prefix Setting prefix determining the role in which CT will (or will not) be assigned.
      *     Values that make sense are:
-     *     - WPV_Settings_Embedded::SINGLE_POST_TYPES_CT_ASSIGNMENT_PREFIX
-     *     - WPV_Settings_Embedded::CPT_ARCHIVES_CT_ASSIGNMENT_PREFIX
-     *     - WPV_Settings_Embedded::TAXONOMY_ARCHIVES_CT_ASSIGNMENT_PREFIX
+     *     - WPV_Settings::SINGLE_POST_TYPES_CT_ASSIGNMENT_PREFIX
+     *     - WPV_Settings::CPT_ARCHIVES_CT_ASSIGNMENT_PREFIX
+     *     - WPV_Settings::TAXONOMY_ARCHIVES_CT_ASSIGNMENT_PREFIX
      *
      * @since 1.9
      */

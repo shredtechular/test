@@ -3,7 +3,9 @@
 if( !defined('ABSPATH') ) die('Security check');
 if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
 ?>
-
+<?php 
+$shared_menu_modules = ModuleManager::modulemanager_can_implement_unified_menu();
+?>
 <div id="module-manager-wrap" class="wrap">
     <?php screen_icon('module-manager'); ?>
     <h2><?php _e('Module Manager','module-manager'); ?></h2><br />
@@ -22,6 +24,9 @@ if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
 			'library' => __('Modules Library','module-manager'),
     	    'import' => __('Import Modules','module-manager')
     	);
+    	if ( true === $shared_menu_modules ) {
+    		unset( $mtabs['import'] );
+    	}
 		?>
         <?php if ($toolset_all_disabled) {?>
 		<div class="error">
@@ -50,6 +55,9 @@ if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
 				'library' => __('Modules Library','module-manager'),
 				'import' => __('Import Modules','module-manager')
     		);
+    		if ( true === $shared_menu_modules ) {
+    			unset( $mtabs['import'] );
+    		}   		
 			if (($toolset_all_full_types_views) && ($has_cred_in_module)) { ?>
 			<div class="error">
 			<p>
@@ -63,6 +71,9 @@ if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
     				'library' => __('Modules Library','module-manager'),
     				'import' => __('Import Modules','module-manager')
     		);
+    		if ( true === $shared_menu_modules ) {
+    			unset( $mtabs['import'] );
+    		}   		
     	?>
     	<div class="error">
 			<p>

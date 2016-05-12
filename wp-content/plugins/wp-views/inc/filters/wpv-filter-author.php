@@ -16,6 +16,10 @@ WPV_Author_Filter::on_load();
 * Views Author Filter Class
 *
 * @since 1.7.0
+* @since 1.12.1	Changes in the filter modes
+* 		current_page becomes current_post_or_parent_post_view and tracks $WP_Views->get_current_page()
+* 		top_current_post tracks $WP_Views->get_top_current_page()
+* 		parent_view becomes parent_user_view
 */
 
 class WPV_Author_Filter {
@@ -55,6 +59,10 @@ class WPV_Author_Filter {
 	
 	static function admin_enqueue_scripts( $hook ) {
 		wp_register_script( 'views-filter-author-js', ( WPV_URL . "/res/js/redesign/views_filter_author.js" ), array( 'suggest', 'views-filters-js'), WPV_VERSION, true );
+		$filter_author_translations = array(
+			'ajaxurl' => wpv_get_views_ajaxurl()
+		);
+		wp_localize_script( 'views-filter-author-js', 'wpv_filter_author_texts', $filter_author_translations );
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'views-editor' ) {
 			wp_enqueue_script( 'views-filter-author-js' );
 		}
@@ -389,12 +397,16 @@ class WPV_Author_Filter {
 				<label for="wpv-filter-author-current-user"><?php _e('Post author is the same as the logged in user', 'wpv-views'); ?></label>
 			</li>
 			<li>
-				<input type="radio" id="wpv-filter-author-current-page" name="author_mode[]" value="current_page" <?php checked( $view_settings['author_mode'], 'current_page' ); ?> autocomplete="off" />
-				<label for="wpv-filter-author-current-page"><?php _e('Post author is the author of the current page', 'wpv-views'); ?></label>
+				<input type="radio" id="wpv-filter-author-top-current-post" name="author_mode[]" value="top_current_post" <?php checked( $view_settings['author_mode'], 'top_current_post' ); ?> autocomplete="off" />
+				<label for="wpv-filter-author-top-current-post"><?php _e('Post author is the author of the page where this View is shown', 'wpv-views'); ?></label>
 			</li>
 			<li>
-				<input type="radio" id="wpv-filter-author-parent-view" name="author_mode[]" value="parent_view" <?php checked( $view_settings['author_mode'], 'parent_view' ); ?> autocomplete="off" />
-				<label for="wpv-filter-author-parent-view"><?php _e('Post author is set by the parent View', 'wpv-views'); ?></label>
+				<input type="radio" id="wpv-filter-author-current-post" name="author_mode[]" value="current_post_or_parent_post_view" <?php checked( in_array( $view_settings['author_mode'], array( 'current_page', 'current_post_or_parent_post_view' ) ) ); ?> autocomplete="off" />
+				<label for="wpv-filter-author-current-post"><?php _e('Post author is the author of the current post in the loop', 'wpv-views'); ?></label>
+			</li>
+			<li>
+				<input type="radio" id="wpv-filter-author-parent-view" name="author_mode[]" value="parent_user_view" <?php checked( in_array( $view_settings['author_mode'], array( 'parent_view', 'parent_user_view' ) ) ); ?> autocomplete="off" />
+				<label for="wpv-filter-author-parent-view"><?php _e('Post author is set by the parent User View', 'wpv-views'); ?></label>
 			</li>
 			<li>
 				<input type="radio" id="wpv-filter-author-this-user" name="author_mode[]" value="this_user" <?php checked( $view_settings['author_mode'], 'this_user' ); ?> autocomplete="off" />

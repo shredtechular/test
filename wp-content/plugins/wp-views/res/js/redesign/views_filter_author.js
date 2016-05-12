@@ -97,7 +97,7 @@ WPViews.AuthorFilterGUI = function( $ ) {
 					filter_options: self.post_current_options,
 					wpnonce: nonce
 				};
-				$.post( ajaxurl, data, function( response ) {
+				$.post( wpv_filter_author_texts.ajaxurl, data, function( response ) {
 					if ( response.success ) {
 						$( self.post_close_save_selector )
 							.addClass('button-secondary')
@@ -158,7 +158,8 @@ jQuery(document).on('focus', '.js-author-suggest', function(){
 });
 
 function wpv_author_suggest() {
-	jQuery('.js-author-suggest:not(.js-wpv-suggest-on)').suggest(ajaxurl + '?action=wpv_suggest_author', {
+	jQuery('.js-author-suggest:not(.js-wpv-suggest-on)').suggest( wpv_filter_author_texts.ajaxurl + '&action=wpv_suggest_author', {
+		resultsClass: 'ac_results wpv-suggest-results',
 		onSelect: function() {
 			thevalue = this.value;
 			thevalue = thevalue.split(' #');

@@ -72,13 +72,13 @@ WPViews.LayoutWizard = function( $ ) {
 		$.colorbox({
 			html: response.dialog,
 			onOpen: function() {
-				WPViews.shortcodes_gui.shortcode_gui_insert = false;
+				WPViews.shortcodes_gui.shortcode_gui_insert = 'save';
 			},
 			onLoad: function() {
 				
 			},
 			onClosed: function() {
-				WPViews.shortcodes_gui.shortcode_gui_insert = true;
+				WPViews.shortcodes_gui.shortcode_gui_insert = 'insert';
 			},
 			onComplete: function() {
 				$( '.js-insert-layout' )
@@ -1098,7 +1098,13 @@ jQuery( document ).ready( function( $ ) {
 		WPViews.layout_wizard.wizard_dialog_use_content_template = jQuery( 'input#js-wpv-use-view-loop-ct' ).prop( 'checked' );
 
 		var current = Base64.decode(WPViews.layout_wizard.wizard_dialog_item.val());
-		var metatype = current.search(/types.*?field=/g) == -1 ? 'usermeta' : 'postmeta';
+		var metatype = 'postmeta';
+		if ( current.search(/types.*?usermeta=/g) != -1 ) {
+			metatype = 'usermeta';
+		}
+		if ( current.search(/types.*?termmeta=/g) != -1 ) {
+			metatype = 'termmeta';
+		}
 		if ( typeof(jQuery(this).data('type')) !== 'undefined') {
 			metatype = jQuery(this).data('type');
 		}
@@ -1107,8 +1113,14 @@ jQuery( document ).ready( function( $ ) {
 
 function wpv_restore_wizard_popup(shortcode) {
     jQuery.colorbox({
-         html: jQuery(WPViews.layout_wizard.wizard_dialog).find('#cboxLoadedContent').html(),
-         onComplete: function() {
+        html: jQuery(WPViews.layout_wizard.wizard_dialog).find('#cboxLoadedContent').html(),
+		onOpen: function() {
+			WPViews.shortcodes_gui.shortcode_gui_insert = 'save';
+		},
+		onClosed: function() {
+			WPViews.shortcodes_gui.shortcode_gui_insert = 'insert';
+		},
+        onComplete: function() {
             var select = jQuery('#'+WPViews.layout_wizard.wizard_dialog_item_parent.prop('id')+' select option[value="'+WPViews.layout_wizard.wizard_dialog_item.val()+'"]');
 
             jQuery('#'+WPViews.layout_wizard.wizard_dialog_item_parent.prop('id')+' select').val(WPViews.layout_wizard.wizard_dialog_item.val());
@@ -1116,7 +1128,6 @@ function wpv_restore_wizard_popup(shortcode) {
 
             $i = 0;
             jQuery('select.js-layout-wizard-item').each(function() {
-                /*jQuery(this).find('[value="'+wpv_all_selected[$i]+'"]').click();*/
                 jQuery(this).val(WPViews.layout_wizard.wizard_dialog_fields[$i]);
                 $i++;
             });
@@ -1138,14 +1149,20 @@ function wpv_restore_wizard_popup(shortcode) {
                     jQuery(this).select2();
             });
 
-         }
-     });
+        }
+    });
 }
 
 function wpv_cancel_wizard_popup() {
     jQuery.colorbox({
-         html: jQuery(WPViews.layout_wizard.wizard_dialog).find('#cboxLoadedContent').html(),
-         onComplete: function() {
+        html: jQuery(WPViews.layout_wizard.wizard_dialog).find('#cboxLoadedContent').html(),
+		onOpen: function() {
+			WPViews.shortcodes_gui.shortcode_gui_insert = 'save';
+		},
+		onClosed: function() {
+			WPViews.shortcodes_gui.shortcode_gui_insert = 'insert';
+		},
+        onComplete: function() {
             var select = jQuery('#'+WPViews.layout_wizard.wizard_dialog_item_parent.prop('id')+' select option[value="'+WPViews.layout_wizard.wizard_dialog_item.val()+'"]');
 
             jQuery('#'+WPViews.layout_wizard.wizard_dialog_item_parent.prop('id')+' select').val(WPViews.layout_wizard.wizard_dialog_item.val());
@@ -1170,8 +1187,8 @@ function wpv_cancel_wizard_popup() {
                     jQuery(this).select2();
             });
 
-         }
-     });
+        }
+    });
 }
 
 

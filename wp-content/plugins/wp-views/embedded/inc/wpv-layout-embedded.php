@@ -8,7 +8,7 @@
 */
 
 add_shortcode('wpv-heading', 'wpv_header_shortcode');
-function wpv_header_shortcode($atts, $value){
+function wpv_header_shortcode( $atts, $value ) {
     extract(
         shortcode_atts( array(
             'name' => '',
@@ -28,61 +28,102 @@ function wpv_header_shortcode($atts, $value){
         $class = ' ' . esc_attr( $class );
     }
         
-    global $WP_Views;
+    global $wp_version, $WP_Views;
     $view_settings = $WP_Views->get_view_settings();
     
-    //'wpv_column_sort_id'
     $order_class = 'wpv-header-no-sort';
-    
-    if (
-		$view_settings['view-query-mode'] == 'normal' 
-		&& !empty( $atts['name'] ) 
-		&& $atts['name'] != 'post-body' 
-		&& $atts['name'] != 'wpv-post-taxonomy' 
-		// remove table column sorting for certain fields un Views listing users
-		&& ( 
-			$view_settings['query_type'][0] != 'users' 
-			|| in_array( $atts['name'], array( 'user_email', 'user_login', 'display_name', 'user_url', 'user_registered' ) ) 
-		)
-    ) {
+	$dir = "asc";
+	$can_order = true;
+	$default_order = $view_settings['order'];
 	
-	$head_name = $atts['name'];
-	if ( strpos( $head_name, 'types-field') === 0 ) {
-		$field_name = 'wpcf-' . strtolower( substr( $head_name, 12 ) );
-		if ( !function_exists( '_wpv_is_field_of_type' ) ) include_once( WPV_PATH_EMBEDDED . '/inc/wpv-filter-embedded.php');
-		if ( _wpv_is_field_of_type( $field_name, 'checkboxes' ) || _wpv_is_field_of_type( $field_name, 'skype' ) ) {
-			return wpv_do_shortcode( $value );
+	if ( 
+		$view_settings['view-query-mode'] == 'normal' 
+		&& ! empty( $atts['name'] ) 
+		&& isset( $view_settings['query_type'][0] )
+	) {
+		switch ( $view_settings['query_type'][0] ) {
+			case 'posts':
+				$default_order = $view_settings['order'];
+				if ( in_array( $atts['name'], array( 'post-body', 'wpv-post-taxonomy' ) ) ) {
+					$can_order = false;
+				}
+				if ( strpos( $atts['name'], 'types-field-') === 0 ) {
+					$field_name = strtolower( substr( $atts['name'], 12 ) );
+					$field_type = wpv_types_get_field_type( $field_name );
+					if ( in_array( $field_type, array( 'checkboxes', 'skype' ) ) ) {
+						$can_order = false;
+					}
+				}
+				break;
+			case 'taxonomy':
+				$default_order = $view_settings['taxonomy_order'];
+				if ( strpos( $atts['name'], 'taxonomy-field-') === 0 ) {
+					$field_name = strtolower( substr( $atts['name'], 15 ) );
+					$field_type = wpv_types_get_field_type( $field_name, 'tf' );
+					if ( in_array( $field_type, array( 'checkboxes', 'skype' ) ) ) {
+						$can_order = false;
+					}
+					if ( ! version_compare( $wp_version, '4.5', '<' ) ) {
+						$can_order = false;
+					}
+				}
+				break;
+			case 'users':
+				$default_order = $view_settings['users_order'];
+				if ( ! in_array( $atts['name'], array( 'user_email', 'user_login', 'display_name', 'user_url', 'user_registered' ) ) ) {
+					$can_order = false;
+				}
+				break;
 		}
+	} else {
+		$can_order = false;
 	}
-
-        if (isset($_GET['wpv_column_sort_id']) && esc_attr($_GET['wpv_column_sort_id']) == $atts['name'] && isset($_GET['wpv_view_count']) && $WP_Views->get_view_count() == esc_attr($_GET['wpv_view_count']) ) {
-            
-            if (isset($_GET['wpv_column_sort_dir']) && esc_attr($_GET['wpv_column_sort_dir']) != '') {
-                if (esc_attr($_GET['wpv_column_sort_dir']) == 'asc') {
-                    $order_class = 'wpv-header-asc';
-                } else {
-                    $order_class = 'wpv-header-desc';
-                }
-            } else {
-                // use the default order
-                $order_selected = $view_settings['order'];
-                if ($order_selected == 'ASC') {
-                    $order_class = 'wpv-header-asc';
-                } else {
-                    $order_class = 'wpv-header-desc';
-                }
-            }
-        }
-        if ($order_class == 'wpv-header-asc') {
-            $dir = "desc";
-        } else {
-            $dir = "asc";
-        }
-        $link = '<a href="#" class="' . $order_class . ' js-wpv-column-header-click'. $class .'"'. $style .' data-viewnumber="' . $WP_Views->get_view_count() . '" data-name="' . $atts['name'] . '" data-direction="' . $dir . '">' . wpv_do_shortcode( $value ) . '<span class="wpv-sorting-indicator"></span></a>';
+	
+	if ( $can_order ) {
+		$view_number = $WP_Views->get_view_count();
+		if (
+			isset( $_GET['wpv_sort_orderby'] ) 
+			&& esc_attr( $_GET['wpv_sort_orderby'] ) == $atts['name'] 
+			&& isset( $_GET['wpv_view_count'] ) 
+			&& $view_number == esc_attr( $_GET['wpv_view_count'] ) 
+		) {
+			if ( isset( $_GET['wpv_sort_order'] ) ) {
+				$passed_dort_dir = esc_attr( strtolower( $_GET['wpv_sort_order'] ) );
+				switch ( $passed_dort_dir ) {
+					case 'asc':
+						$order_class = 'wpv-header-asc';
+						$dir = "desc";
+						break;
+					case 'desc':
+						$order_class = 'wpv-header-desc';
+						$dir = "asc";
+						break;
+					default:
+						if ( strtolower( $default_order ) == 'asc' ) {
+							$order_class = 'wpv-header-asc';
+							$dir = "desc";
+						} else {
+							$order_class = 'wpv-header-desc';
+							$dir = "asc";
+						}
+						break;
+				}
+			}
+		}
+        $link = '<a href="#"'
+			. ' class="' . $order_class . ' js-wpv-column-header-click'. $class .'"'
+			. $style 
+			. ' data-viewnumber="' . $view_number . '"'
+			. ' data-name="' . $atts['name'] . '"'
+			. ' data-direction="' . $dir . '"'
+			. '>' 
+			. wpv_do_shortcode( $value ) 
+			. '<span class="wpv-sorting-indicator"></span>'
+			. '</a>';
         return $link;
-    } else {
-        return wpv_do_shortcode( $value );
-    }
+	} else {
+		return wpv_do_shortcode( $value );
+	}
 }
 
 add_shortcode('wpv-layout-start', 'wpv_layout_start_shortcode');
@@ -171,10 +212,9 @@ function wpv_layout_start_shortcode($atts){
 		. ' id="wpv-view-layout-' . esc_attr( $view_number ) . '"'
 		. $add
 		. ' data-pagination="' . esc_js( wp_json_encode( $pagination_data ) ) . '"'
+		. ' data-pagepermalink="' . esc_url( wpv_get_pagination_page_permalink( $pagination_data['page'], $view_number ) ) . '"'
 		. ">\n";
-	
-	$return .= '<input type="hidden" id="js-wpv-pagination-page-permalink" value="' . esc_url( wpv_get_pagination_page_permalink( $pagination_data['page'], $view_number ) ) . '" />';
-	
+		
 	return $return;
 }
 

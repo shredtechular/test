@@ -39,11 +39,21 @@ class ModuleManager
 
             // add plugin menus
             add_action('admin_menu', array(__CLASS__, 'addMenuItems'));
+            
+            //New Toolset unified menu support
+            add_filter( 'toolset_filter_register_menu_pages', array(__CLASS__, 'modulemanager_unified_menu'), 70 );
+            
+            //Shared import screen
+            add_filter( 'toolset_filter_register_export_import_section', array(__CLASS__, 'modulemanager_register_export_import_section' ) ,70 );
+            
             // make page a parameter
             self::$page=admin_url('admin.php').'?page=ModuleManager_Modules';
             
             // Add settings link on plugin page
             add_filter("plugin_action_links_".MODMAN_PLUGIN, array(__CLASS__, 'addSettingsLink'));
+            
+            //Module Manager 1.6.5+ Support for release notes link
+            add_filter( 'plugin_row_meta', array(__CLASS__, 'modulemanager_plugin_plugin_row_meta'), 10, 4 );            
         }
         // user settings
         ModMan_Settings::userSettings(array('module-manager'));
@@ -89,6 +99,7 @@ class ModuleManager
                     'onModuleRemove' => __('Do you want to completely remove this module?','module-manager'),
                     'addNewModuleTip' => '<h3>'.__('Add new module','module-manager').'</h3>'.'<p>'.__('Click here to add a new module','module-manager').'</p>',
                     'newModuleName' => __('Module Name','modman'),
+                	'duplicatenewModuleName' =>__('Duplicate Module Name- please choose another name','modman'),
                     'addElementsTip' =>	'<h3>' . __( 'How to add elements', 'module-manager' ) . '</h3>'.'<p>' . __( 'Drag elements here to add them to this module.', 'module-manager' ) . '</p>',
                     'exportErrorMsg' => __('An error occurred please try again','module-manager'),
                     'moduleEmptyMsg' => __('Module is empty','module-manager'),
@@ -113,31 +124,35 @@ class ModuleManager
     // setup Module Manager menus in admin
     public static function addMenuItems()
     {
-		$menu_label = __( 'Module Manager','module-manager' );
-
-        $mm_index = 'ModuleManager_Modules';
-		$toolset_any_embedded = mm_check_toolset_plugins( 'any_embedded' );
-		$toolset_all_disabled = mm_check_toolset_plugins( 'all_disabled' );
-		$toolset_all_full = mm_check_toolset_plugins( 'all_full' );
-		$toolset_all_full_types_views = mm_check_toolset_plugins( 'full_types_views' );
+    	//New Toolset unified menu
+    	$can_support_unified_menu = self::modulemanager_can_implement_unified_menu();
+    	if ( ! ( $can_support_unified_menu ) ) {
 		
-		$hook1=add_menu_page($menu_label, $menu_label, MODMAN_CAPABILITY, $mm_index, array(__CLASS__, 'ModulesMenuPage'), 'none', 120);
-		if (( $toolset_any_embedded ) || ($toolset_all_disabled)) {
-			//Add modules library to menu as the first element on the submenu (by using the same slug $mmm_index) because there is any Toolset plugin embeded
-			$hook3=add_submenu_page($mm_index, __('Modules Library', 'module-manager'), __('Modules Library', 'module-manager'), MODMAN_CAPABILITY, $mm_index);
-		} else {
-			if (($toolset_all_full) || ($toolset_all_full_types_views)) {
-			//Add modules library to menu
-			$hook3=add_submenu_page($mm_index, __('Modules Library', 'module-manager'), __('Modules Library', 'module-manager'), MODMAN_CAPABILITY, 'admin.php?page=ModuleManager_Modules&tab=library');
-			} else {
+    		$menu_label = __( 'Module Manager','module-manager' );
+	        $mm_index = 'ModuleManager_Modules';
+			$toolset_any_embedded = mm_check_toolset_plugins( 'any_embedded' );
+			$toolset_all_disabled = mm_check_toolset_plugins( 'all_disabled' );
+			$toolset_all_full = mm_check_toolset_plugins( 'all_full' );
+			$toolset_all_full_types_views = mm_check_toolset_plugins( 'full_types_views' );
+			
+			$hook1=add_menu_page($menu_label, $menu_label, MODMAN_CAPABILITY, $mm_index, array(__CLASS__, 'ModulesMenuPage'), 'none', 120);
+			if (( $toolset_any_embedded ) || ($toolset_all_disabled)) {
+				//Add modules library to menu as the first element on the submenu (by using the same slug $mmm_index) because there is any Toolset plugin embeded
 				$hook3=add_submenu_page($mm_index, __('Modules Library', 'module-manager'), __('Modules Library', 'module-manager'), MODMAN_CAPABILITY, $mm_index);
+			} else {
+				if (($toolset_all_full) || ($toolset_all_full_types_views)) {
+				//Add modules library to menu
+				$hook3=add_submenu_page($mm_index, __('Modules Library', 'module-manager'), __('Modules Library', 'module-manager'), MODMAN_CAPABILITY, 'admin.php?page=ModuleManager_Modules&tab=library');
+				} else {
+					$hook3=add_submenu_page($mm_index, __('Modules Library', 'module-manager'), __('Modules Library', 'module-manager'), MODMAN_CAPABILITY, $mm_index);
+				}
 			}
-		}
-		//Add import page to menu
-		$hook2=add_submenu_page($mm_index, __('Import Modules', 'module-manager'), __('Import Modules', 'module-manager'), MODMAN_CAPABILITY, 'admin.php?page=ModuleManager_Modules&tab=import');
-        
-        //self::addScreenHelp($hook1, '');
-        //self::addScreenHelp($hook2, '');
+			//Add import page to menu
+			$hook2=add_submenu_page($mm_index, __('Import Modules', 'module-manager'), __('Import Modules', 'module-manager'), MODMAN_CAPABILITY, 'admin.php?page=ModuleManager_Modules&tab=import');
+	        
+	        //self::addScreenHelp($hook1, '');
+	        //self::addScreenHelp($hook2, '');
+    	}
    }
 
     public static function ModulesMenuPage()
@@ -225,7 +240,7 @@ class ModuleManager
 
         if (!isset($modules[$modulename]))
         {
-            return new WP_Error('module_not_exist', __('Module does nor exist', 'module-manager'));
+            return new WP_Error('module_not_exist', __('Module does not exist', 'module-manager'));
         }
 
         $module=$modules[$modulename];
@@ -462,6 +477,10 @@ class ModuleManager
     	}
 
         //Handle Layouts
+        //Check this constant just in case Layouts is not activated.
+    	if ( !defined('WPDDL_LAYOUTS_POST_TYPE') ) {
+    		define('WPDDL_LAYOUTS_POST_TYPE', 'dd_layouts');
+    	}
         if (isset($module[WPDDL_LAYOUTS_POST_TYPE])) {
             $layouts=$module[WPDDL_LAYOUTS_POST_TYPE];
             if ((is_array($layouts)) && (!(empty($layouts)))) {
@@ -1021,4 +1040,190 @@ class ModuleManager
             @self::purgeTmps();
         }
     }
+    
+	//Check for new Toolset menu implementation
+    public static function modulemanager_can_implement_unified_menu() {
+    	$unified_menu = false;
+    	$is_available = apply_filters( 'toolset_is_toolset_common_available', false );
+    	if ( TRUE === $is_available ) {
+    		$unified_menu = true;
+    	}
+    
+    	return $unified_menu;
+    }
+    
+    //Render new menu
+    public static function modulemanager_unified_menu( $pages ) {
+
+    	//New Toolset unified menu    	
+    	$menu_label = __( 'Modules','module-manager' );
+    	$mm_index = 'ModuleManager_Modules';
+    	$toolset_any_embedded = mm_check_toolset_plugins( 'any_embedded' );
+    	$toolset_all_disabled = mm_check_toolset_plugins( 'all_disabled' );
+    	$toolset_all_full = mm_check_toolset_plugins( 'all_full' );
+    	$toolset_all_full_types_views = mm_check_toolset_plugins( 'full_types_views' );
+
+    	$pages[] = array(
+    			'slug'                      => $mm_index,
+    			'menu_title'                => $menu_label,
+    			'page_title'                => $menu_label,
+    			'callback'                  => array(__CLASS__, 'ModulesMenuPage'),    				
+    			'capability'                => MODMAN_CAPABILITY
+    	);
+	
+    	return $pages;
+    	   	
+    }
+    
+    //Shared import screen
+    public static function modulemanager_register_export_import_section( $sections ) {
+    	
+    	$sections['modules_import'] = array(
+    			'slug'      => 'modules_import',
+    			'title'     => __( 'Modules','module-manager' ),
+    			'icon'      => '<i class="icon-module-logo ont-icon-16"></i>',
+				'items'		=> array(
+							
+							'export'	=> array(
+											'title'		=> __( 'Export Modules','module-manager' ),
+											'callback'	=> array( __CLASS__, 'modules_export_template' ),
+										),							
+							'import'	=> array(
+											'title'		=> __( 'Import Modules','module-manager' ),
+											'callback'	=> array(__CLASS__, 'modules_import_template'),
+										),
+						),
+    	);
+
+    	$hide_export_sections = self::clean_up_modules_import_area();
+    	if ( $hide_export_sections ) {
+    		unset( $sections['modules_import']['items']['export'] );
+    	}
+    	return $sections;
+    	
+    	
+    }
+    
+    //Callback for unified import screen
+    public static function modules_import_template() {
+    	$template = 'import';
+    	$template_path = MODMAN_TEMPLATES_PATH . DIRECTORY_SEPARATOR . $template . '.tpl.php';
+    	include $template_path;
+    }
+    
+    //Callback for unified export screen
+    public static function modules_export_template() {
+    	$mm_url = admin_url( 'admin.php?page=ModuleManager_Modules' );
+    	?>
+    	<div class="import-module-header">
+    	<p>
+    	<?php echo __( 'Exporting modules is done at','module-manager' ); ?> <a href="<?php echo $mm_url;?>"><?php echo __( 'Toolset modules admin screen','module-manager' )?>.</a>
+    	</p>	
+    	</div>		
+    <?php 	
+    }
+    
+    //Hide export module section when import module is in-progress
+    private static function clean_up_modules_import_area() {
+         $hide_export_module_section = false;
+         
+         if ( ( isset( $_GET['tab'] ) ) && ( isset( $_GET['step']) ) ) {
+         	$tab 	= $_GET['tab'];
+         	$step 	= $_GET['step'];
+         	$step 	= trim($step);
+         	
+         	if ( ( 'modules_import' == $tab) && ( ! (empty( $step ) ) ) ) {
+         		$hide_export_module_section = true;         		
+         	}         	
+         }
+         
+         return $hide_export_module_section;
+    	
+    }
+    
+    /**
+     * Automatic release notes link
+     * @since 1.6.5
+     */
+    public static function modulemanager_plugin_plugin_row_meta( $plugin_meta, $plugin_file, $plugin_data, $status ) {
+    
+    	if ( ( defined('MODMAN_PLUGIN_PATH') ) && ( defined('MODMAN_VERSION') ) ) {
+    		if ( ( MODMAN_PLUGIN_PATH ) && ( MODMAN_VERSION ) ) {
+    			$this_plugin = basename( MODMAN_PLUGIN_PATH ) . '/plugin.php';
+    			if ( $plugin_file == $this_plugin ) {
+    				//This is Module manager
+    				$version_slug = 'modulemanager-';
+    				$current_plugin_version = MODMAN_VERSION;
+    				$current_plugin_version_simplified = str_replace( '.', '-', $current_plugin_version );
+    
+    				//When releasing Module Manager, slug of version content should match with $article_slug
+    				$article_slug = $version_slug.$current_plugin_version_simplified;
+    				$linktitle = 'Module Manager'.' '.$current_plugin_version.' '.'release notes';
+    
+    				//Raw URL
+    				//Override with Toolset domain constant if set
+    				if ( defined('WPVDEMO_TOOLSET_DOMAIN') ) {
+    					if (WPVDEMO_TOOLSET_DOMAIN) {
+    						$raw_url = 'https://'.WPVDEMO_TOOLSET_DOMAIN.'/version/'.$article_slug.'/';
+    
+    						$modman_release_link = get_option( 'modman_release_link' );
+    
+    						//We don't need to check if release notes exist anytime a user accesses a plugin page
+    						//Once the release note is proven to exist, we display
+    						$exists = false;
+    						if ( false === $modman_release_link) {
+    							//Option value not yet defined, we need to check- one time event only
+    							if ( self::modman_release_notes_exist( $raw_url ) ) {
+    								//Now exists
+    								$exists = true;
+    							}
+    						} elseif ( 'released' == $modman_release_link ) {
+    							$exists = true;
+    						}
+    
+    						if ( $exists ) {
+    								
+    							//Now released, we append this link.
+    							$url_with_ga = $raw_url.'?utm_source=modulemanagerplugin&utm_campaign=modulemanager&utm_medium=release-notes-link&utm_term='.$linktitle;
+    							$plugin_meta[] = sprintf(
+    									'<a href="%s" target="_blank">%s</a>',
+    									$url_with_ga,
+    									$linktitle
+    									);
+    							if ( !( $modman_release_link ) ) {
+    								//We update to set this, one time event only.
+    								update_option( 'modman_release_link', 'released');
+    							}
+    								
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    
+    	return $plugin_meta;
+    
+    }
+    
+    /** Quick way to check if release notes exist in the site
+     *
+     * @param string $url
+     * @return boolean
+     * @since 1.6.5
+     */
+    private static function modman_release_notes_exist( $url ) {
+    	 
+    	$ch = curl_init($url);
+    	curl_setopt( $ch, CURLOPT_NOBODY, true); // set to HEAD request
+    	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true); // don't output the response
+    	curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false);
+    	curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false);
+    	curl_exec( $ch );
+    	$valid = curl_getinfo( $ch, CURLINFO_HTTP_CODE ) == 200;
+    	curl_close( $ch );
+    	 
+    	return $valid;
+    	 
+    }    
 }

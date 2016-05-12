@@ -30,13 +30,13 @@ $this->textarea(
 $this->text(
 	'fimg_width',
 	__( 'Featured Image Width', 'Avada' ),
-	__( 'In pixels or percentage, ex: 100% or 100px. Or Use "auto" for automatic resizing if you added either width or height.', 'Avada' )
+	__( 'In pixels or percentage, ex: 100% or 100px. Use "auto" if you set a fixed height, to make sure the image is resized respecting the aspect ratio. Value cannot exceed original image width.', 'Avada' )
 );
 
 $this->text(
 	'fimg_height',
 	__( 'Featured Image Height', 'Avada' ),
-	__( 'In pixels or percentage, ex: 100% or 100px. Or Use "auto" for automatic resizing if you added either width or height.', 'Avada' )
+	__( 'In pixels or percentage, ex: 100% or 100px. Use "auto" if you set a fixed height, to make sure the image is resized respecting the aspect ratio. Value cannot exceed original image height.', 'Avada' )
 );
 
 $this->select(

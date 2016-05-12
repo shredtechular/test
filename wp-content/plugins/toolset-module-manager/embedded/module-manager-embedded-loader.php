@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: Module Manager Embedded
-Plugin URI: http://wp-types.com/home/module-manager/
+Plugin Name: Toolset Module Manager Embedded
+Plugin URI: https://wp-types.com/home/toolset-components/
 Description: Create reusable modules comprising of Types, Views and CRED parts that represent complete functionality. 
 Author: OnTheGoSystems
 Author URI: http://www.onthegosystems.com
-Version: 1.6.3
+Version: 1.6.4
 */
 
 /** THIS FILE SHOULD ONLY EXISTS IN THE /embedded/ directory */

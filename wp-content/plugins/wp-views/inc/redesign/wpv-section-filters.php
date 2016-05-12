@@ -75,7 +75,8 @@ function wpv_filter_url_check_js() {
 	);
 
 	$toolset_reserved_words = array(
-		'wpv_column_sort_id', 'wpv_column_sort_dir', 'wpv_paged', 'wpv_paged_preload_reach', 'wpv_view_count', 'wpv_filter_submit', 'wpv_post_search'
+		'wpv_column_sort_id', 'wpv_column_sort_dir', 
+		'wpv_sort_orderby', 'wpv_sort_order', 'wpv_paged', 'wpv_paged_preload_reach', 'wpv_view_count', 'wpv_filter_submit', 'wpv_post_search'
 	);
 	$toolset_reserved_words = apply_filters('wpv_toolset_reserved_words', $toolset_reserved_words);
 	
@@ -171,9 +172,10 @@ function wpv_filters_add_filter_row_callback() {
 
 function wpv_filter_give_group_to_field( $filters ) {
 	
-	$post_meta_label = __( 'Custom fields', 'wpv-views' );
+	$postmeta_label = __( 'Custom fields', 'wpv-views' );
 	$post_woocommerce_views_meta_label = __( 'WooCommerce Views filter fields', 'wpv-views' );	
-	$user_meta_label = __( 'User fields', 'wpv-views' );
+	$usermeta_label = __( 'User fields', 'wpv-views' );
+	$termmeta_label = __( 'Taxonomy fields', 'wpv-views' );
 	
 	$groups = array();
 
@@ -192,7 +194,7 @@ function wpv_filter_give_group_to_field( $filters ) {
 						$g = $gs['name'];
 					}
 				}
-				$gr = $g ? $g : $post_meta_label;
+				$gr = $g ? $g : $postmeta_label;
 
 				$groups[$gr][$type] = $filter;
 		} else if ( strpos( $type, 'custom-field-views_woo_' ) !== false ) {
@@ -219,17 +221,37 @@ function wpv_filter_give_group_to_field( $filters ) {
                         $g = $gs['name'];
                     }
                 }
-                $gr = $g ? $g : $user_meta_label;
+                $gr = $g ? $g : $usermeta_label;
+                $groups[$gr][$type] = $filter;
+		} else if ( strpos( $type, 'termmeta-field-wpcf-' ) !== false ) {
+                $g = '';
+                $nice_name = explode('termmeta-field-wpcf-', $type);
+                $id = ( isset($nice_name[1] ) ) ? $nice_name[1] : $type;
+                if( function_exists('wpcf_admin_fields_get_groups_by_field') )
+                {
+                    foreach( wpcf_admin_fields_get_groups_by_field( $id, 'wp-types-term-group' ) as $gs )
+                    {
+                        $g = $gs['name'];
+                    }
+                }
+                $gr = $g ? $g : $termmeta_label;
                 $groups[$gr][$type] = $filter;
         } else if ( 
 			strpos( $type, 'usermeta-field-' ) !== false
 			&& strpos( $type, 'usermeta-field-basic-') === false 
 			&& strpos( $type, 'usermeta-field-wpcf-' ) === false 
 		) {
-                $gr = $user_meta_label;
+                $gr = $usermeta_label;
+                $groups[$gr][$type] = $filter;
+		} else if ( 
+			strpos( $type, 'termmeta-field-' ) !== false
+			&& strpos( $type, 'termmeta-field-basic-') === false 
+			&& strpos( $type, 'termmeta-field-wpcf-' ) === false 
+		) {
+                $gr = $termmeta_label;
                 $groups[$gr][$type] = $filter;
 		} else {
-			$groups[$post_meta_label][$type] = $filter;
+			$groups[$postmeta_label][$type] = $filter;
 		}
 	}
 	return $groups;

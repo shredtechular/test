@@ -363,6 +363,29 @@ class WPV_Admin_Messages {
 		return $return;
 	}
 	
+	/**
+	* get_documentation_promotional_link
+	*
+	* @param $args	array
+	* 		@param query	array
+	* 		@param anchor	string
+	* @param $url	string
+	*
+	* @return string
+	*
+	* @since 1.12
+	*/
+	
+	static function get_documentation_promotional_link( $args = array(), $url = 'https://wp-types.com/home/toolset-components/' ) {
+		if ( isset( $args['query'] ) ) {
+			$url = esc_url( add_query_arg( $args['query'], $url ) );
+		}
+		if ( isset( $args['anchor'] ) ) {
+			$url .= '#' . esc_attr( $args['anchor'] );
+		}
+		return $url;
+	}
+	
 }
 
 //----------------------------------------
@@ -654,12 +677,23 @@ function wpv_get_embedded_promotional_box( $type = 'view' ) {
 			$target = __( 'WordPress Archive', 'wpv-views' );
 			break;
 	}
+	$promo_link_args = array(
+		'query'		=> array(
+			'utm_source'	=> 'viewsplugin',
+			'utm_campaign'	=> 'views',
+			'utm_medium'	=> 'embedded-view-promotional-link',
+			'utm_term'		=> 'Get Views'
+			
+		),
+		'anchor'	=> 'views'
+	);
+	$promo_link = WPV_Admin_Messages::get_documentation_promotional_link( $promo_link_args, 'https://wp-types.com/home/toolset-components/' );
 	$data = array(
 		'text'			=> '<p>' . sprintf( __('You are viewing the read-only version of this %s.', 'wpv-views'), $target )
 						. WPV_MESSAGE_SPACE_CHAR
 						. __('To edit it, you need to get the Views plugin.', 'wpv-views')
 						. '</p>'
-						. '<p><a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=viewsplugin&utm_campaign=views&utm_medium=embedded-view-promotional-link&utm_term=Get Views" title="" class="button button-primary-toolset" target="_blank">'
+						. '<p><a href="' . $promo_link . '" title="" class="button button-primary-toolset" target="_blank">'
 						. __( 'Get Views', 'wpv-views' )
 						. '</a></p>',
 		'close'			=> 'false',
@@ -670,8 +704,19 @@ function wpv_get_embedded_promotional_box( $type = 'view' ) {
 }
 
 function wpv_get_embedded_view_introduction_data() {
+	$promo_link_args = array(
+		'query'		=> array(
+			'utm_source'	=> 'viewsplugin',
+			'utm_campaign'	=> 'views',
+			'utm_medium'	=> 'embedded-view-promotional-link',
+			'utm_term'		=> 'Get Views'
+			
+		),
+		'anchor'	=> 'views'
+	);
+	$promo_link = WPV_Admin_Messages::get_documentation_promotional_link( $promo_link_args, 'https://wp-types.com/home/toolset-components/' );
 	$promotional = '<p class="toolset-promotional">' . __( 'You are viewing the read-only version of this View. To edit it, you need to get Views plugin.', 'wpv-views' )
-				. '&nbsp;&nbsp;&nbsp;<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=viewsplugin&utm_campaign=views&utm_medium=embedded-view-promotional-link&utm_term=Get Views" title="" class="button button-primary-toolset" target="_blank">' . __( 'Get Views', 'wpv-views' ) . '</a>'
+				. '&nbsp;&nbsp;&nbsp;<a href="' . $promo_link . '" title="" class="button button-primary-toolset" target="_blank">' . __( 'Get Views', 'wpv-views' ) . '</a>'
 				. '</p>';
 	$all = array(
 		'text'			=> $promotional . '<p>' . __('A View loads content from the database and displays it anyway you choose.', 'wpv-views') . WPV_MESSAGE_SPACE_CHAR
@@ -755,8 +800,19 @@ function wpv_get_embedded_content_template_introduction_data() {
 }
 
 function wpv_get_embedded_wordpress_archive_introduction_data() {
+	$promo_link_args = array(
+		'query'		=> array(
+			'utm_source'	=> 'viewsplugin',
+			'utm_campaign'	=> 'views',
+			'utm_medium'	=> 'embedded-archive-view-promotional-link',
+			'utm_term'		=> 'Get Views'
+			
+		),
+		'anchor'	=> 'views'
+	);
+	$promo_link = WPV_Admin_Messages::get_documentation_promotional_link( $promo_link_args, 'https://wp-types.com/home/toolset-components/' );
 	$promotional = '<p class="toolset-promotional">' . __( 'You are viewing the read-only version of this WordPress Archive. To edit it, you need to get Views plugin.', 'wpv-views' )
-				. '&nbsp;&nbsp;&nbsp;<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=viewsplugin&utm_campaign=views&utm_medium=embedded-archive-view-promitional-link&utm_term=Get Views" title="" class="button-primary button-primary-toolset">' . __( 'Get Views', 'wpv-views' ) . '</a>'
+				. '&nbsp;&nbsp;&nbsp;<a href="' . $promo_link . '" title="" class="button-primary button-primary-toolset">' . __( 'Get Views', 'wpv-views' ) . '</a>'
 				. '</p>';
 	$all = array(
 		'text'			=> $promotional . '<p>' . __('This WordPress Archive replaces the natural archive loops created by WordPress.', 'wpv-views') . '</p>',
@@ -769,8 +825,19 @@ function wpv_get_embedded_wordpress_archive_introduction_data() {
 }
 
 function wpv_get_embedded_layouts_loop_introduction_data() {
+	$promo_link_args = array(
+		'query'		=> array(
+			'utm_source'	=> 'viewsplugin',
+			'utm_campaign'	=> 'views',
+			'utm_medium'	=> 'embedded-archive-loop-promotional-link',
+			'utm_term'		=> 'Get Views'
+			
+		),
+		'anchor'	=> 'views'
+	);
+	$promo_link = WPV_Admin_Messages::get_documentation_promotional_link( $promo_link_args, 'https://wp-types.com/home/toolset-components/' );
 	$promotional = '<p class="toolset-promotional">' . __( 'You are viewing the read-only version of this WordPress Archive. To edit it, you need to get Views plugin.', 'wpv-views' )
-				. '&nbsp;&nbsp;&nbsp;<a href="http://wp-types.com/home/views-create-elegant-displays-for-your-content/?utm_source=viewsplugin&utm_campaign=views&utm_medium=embedded-arhive-loop-promitional-link&utm_term=Get Views" title="" class="button-primary button-primary-toolset">' . __( 'Get Views', 'wpv-views' ) . '</a>'
+				. '&nbsp;&nbsp;&nbsp;<a href="' . $promo_link . '" title="" class="button-primary button-primary-toolset">' . __( 'Get Views', 'wpv-views' ) . '</a>'
 				. '</p>';
 	$all = array(
 		'text'			=> $promotional . '<p>' . __('This WordPress Archive replaces the natural archive loops created by WordPress.', 'wpv-views') . '</p>',
@@ -2033,11 +2100,24 @@ function wpv_views_editor_hidden_messages_boxes_pointers( $view_settings, $view_
 
 			<?php
 			
-			// Delete or edit custom field filters on bulk delete
+			// Delete or edit usermeta field filters on bulk delete
 			?>
 			<div id="js-wpv-filter-usermeta-field-delete-filter-row-dialog" class="toolset-shortcode-gui-dialog-container wpv-shortcode-gui-dialog-container wpv-dialog-frontend-events">
 				<div class="wpv-dialog">
 					<h3><?php _e('There are more than one usermeta field filters', 'wpv-views'); ?></h3>
+					<p>
+						<?php _e( 'You can delete them all at once or open the editor and delete individual filters.', 'wpv-views' ); ?>
+					</p>
+				</div>
+			</div>
+			
+			<?php
+			
+			// Delete or edit termmeta field filters on bulk delete
+			?>
+			<div id="js-wpv-filter-termmeta-field-delete-filter-row-dialog" class="toolset-shortcode-gui-dialog-container wpv-shortcode-gui-dialog-container wpv-dialog-frontend-events">
+				<div class="wpv-dialog">
+					<h3><?php _e('There are more than one termmeta field filters', 'wpv-views'); ?></h3>
 					<p>
 						<?php _e( 'You can delete them all at once or open the editor and delete individual filters.', 'wpv-views' ); ?>
 					</p>

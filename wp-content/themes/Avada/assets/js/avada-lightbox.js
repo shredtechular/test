@@ -43,9 +43,14 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 			$image_formats_mask = 0,
 			$href = jQuery( this ).attr( 'href' );
 
+		// Fix for #1738
+		if( typeof $href == 'undefined' ) {
+			$href = '';
+		}
+
 		// Loop through the image extensions array to see if we have an image link
 		for ( var $i = 0; $i < $image_formats.length; $i++ ) {
-			$image_formats_mask += String( $href ).indexOf( '.' + $image_formats[$i] );
+			$image_formats_mask += String( $href ).toLowerCase().indexOf( '.' + $image_formats[$i] );
 		}
 
 		// Check for Vimeo URL
@@ -126,7 +131,7 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 
 	//activate lightbox for images within the post content
 	if( Boolean( Number( js_local_vars.lightbox_post_images ) ) ) {
-		$wrapper.find( '.single-post .post-content a, #posts-container .post .post-content a, .fusion-blog-shortcode .post .post-content a' ).has( 'img' ).each(
+		$wrapper.find( '.type-post .post-content a, #posts-container .post .post-content a, .fusion-blog-shortcode .post .post-content a' ).has( 'img' ).each(
 			function() {
 				// Make sure the lightbox is only used for image links and not for links to external pages
 				var $image_formats = ['bmp', 'gif', 'jpeg', 'jpg', 'png', 'tiff', 'tif', 'jfif', 'jpe', 'svg', 'mp4', 'ogg', 'webm' ],
@@ -134,7 +139,7 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 
 				// Loop through the image extensions array to see if we have an image link
 				for ( var $i = 0; $i < $image_formats.length; $i++ ) {
-					$image_formats_mask += String( jQuery( this ).attr( 'href' ) ).indexOf( '.' + $image_formats[$i] );
+                    $image_formats_mask += String( jQuery( this ).attr( 'href' ) ).toLowerCase().indexOf( '.' + $image_formats[$i] );
 				}
 
 				// If no image extension was found add the no lightbox class
@@ -260,7 +265,7 @@ jQuery( document ).ajaxComplete( function() {
 	$avada_lightbox.refresh_lightbox();
 });
 
-jQuery(document).ready(function() {
+jQuery(window).load(function() {
 	//initialize lightbox
 	$avada_lightbox.initialize_lightbox();
 });

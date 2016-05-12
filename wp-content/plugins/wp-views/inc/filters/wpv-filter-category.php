@@ -16,6 +16,10 @@ WPV_Taxonomy_Filter::on_load();
 * Views Taxonomy Filter Class
 *
 * @since 1.7.0
+* @since 1.12.1	Changes in the filter modes for the posts filter and the taxonomy filter
+* 		FROM PAGE becomes current_post_or_parent_post_view and tracks $WP_Views->get_current_page()
+* 		top_current_post tracks $WP_Views->get_top_current_page()
+* 		FROM PARENT VIEW becomes becomes current_taxonomy_view
 */
 
 class WPV_Taxonomy_Filter {
@@ -270,9 +274,10 @@ class WPV_Taxonomy_Filter {
 						<option value="IN" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'IN' ); ?>><?php _e('Any of the following', 'wpv-views'); ?></option>
 						<option value="NOT IN" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'NOT IN' ); ?>><?php _e('No one of the following', 'wpv-views'); ?></option>
 						<option value="AND" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'AND' ); ?>><?php _e('All of the following', 'wpv-views'); ?></option>
-						<option value="FROM PAGE" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'FROM PAGE' ); ?>><?php _e('Set by the current single page', 'wpv-views'); ?></option>
+						<option value="top_current_post" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'top_current_post' ); ?>><?php _e('Set by the page where this View is shown', 'wpv-views'); ?></option>
+						<option value="current_post_or_parent_post_view" <?php selected( in_array( $view_settings['tax_' . $taxonomy . '_relationship'], array( 'FROM PAGE', 'current_post_or_parent_post_view' ) ) ); ?>><?php _e('Set by the current post in the loop', 'wpv-views'); ?></option>
 						<option value="FROM ARCHIVE" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'FROM ARCHIVE' ); ?>><?php _e('Set by the current archive page', 'wpv-views'); ?></option>
-						<option value="FROM PARENT VIEW" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'FROM PARENT VIEW' ); ?>><?php _e('Set by the parent View', 'wpv-views'); ?></option>
+						<option value="current_taxonomy_view" <?php selected( in_array( $view_settings['tax_' . $taxonomy . '_relationship'], array( 'FROM PARENT VIEW', 'current_taxonomy_view' ) ) ); ?>><?php _e('Set by the parent Taxonomy View', 'wpv-views'); ?></option>
 						<option value="FROM ATTRIBUTE" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'FROM ATTRIBUTE' ); ?>><?php _e('Set by one View shortcode attribute', 'wpv-views'); ?></option>
 						<option value="FROM URL" <?php selected( $view_settings['tax_' . $taxonomy . '_relationship'], 'FROM URL' ); ?>><?php _e('Set by one URL parameter', 'wpv-views'); ?></option>
 						<?php

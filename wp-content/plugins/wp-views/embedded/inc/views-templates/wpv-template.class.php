@@ -1,8 +1,5 @@
 <?php
 
-require_once( WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/editor-addon.class.php');
-require_once( WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/views-editor-addon.class.php' );
-
 class WPV_template{
 
     function __construct(){
@@ -129,100 +126,129 @@ class WPV_template{
 	 * @note 1.7 removed loop Templates from the dropdown
 	 */
     function content_template_select_meta_box( $post ) {
-        global $wpdb, $WP_Views, $sitepress;
 		
-		$values_to_prepare = array();
-		
-		$wpml_join = $wpml_where = "";
-		if (
-			isset( $sitepress ) 
-			&& function_exists( 'icl_object_id' )
-		) {
-			$content_templates_translatable = $sitepress->is_translated_post_type( 'view-template' );
-			if ( $content_templates_translatable ) {
-				$wpml_current_language = $sitepress->get_current_language();
-				$wpml_join = " JOIN {$wpdb->prefix}icl_translations t ";
-				$wpml_where = " AND p.ID = t.element_id AND t.language_code = %s ";
-				$values_to_prepare[] = $wpml_current_language;
-			}
+		$template_selected					= 0;
+		$wpml_current_language				= apply_filters( 'wpml_current_language', '' );
+		$wpml_default_language				= apply_filters( 'wpml_default_language', '' );
+		// Works when editing a post
+		$is_in_wpml_original_language		= apply_filters( 'wpml_is_original_content', true, $post->ID , 'post_' . $post->post_type );
+		// Works when creating a new post, where the previous one gives false positives
+		if ( $is_in_wpml_original_language ) {
+			$is_in_wpml_original_language	= ( $wpml_current_language == $wpml_default_language );
 		}
+		$content_templates_translatable		= apply_filters( 'wpml_is_translated_post_type', false, 'view-template' );
 		
-		
-		$exclude_loop_templates = '';
-		$exclude_loop_templates_ids = wpv_get_loop_content_template_ids();
-		if ( count( $exclude_loop_templates_ids ) > 0 ) {
-			$exclude_loop_templates_ids_sanitized = array_map( 'esc_attr', $exclude_loop_templates_ids );
-			$exclude_loop_templates_ids_sanitized = array_map( 'trim', $exclude_loop_templates_ids_sanitized );
-			// is_numeric + intval does sanitization
-			$exclude_loop_templates_ids_sanitized = array_filter( $exclude_loop_templates_ids_sanitized, 'is_numeric' );
-			$exclude_loop_templates_ids_sanitized = array_map( 'intval', $exclude_loop_templates_ids_sanitized );
-			if ( count( $exclude_loop_templates_ids_sanitized ) > 0 ) {
-				$exclude_loop_templates = " AND p.ID NOT IN ('" . implode( "','" , $exclude_loop_templates_ids_sanitized ) . "') ";
-			}
-		}
-		$values_to_prepare[] = 'view-template';
-        $view_tempates_available = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT p.ID, p.post_name, p.post_title 
-				FROM {$wpdb->posts} p {$wpml_join} 
-				WHERE p.post_status = 'publish' 
-				{$wpml_where} 
-				AND p.post_type = %s 			
-				{$exclude_loop_templates}
-				ORDER BY p.post_title",
-				$values_to_prepare
-			)
-		);
         if ( 
 			isset( $_GET['post'] ) 
 			&& intval( $_GET['post'] ) > 0
 		) {
+			// Editing a post
             $template_selected = get_post_meta( (int) $_GET['post'], '_views_template', true );
 			if ( empty( $template_selected ) ) {
 				$template_selected = 0;
 			}
         } else {
-            $template_selected = 0;
             global $pagenow, $post_type;
             if ( $pagenow == 'post-new.php' ) {
+				// Creating a post
+				// If it is a translation, set the CT of the original post
 				if ( 
 					isset( $_GET['trid'] ) 
 					&& isset( $_GET['source_lang'] )
 				) {
 					$sp_trid = sanitize_text_field( $_GET['trid'] );
 					$sp_source_lang = sanitize_text_field( $_GET['source_lang'] );
-					// we are creating a translated post
-					if ( isset( $sitepress ) && function_exists( 'icl_object_id' ) ) {
-						$translations = $sitepress->get_element_translations( $sp_trid, 'post_' . $post->post_type );
-						if ( isset( $translations[$sp_source_lang] ) ) {
-							$template_selected = get_post_meta( $translations[$sp_source_lang]->element_id, '_views_template', true );
-							if ( empty( $template_selected ) ) {
-								$template_selected = 0;
-							}
+					$translations = apply_filters( 'wpml_get_element_translations', array(), $sp_trid, 'post_' . $post->post_type );
+					if ( isset( $translations[ $sp_source_lang ] ) ) {
+						$template_selected = get_post_meta( $translations[ $sp_source_lang ]->element_id, '_views_template', true );
+						if ( empty( $template_selected ) ) {
+							$template_selected = 0;
 						}
 					}
 				}
+				// Otherwise, set the value stored in the Views settings, if any
 				if ( $template_selected == 0 ) {
-					// see if we have specified what template to use for this post type
-					global $WPV_settings;
-					if ( isset( $WPV_settings['views_template_for_' . $post_type] ) ) {
-						$template_selected = $WPV_settings['views_template_for_' . $post_type];						
+					$wpv_stored_settings = WPV_Settings::get_instance();
+					if ( isset( $wpv_stored_settings['views_template_for_' . $post_type] ) ) {
+						$template_selected = $wpv_stored_settings['views_template_for_' . $post_type];						
 					}
 				}
             }
         }
+		
+		if ( 
+			$template_selected != 0 
+			&& $content_templates_translatable
+		) {
+			// Adjust for WPML support, in case CTs are translatable
+			$template_selected = apply_filters( 'translate_object_id', $template_selected, 'view-template', true, null );
+		}
+		
+		// Get available CTs
+		// Note that when the select dropdown is going to be disabled we just get the selected, if any, and skip the query entirely otherwise
+		$view_tempates_available = array();
+		if (
+			! empty( $template_selected )
+			|| $is_in_wpml_original_language
+		) {
+			// We need to run a query since:
+			// - we have a template selected and we need its title/name
+			// - or we do not have a template selected but we are in the WPML original language, so we need to offer options
+			global $wpdb;
+			
+			$values_to_prepare = array();
+		
+			$wpml_join = $wpml_where = "";
+			
+			if ( ! $is_in_wpml_original_language ) {
+				// Editing or creating a translation, so only get the selected CT
+				$wpml_where = " AND p.ID = %d ";
+				$values_to_prepare[] = $template_selected;
+			} else if ( $content_templates_translatable ) {
+				// Current language is the original language and CTs are translatable, so get only the ones in this original language
+				$wpml_join = " JOIN {$wpdb->prefix}icl_translations t ";
+				$wpml_where = " AND p.ID = t.element_id AND t.language_code = %s ";
+				$values_to_prepare[] = $wpml_current_language;
+			}
+			
+			$exclude_loop_templates = '';
+			$exclude_loop_templates_ids = wpv_get_loop_content_template_ids();
+			if ( count( $exclude_loop_templates_ids ) > 0 ) {
+				$exclude_loop_templates_ids_sanitized = array_map( 'esc_attr', $exclude_loop_templates_ids );
+				$exclude_loop_templates_ids_sanitized = array_map( 'trim', $exclude_loop_templates_ids_sanitized );
+				// is_numeric + intval does sanitization
+				$exclude_loop_templates_ids_sanitized = array_filter( $exclude_loop_templates_ids_sanitized, 'is_numeric' );
+				$exclude_loop_templates_ids_sanitized = array_map( 'intval', $exclude_loop_templates_ids_sanitized );
+				if ( count( $exclude_loop_templates_ids_sanitized ) > 0 ) {
+					$exclude_loop_templates = " AND p.ID NOT IN ('" . implode( "','" , $exclude_loop_templates_ids_sanitized ) . "') ";
+				}
+			}
+			
+			$values_to_prepare[] = 'view-template';
+			$view_tempates_available = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT p.ID, p.post_name, p.post_title 
+					FROM {$wpdb->posts} p {$wpml_join} 
+					WHERE p.post_status = 'publish' 
+					{$wpml_where} 
+					AND p.post_type = %s 			
+					{$exclude_loop_templates}
+					ORDER BY p.post_title",
+					$values_to_prepare
+				)
+			);
+			
+		}
+		
 		?>
-		<select name="views_template[<?php echo esc_attr( $post->ID ); ?>]" id="views_template" class="widefat js-wpv-edit-post-select-ct">
+		<select name="views_template[<?php echo esc_attr( $post->ID ); ?>]" id="views_template" class="widefat js-wpv-edit-post-select-ct" <?php disabled( ! $is_in_wpml_original_language ); ?>>
 		<?php
         // Add a "None" type to the list.
         $none = new stdClass();
         $none->ID = '0';
         $none->post_title = __( 'None', 'wpv-views' );
         array_unshift( $view_tempates_available, $none );
-		if ( $template_selected != 0 ) {
-			// Adjust for WPML support
-			$template_selected = apply_filters( 'translate_object_id', $template_selected, 'view-template', true, null );
-		}
+		
         foreach( $view_tempates_available as $template ) {
 			if ( $template->post_title != '' ) {
 				?>
@@ -237,7 +263,16 @@ class WPV_template{
 		?>
 		</select>
 		<?php
-		if ( ! $WP_Views->is_embedded() ) {
+		if ( ! $is_in_wpml_original_language ) {
+			?>
+			<p class="toolset-alert toolset-alert-info">
+				<?php
+				echo __( 'The Content Template is copied from the original language' , 'wpv-views' );
+				?>
+			</p>
+			<?php
+		}
+		if ( ! apply_filters( 'toolset_is_views_embedded_available', false ) ) {
 			$edit_link = '';
 			$edit_link_visible = ' hidden';
 			if ( 
@@ -393,7 +428,7 @@ class WPV_template{
      * @since unknown
 	 */
     function the_content( $content ) {
-        global $id, $post, $WP_Views, $WPV_settings, $wp_query, $wplogger, $WPVDebug;
+        global $id, $post, $WP_Views, $WPV_settings, $wp_query, $WPVDebug;
 
 		$post = get_post( $post );
 		if ( is_null( $post ) ) {
@@ -405,30 +440,39 @@ class WPV_template{
 		}
 
 		// core functions that we accept calls from.
-		static $the_content_core = array( 'the_content', 'wpv_shortcode_wpv_post_body' );
+		static $the_content_core = array( 'the_content', 'the_excerpt_for_archives', 'wpv_shortcode_wpv_post_body' );
 		// known theme functions that we accept calls from.
 		static $the_content_themes = array( 'wptouch_the_content' );
 
         $db = debug_backtrace();
+		$function_candidate = array();
 
-		if ( ! isset( $db[3]['function'] ) ) {
+		// From php7 debug_backtrace() has changed, and the target function might be at index 2 instead of 3 as in php < 7
+		// Also, the_excerpt_for_archives is supposed to be at index 1
+		// Note: we might want to add a pluk and filter here, maybe...
+		if ( isset( $db[3]['function'] ) ) {
+			$function_candidate[] = $db[3]['function'];
+		}
+		
+		if ( isset( $db[2]['function'] ) ) {
+			$function_candidate[] = $db[2]['function'];
+		}
+		
+		if ( isset( $db[1]['function'] ) ) {
+			$function_candidate[] = $db[1]['function'];
+		}
+		
+		if ( empty( $function_candidate ) ) {
 			return $content;
 		}
 
-        // FIXME: This should be rearranged to improve legibility
 		$function_ok = false;
-		if ( $db[1]['function'] == 'the_excerpt_for_archives' ) {
-			$function_ok = true;
-		}
 
-		if ( ! $function_ok ) {
-			if ( in_array( $db[3]['function'], $the_content_core ) ) {
-				$function_ok = true;
-			}
-		}
-
-		if ( ! $function_ok ) {
-			if ( in_array( $db[3]['function'], $the_content_themes ) ) {
+		foreach ( $function_candidate as $function_candidate_for_content ) {
+			if ( 
+				in_array( $function_candidate_for_content, $the_content_core ) 
+				|| in_array( $function_candidate_for_content, $the_content_themes )
+			) {
 				$function_ok = true;
 			}
 		}
@@ -438,16 +482,29 @@ class WPV_template{
 				isset( $WPV_settings->wpv_theme_function ) 
 				&& ! empty( $WPV_settings->wpv_theme_function )
 			) {
-                if ( in_array( $db[3]['function'], explode( ',', str_replace( ', ', ',', $WPV_settings->wpv_theme_function ) ) ) ) {
-                    $function_ok = true;
-                }
+				$registered_function_candidate = explode( ',', str_replace( ', ', ',', $WPV_settings->wpv_theme_function ) );
+				foreach ( $function_candidate as $function_candidate_for_content ) {
+					if ( 
+						in_array( $function_candidate_for_content, $registered_function_candidate ) 
+						|| in_array( $function_candidate_for_content, $registered_function_candidate )
+					) {
+						$function_ok = true;
+					}
+				}
             }
 
             if ( ! $function_ok ) {
                 // We don't accept calls from the calling function.
                 if ( current_user_can( 'administrator' ) ) {
-                    if ( isset( $WPV_settings->wpv_theme_function_debug ) && $WPV_settings->wpv_theme_function_debug ) {
-                        $content = sprintf( __( '<strong>Content template debug: </strong>Calling function is <strong>%s</strong>', 'wpv-views' ), $db[3]['function'] ) . '<br />' . $content;
+                    if ( 
+						isset( $WPV_settings->wpv_theme_function_debug ) 
+						&& $WPV_settings->wpv_theme_function_debug 
+					) {
+						$function_candidate_string = implode( ', ', $function_candidate );
+                        $content = sprintf( 
+							__( '<strong>Content template debug: </strong>Calling functions are <strong>%s</strong>', 'wpv-views' ), 
+							$function_candidate_string 
+						) . '<br />' . $content;
                     }
                 }
                 return $content;
@@ -598,7 +655,7 @@ class WPV_template{
 			// Adjust for WPML support
 			$template_selected = apply_filters( 'translate_object_id', $template_selected, 'view-template', true, null );
 			$this->view_template_used_ids[] = $template_selected;
-			$wplogger->log('Using Content Template: ' . $template_selected . ' on post: ' . $post->ID);
+			toolset_wplog( 'Using Content Template: ' . $template_selected . ' on post: ' . $post->ID, null, __FILE__, 'WPV_template::the_content', 598 );
 
             $content_aux = $this->get_template_content( $template_selected );
 			// If this function returns null, $template_selected does not exist or is not a Content Template

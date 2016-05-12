@@ -355,7 +355,10 @@ class WP_Views_archive_loops {
 
 	}
 
-    // TODO please try to use $this->get_archive_loops() instead.
+	/**
+	 * @deprecated Use $this->get_archive_loops() instead.
+	 * @return array
+	 */
 	function _get_post_type_loops() {
 		$loops = array('home-blog-page' => __('Home/Blog', 'wpv-views'),
 					   'search-page' => __('Search results', 'wpv-views'),
@@ -719,8 +722,10 @@ class WP_Views_archive_loops {
 
 		$loops = $this->_get_post_type_loops();
 
+		$settings_array = $WPV_settings->get();
+
 		foreach($loops as $loop => $loop_name) {
-			foreach ($WPV_settings as $opt_id=> $opt_name) {
+			foreach ($settings_array as $opt_id=> $opt_name) {
 
 				if ('view_'.$loop == $opt_id && $opt_name !== 0) {
 
@@ -745,7 +750,7 @@ class WP_Views_archive_loops {
 				continue; // Only show taxonomies with show_ui set to TRUE
 			}
 
-			foreach ( $WPV_settings as $opt_id => $opt_name ) {
+			foreach ( $settings_array as $opt_id => $opt_name ) {
 
                 if ('view_taxonomy_loop_' . $category_slug == $opt_id && $opt_name !== 0) {
 

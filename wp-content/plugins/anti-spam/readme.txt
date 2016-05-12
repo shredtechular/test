@@ -3,8 +3,8 @@ Contributors: webvitaly
 Donate link: http://web-profile.com.ua/donate/
 Tags: spam, spammer, comment, comments, comment-spam, antispam, anti-spam, block-spam, spam-free, spambot, spam-bot, bot
 Requires at least: 3.3
-Tested up to: 4.5
-Stable tag: 4.1
+Tested up to: 4.7
+Stable tag: 4.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 
@@ -12,11 +12,11 @@ No spam in comments. No captcha.
 
 == Description ==
 
-> **[Anti-spam Pro](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitaly "Upgrade to Pro")** |
+> **[Anti-spam Pro](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitalii "Upgrade to Pro")** |
 > **[Anti-spam](http://web-profile.com.ua/wordpress/plugins/anti-spam/ "Plugin page")** |
 > **[Donate](http://web-profile.com.ua/donate/ "Support the development")** |
-> **[Github](https://github.com/webvitaly/anti-spam "Fork")**
-
+> **[GitHub](https://github.com/webvitalii/anti-spam "Fork")** |
+> **[Silver Bullet Pro](http://codecanyon.net/item/silver-bullet-pro/15171769?ref=webvitalii "Speedup and protect WordPress in a smart way")**
 
 **Captcha madness:**
 
@@ -40,9 +40,8 @@ After installing the Anti-spam plugin **try to submit a comment on your site bei
 If you get an error - you may check the solution in the [Support section](http://wordpress.org/support/plugin/anti-spam) or submit a new topic with detailed description of your problem.
 
 = Useful: =
-* [Anti-spam Pro - extended version with settings and manual spam protection](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitaly "Upgrade to Pro")
-* [Security-protection - blocks brute-force attacks](http://wordpress.org/plugins/security-protection/ "stops brute-force attacks")
-* [WordPress Pro plugins](http://codecanyon.net/popular_item/by_category?category=wordpress&ref=webvitaly)
+* **[Anti-spam Pro - extended version with settings and manual spam protection](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitalii "Upgrade to Pro")**
+* **[Silver Bullet Pro - Speedup and protect WordPress in a smart way](http://codecanyon.net/item/silver-bullet-pro/15171769?ref=webvitalii "Speedup and protect WordPress in a smart way")**
 
 == Installation ==
 
@@ -55,7 +54,7 @@ If you get an error - you may check the solution in the [Support section](http:/
 
 Anti-spam plugin blocks 100% of automatic spam messages (sent by spam-bots via post requests).
 Plugin does not block manual spam (submitted by spammers manually via browser).
-You can use [Anti-spam Pro](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitaly "Upgrade to Pro") plugin if you need to block manual spam.
+You can use [Anti-spam Pro](http://codecanyon.net/item/antispam-pro/6491169?ref=webvitalii "Upgrade to Pro") plugin if you need to block manual spam.
 
 = Incompatible with: =
 
@@ -136,11 +135,14 @@ The plugin is pretty small and easy to read.
 
 == Changelog ==
 
+= 4.2 - 2016-01-30 =
+* removed XSS vulnerability - thanks to Kenan from [tbmnull.com](http://tbmnull.com/)
+
 = 4.1 - 2015-10-25 =
-* added log spam to file feature (huge thanks to [Guti](http://www.javiergutierrezchamorro.com/ "Javier Gutiérrez Chamorro")
+* added log spam to file feature - huge thanks to [Guti](http://www.javiergutierrezchamorro.com/ "Javier Gutiérrez Chamorro")
 * prevent full path disclosure
 * added empty index.php file
-* publish plugin to Github
+* publish plugin to GitHub
 * added Text Domain for translation.wordpress.org
 
 = 4.0 - 2015-10-11 =

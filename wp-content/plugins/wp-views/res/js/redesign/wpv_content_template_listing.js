@@ -166,12 +166,15 @@ WPViews.CTListingScreen = function( $ ) {
 	
 	$( document ).on( 'click','.js-wpv-create-new-template', function( e ) {
 		e.preventDefault();
-		var thiz = $( this ),
-		thiz_container = $( '.js-wpv-dialog-add-new-content-template' ),
-		thiz_message_container = thiz_container.find( '.js-wpv-error-container' ),
-		title = thiz_container.find( '.js-wpv-new-content-template-name' ).val(),
-		type = [];
+
+		var thiz = $( this );
+		var thiz_container = $( '.js-wpv-dialog-add-new-content-template' );
+		var thiz_message_container = thiz_container.find( '.js-wpv-error-container' );
+		var title = thiz_container.find( '.js-wpv-new-content-template-name' ).val();
+		var type = [];
+
 		showSpinnerAfter( thiz );
+
 		$( ".js-wpv-dialog-add-new-content-template input[name='wpv-new-content-template-post-type[]']:checked").each( function() {
 			type.push( $( this ).val() );
 		});
@@ -185,36 +188,37 @@ WPViews.CTListingScreen = function( $ ) {
 			type : type,
 			title: title
 		};
+
 		thiz.prop( 'disabled', true );
-		$.post( ajaxurl, data, function( response ) {
-			response = $.parseJSON( response );
-			// console.log(response);
-			if ( ( typeof( response ) !== 'undefined' ) ) {
-				if ( response[0] == 'error' ) {
+
+		$.ajax({
+			type: 'POST',
+			dataType: 'json',
+			url: ajaxurl,
+			data: data,
+			success: function( response ){
+				if( ! response.success ) {
 					thiz_message_container
 						.wpvToolsetMessage({
-							text: response[1],
+							text: response.data.message,
 							stay: true,
 							close: false,
 							type: 'error'
 						});
-				 	thiz.prop( 'disabled', false );
-					hideSpinner();
 				} else {
-				 	// console.log('Content Template Created');
-                    // todo use l10n and pass ct-editor page name instead of hardcoding it
-                    document.location.href = 'admin.php?page=ct-editor&ct_id=' + response[0];
+					// Todo use l10n and pass ct-editor page name instead of hardcoding it
+					document.location.href = 'admin.php?page=ct-editor&ct_id=' + response.data.id;
 				}
-			} else {
-				//	console.log( "Error: AJAX returned " + response );
+			},
+			error: function( ajaxContext ) {},
+			complete: function( jqXHR, textStatus ) {
+				if( ! jqXHR.responseJSON.success ) {
+					thiz.prop( 'disabled', false );
+					hideSpinner();
+				}
 			}
-		})
-		.fail(function(jqXHR, textStatus, errorThrown) {
-			//	console.log( "Error: ", textStatus, errorThrown );
-		})
-		.always(function() {
-
 		});
+
 		return false;
 	});
 	
@@ -948,7 +952,7 @@ WPViews.CTListingScreen = function( $ ) {
 	/**
 	 * Bulk delete content templates after confirmation.
 	 *
-	 * Invokes the wpv_ct_bulk_delete() function by AJAX.
+	 * Invokes the wpv_ct_bulk_delete AJAX action.
 	 *
 	 * @since 1.7
 	 */  

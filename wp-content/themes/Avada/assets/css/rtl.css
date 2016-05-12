@@ -207,9 +207,6 @@ Table of Contents
   margin-right: 0px;
   margin-left: 10px;
 }
-.rtl .content-boxes .heading .fontawesome-icon {
-  float: right;
-}
 .rtl ul.list-icon li {
   padding: 0 25px 0 0;
   text-align: right;
@@ -260,7 +257,8 @@ Table of Contents
   border-left: none;
   border-right: 4px solid;
 }
-.rtl .fusion-testimonials.classic blockquote {
+.rtl .fusion-testimonials.classic blockquote,
+.rtl .fusion-testimonials.clean blockquote {
   border: none;
 }
 .rtl .fusion-post-content ul.arrow li {
@@ -322,6 +320,25 @@ Table of Contents
 .rtl .fusion-secondary-header .fusion-alignright > * {
   float: left;
 }
+.rtl .fusion-rollover-content .fusion-product-buttons a {
+  padding-left: 0;
+  padding-right: 16px;
+  text-align: right;
+}
+.rtl .fusion-rollover-content .fusion-product-buttons a:first-child {
+  float: right;
+}
+.rtl .fusion-rollover-content .fusion-product-buttons a:first-child:before {
+  margin-left: 0;
+  margin-right: -16px;
+}
+.rtl .fusion-rollover-content .fusion-product-buttons a:last-child {
+  float: left;
+}
+.rtl .fusion-rollover-content .fusion-product-buttons a:last-child:before {
+  margin-left: 0;
+  margin-right: -16px;
+}
 .rtl .fusion-header-v4 .fusion-header-content-3-wrapper .fusion-header-tagline {
   -webkit-order: 2;
       -ms-flex-order: 2;
@@ -358,18 +375,16 @@ Table of Contents
   -ms-flex-order: 2;
       order: 2;
 }
-.rtl .fusion-main-menu > ul > li {
+.rtl .fusion-header-v1 .fusion-main-menu > ul > li,
+.rtl .fusion-header-v2 .fusion-main-menu > ul > li,
+.rtl .fusion-header-v3 .fusion-main-menu > ul > li {
   float: right;
 }
-.rtl .fusion-main-menu .fusion-last-menu-item {
+.rtl .fusion-main-menu .fusion-menu .fusion-last-menu-item {
   padding-left: 0;
 }
 .rtl .fusion-main-menu .sub-menu {
   right: 0;
-}
-.rtl .fusion-header-v5 .fusion-main-menu > ul > li {
-  float: none;
-  text-align: right;
 }
 .rtl .fusion-secondary-menu > ul > li {
   float: right;
@@ -429,6 +444,9 @@ Table of Contents
 .rtl .fusion-megamenu-wrapper .fusion-megamenu-submenu .sub-menu .deep-level .deep-level a {
   padding-left: auto;
   padding-right: 64px;
+}
+.rtl .fusion-megamenu-wrapper .fusion-megamenu-submenu:last-child {
+  border-right: 1px solid;
 }
 .rtl .fusion-megamenu-icon {
   margin-right: 0;
@@ -613,8 +631,11 @@ Table of Contents
   left: -1px;
   right: auto;
 }
-.rtl .fusion-button {
-  direction: ltr;
+.rtl .fusion-button .button-icon-left {
+  float: left;
+}
+.rtl .fusion-button .button-icon-right {
+  float: right;
 }
 .rtl .fusion-checklist .icon-wrapper {
   float: right;
@@ -623,9 +644,13 @@ Table of Contents
   padding-left: 0;
   padding-right: 0px;
 }
-.rtl .fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon .fontawesome-icon,
-.rtl .fusion-content-boxes.content-boxes-icon-on-side .heading-with-icon .fontawesome-icon {
-  margin-right: 0;
+.rtl .fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left,
+.rtl .fusion-content-boxes.content-boxes-icon-on-side .heading-with-icon.icon-left {
+  direction: ltr;
+}
+.rtl .fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left .content-box-heading,
+.rtl .fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left .content-box-heading {
+  float: right;
 }
 .rtl .fusion-content-boxes.content-boxes-icon-on-side .content-container {
   padding-left: 0;
@@ -743,54 +768,15 @@ Table of Contents
   padding-left: 30px;
   padding-right: 0;
 }
+.rtl .fusion-testimonials .company-name {
+  display: inline-block;
+}
 .rtl .fusion-testimonials .company-name strong {
   float: right;
 }
 .rtl .fusion-testimonials .author:after {
   left: auto;
   right: 35px;
-}
-.rtl .fusion-title h1.title-heading-left,
-.rtl .fusion-title h2.title-heading-left,
-.rtl .fusion-title h3.title-heading-left,
-.rtl .fusion-title h4.title-heading-left,
-.rtl .fusion-title h5.title-heading-left,
-.rtl .fusion-title h6.title-heading-left {
-  padding-left: 8px;
-  padding-right: 0;
-}
-.rtl .fusion-title h1.title-heading-right,
-.rtl .fusion-title h2.title-heading-right,
-.rtl .fusion-title h3.title-heading-right,
-.rtl .fusion-title h4.title-heading-right,
-.rtl .fusion-title h5.title-heading-right,
-.rtl .fusion-title h6.title-heading-right {
-  padding-left: 0;
-  padding-right: 8px;
-}
-.rtl .fusion-title h1.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h2.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h3.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h4.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h5.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h6.title-heading-right .fontawesome-icon,
-.rtl .fusion-title h1.title-heading-right img,
-.rtl .fusion-title h2.title-heading-right img,
-.rtl .fusion-title h3.title-heading-right img,
-.rtl .fusion-title h4.title-heading-right img,
-.rtl .fusion-title h5.title-heading-right img,
-.rtl .fusion-title h6.title-heading-right img {
-  margin-left: 0;
-  margin-right: 10px;
-}
-.rtl .fusion-title h1 img,
-.rtl .fusion-title h2 img,
-.rtl .fusion-title h3 img,
-.rtl .fusion-title h4 img,
-.rtl .fusion-title h5 img,
-.rtl .fusion-title h6 img {
-  margin-left: 10px;
-  margin-right: 0;
 }
 .rtl .fusion-accordian .panel-title .fusion-toggle-icon-wrapper {
   float: right;
@@ -873,13 +859,11 @@ Table of Contents
 .rtl .woocommerce-message,
 .rtl .woocommerce-info {
   padding-left: 0;
-  padding-right: 16px;
   text-align: right;
 }
 .rtl .woocommerce-message:before,
 .rtl .woocommerce-info:before {
   margin-left: 0;
-  margin-right: -16px;
 }
 .rtl .woocommerce-message .wc-forward,
 .rtl .woocommerce-info .wc-forward {
@@ -892,16 +876,6 @@ Table of Contents
 .rtl.single-product .woocommerce-message,
 .rtl.single-product .woocommerce-info {
   text-align: right;
-}
-.rtl.single-product .woocommerce-message:before,
-.rtl.single-product .woocommerce-info:before {
-  color: transparent;
-}
-.rtl.single-product .woocommerce-message:after,
-.rtl.single-product .woocommerce-info:after {
-  content: '\f05d';
-  font-family: 'IcoMoon';
-  margin-left: 5px;
 }
 .rtl.single-product .woocommerce-message .wc-forward,
 .rtl.single-product .woocommerce-info .wc-forward {
@@ -1025,11 +999,8 @@ Table of Contents
 .rtl .avada-thank-you .order_details li {
   padding: 0 25px 0 0;
 }
-.rtl #main .avada-myaccount-data .addresses .title h3,
-.rtl #main .avada-customer-details .addresses .title h3 {
-  float: right;
-}
 .rtl .avada-myaccount-data .addresses .title .edit {
+  margin-left: 0;
   margin-right: 10px;
 }
 .rtl .woocommerce #customer_login .login .form-row {
@@ -1187,9 +1158,9 @@ Table of Contents
 .rtl.woocommerce .social-share li:first-child {
   border-right: 0 none;
 }
-.rtl.woocommerce .fusion-woo-social-share-text {
-  margin-left: 0;
-  margin-right: 45px;
+.rtl.woocommerce .social-share li .fusion-woo-social-share-text {
+  padding-left: 0;
+  padding-right: 10px;
 }
 .rtl .products li {
   float: right;
@@ -1260,7 +1231,6 @@ Table of Contents
 .rtl .catalog-ordering > ul,
 .rtl .orderby-order-container > ul,
 .rtl .orderby-order-container {
-  float: right;
   margin-right: 0;
 }
 .rtl .catalog-ordering > ul,
@@ -1289,10 +1259,6 @@ Table of Contents
   left: 0;
   border-left: 0;
   border-right: 1px solid #dbdbdb;
-}
-.rtl .order-dropdown ul li a {
-  padding-right: 0;
-  padding-left: 15px;
 }
 .rtl .product .onsale {
   left: auto;
@@ -1396,8 +1362,9 @@ Table of Contents
   margin-left: 5px;
 }
 .rtl .isotope .isotope-item {
-  transition-property: right, top, -webkit-transform, opacity;
+  transition-property: right, top, opacity, -webkit-transform;
   transition-property: right, top, transform, opacity;
+  transition-property: right, top, transform, opacity, -webkit-transform;
 }
 .rtl #slidingbar-area .columns .fusion-column {
   float: right;

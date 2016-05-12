@@ -13,6 +13,97 @@ You're done!
 
 = Changelog =
 
+v. 2.0
+	- Added Views to the new shared Toolset admin menu and Export / Import page.
+	
+	- Added the functionality to sort a View listing terms by termmeta.
+	
+	- Added a "format" attribute to the [wpv-post-excerpt] shortcode to control whether its output should be wrapped in paragraph tags.
+	
+	- Added an information tab to the [wpv-post-body] shortcode GUI.
+	
+	- Added a missing info="login" attribute value to the [wpv-current-user] shortcode.
+	
+	- Added a global setting to disable history management related to parametric search, and a specific setting to control this on each View.
+	
+	- Added a tolerance setting for the infinite scrolling AJAX pagination effect.
+	
+	- Added two new URL attributes, wpv_sort_orderby and wpv_sort_order, to control a View ordering.
+	
+	- Removed the Help page.
+	
+	- Improved the View output by removing some hidden inputs and reviewing ID attributes.
+	
+	- Improved the query filters that depend on the current page, current post and objects set by a parent View.
+	
+	- Improved the management of cached data, resulting in better performance.
+	
+	- Improved the parametric search by checking that all taxonomies involved do exist.
+	
+	- Improved the parametric search by avoiding counters to display double values when the form and the results are rendered using different shortcodes.
+	
+	- Improved the compatibility with WPML by disabling the Content Template selection when creating or editing a translation.
+	
+	- Fixed the combination of query filters using the post__in query argument.
+	
+	- Fixed an issue on the frontend Views API: it was not being loaded.
+	
+	- Fixed an issue on frontend pagination controls stopping events delegation.
+	
+	- Fixed an issue regarding AJAX pagination and parametric search, resulting in wrong pagination outcome.
+	
+	- Fixed an issue regarding WPML and query filters by specific post IDs, when setting values that belong to translated posts.
+
+v. 1.12.1
+	- Fixed an issue regarding parametric search, related to taxonomies no longer existing.
+	
+	- Fixed an issue regarding parametric search, related to results counters returning a wrong number.
+	
+	- Fixed a problem in AJAX pagination returning no results in the second and other pages.
+	
+	- Fixed a PHP notice on an undefined variable.
+	
+	- Fixed a PHP error on a file not loaded when needed.
+		
+	- Fixed a problem with the Divi page builder related to the Tolset shortcodes generator.
+	
+	- Fixed a compatibility issue between WPML and the parametric search, that returned results only in the default language.
+
+v. 1.12, AKA Peter Pan
+	- Added termmeta query filters to Views used to list terms.
+	
+	- Added support for Types termmeta integration to Fields and Views dialogs and Loop Wizards.
+	
+	- Added a Fields and Views button to a new shortcode generator in the admin bar.
+	
+	- Added an option to display the last modified date on the [wpv-post-date] shortcode by using a new "type" attribute.
+	
+	- Improved post relationship filter for a parametric search, so that only ancestors with actual descendants are shown as options, and counters are accurate.
+	
+	- Improved the output of Views by removing hidden inputs that are no longer needed.
+	
+	- Improved compatibility of Fields and Views dialogs with Layouts and Visual Composer.
+	
+	- Fixed a compatibility issue between Views parametric searches and server object caching.
+	
+	- Fixed an issue regarding the frontend cache of Views, related to Content Templates with custom CSS used inside a View.
+	
+	- Fixed an issue regarding AJAX pagination history events, and slider Views with numeric signatures.
+	
+	- Fixed an issue regarding AJAX pagination history events, and nested Views structures.
+	
+	- Fixed an issue regarding AJAX pagination on Views loaded through AJAX events, such as those in nested structures.
+	
+	- Fixed an issue regarding responsive Views output, and its debounce tolerance.
+	
+	- Fixed a problem in Views conditionals when one of the compared values is a number and the other is a string.
+	
+	- Fixed a compatibility issue with third party plugins that register 404 events.
+	
+	- Fixed a compatibility issue with Masonry-based themes, related to a forced Views output width set on a resize event.
+	
+	- Performed a security review on generic POSTed data for several AJAX calls.
+
 v. 1.11.1
 	- Improved the media management in preparation of the upcoming Toolset Maps plugin.
 	

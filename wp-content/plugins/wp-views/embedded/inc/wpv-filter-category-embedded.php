@@ -37,8 +37,40 @@ function wpv_filter_post_category( $query, $view_settings ) {
 			//$include_child = apply_filters( 'wpv_filter_tax_filter_include_children', $include_child, $category->name, $WP_Views->current_view );
 			
 			switch ( $view_settings['tax_' . $category->name . '_relationship'] ) {
-				case 'FROM PAGE':
-					$current_page = $WP_Views->get_current_page();
+				case 'top_current_post':
+					$current_page = apply_filters( 'wpv_filter_wpv_get_top_current_post', null );
+					if ( $current_page ) {
+						$terms = array();
+						$term_obj = get_the_terms( $current_page->ID, $category->name );
+						if ( 
+							$term_obj 
+							&& ! is_wp_error( $term_obj ) 
+						) {
+							$terms = array_values( wp_list_pluck( $term_obj, 'term_id' ) );
+						}
+						if ( count( $terms ) ) {
+							$include_child = apply_filters( 'wpv_filter_tax_filter_include_children', $include_child, $category->name, $WP_Views->current_view );
+							$query['tax_query'][] = array(
+								'taxonomy' => $category->name,
+								'field' => 'id',
+								'terms' => _wpv_get_adjusted_terms($terms, $category->name),
+								'operator' => "IN",
+								"include_children" => $include_child
+							);
+						} else { // if the current page has no term in the given taxonomy, return nothing
+							$query['tax_query'][] = array(
+								'taxonomy' => $category->name,
+								'field' => 'id',
+								'terms' => 0,
+								'operator' => "IN"
+							);
+						}
+					}
+					break;
+				case 'FROM PAGE': // @deprecated in 1.12.1
+				case 'current_post_or_parent_post_view':
+					// @todo this should be FROM PARENT POST VIEW, and create a new mode for get_top_current_page(); might need adjust in labels too
+					$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
 					if ( $current_page ) {
 						$terms = array();
 						$term_obj = get_the_terms( $current_page->ID, $category->name );
@@ -178,8 +210,9 @@ function wpv_filter_post_category( $query, $view_settings ) {
 						}
 					}
 					break;
-				case 'FROM PARENT VIEW':
-					$parent_term_id = $WP_Views->get_parent_view_taxonomy();
+				case 'FROM PARENT VIEW': // @deprecated on 1.12.1
+				case 'current_taxonomy_view':
+					$parent_term_id = apply_filters( 'wpv_filter_wpv_get_parent_view_taxonomy', null );
 					if ( $parent_term_id ) {
 						$include_child = true;
 						$include_child = apply_filters( 'wpv_filter_tax_filter_include_children', $include_child, $category->name, $WP_Views->current_view );
@@ -310,6 +343,8 @@ function _wpv_get_adjusted_terms( $term_ids, $category_name ) {
 *
 * @return $state (boolean)
 *
+* @todo this is wrong, it requires parent post as of now...
+*
 * @since unknown
 */
 
@@ -323,7 +358,34 @@ function wpv_filter_cat_requires_current_page( $state, $view_settings ) {
 	foreach ( $taxonomies as $category_slug => $category ) {
 		$relationship_name = ( $category->name == 'category' ) ? 'tax_category_relationship' : 'tax_' . $category->name . '_relationship';
 		if ( isset( $view_settings[$relationship_name] ) ) {
-			if ( $view_settings['tax_' . $category->name . '_relationship'] == "FROM PAGE" ) {
+			if ( $view_settings['tax_' . $category->name . '_relationship'] == "top_current_post" ) {
+				$state = true;
+				break;
+			}
+		}
+	}
+	return $state;
+}
+
+/**
+* wpv_filter_cat_requires_parent_post
+*
+* Check if the current filter by post parent needs info about the parent post
+*
+* @since unknown
+*/
+
+add_filter( 'wpv_filter_requires_parent_post', 'wpv_filter_cat_requires_parent_post', 10, 2 );
+
+function wpv_filter_cat_requires_parent_post( $state, $view_settings ) {
+	if ( $state ) {
+		return $state; // Already set
+	}
+	$taxonomies = get_taxonomies('', 'objects');
+	foreach ( $taxonomies as $category_slug => $category ) {
+		$relationship_name = ( $category->name == 'category' ) ? 'tax_category_relationship' : 'tax_' . $category->name . '_relationship';
+		if ( isset( $view_settings[$relationship_name] ) ) {
+			if ( in_array( $view_settings['tax_' . $category->name . '_relationship'], array( "FROM PAGE", 'current_post_or_parent_post_view' ) ) ) {
 				$state = true;
 				break;
 			}
@@ -355,7 +417,7 @@ function wpv_filter_cat_requires_parent_term( $state, $view_settings ) {
 	foreach ( $taxonomies as $category_slug => $category ) {
 		if ( 
 			isset( $view_settings['tax_' . $category->name . '_relationship'] ) 
-			&& $view_settings['tax_' . $category->name . '_relationship'] == 'FROM PARENT VIEW'
+			&& in_array( $view_settings['tax_' . $category->name . '_relationship'], array( 'FROM PARENT VIEW', 'current_taxonomy_view' ) )
 		) {
 			$state = true;
 			break;

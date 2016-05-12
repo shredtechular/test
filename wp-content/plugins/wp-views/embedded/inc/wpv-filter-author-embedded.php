@@ -2,18 +2,26 @@
 
 /**
  * Add a filter to add the query by author to the $query
+ *
+ * We need to set a higher priority than the limit filter has because we use $query['post__in'] = array('0') on failure
  */
 
-add_filter( 'wpv_filter_query', 'wpv_filter_post_author', 13, 2 ); // we need to set a higher priority than the limit filter has because we use $query['post__in'] = array('0') on failure
+add_filter( 'wpv_filter_query', 'wpv_filter_post_author', 13, 2 );
 
 function wpv_filter_post_author( $query, $view_settings ) {
 	
 	if ( isset( $view_settings['author_mode'][0] ) ) {
 		$show_author_array = array();
 		switch ( $view_settings['author_mode'][0] ) {
-			case 'current_page':
-				global $WP_Views;
-				$current_page = $WP_Views->get_current_page();
+			case 'top_current_post':
+				$current_page = apply_filters( 'wpv_filter_wpv_get_top_current_post', null );
+				if ( $current_page ) {
+					$show_author_array[] = $current_page->post_author;
+				}
+				break;
+			case 'current_page': // @deprecated in 1.12.1
+			case 'current_post_or_parent_post_view':
+				$current_page = apply_filters( 'wpv_filter_wpv_get_current_post', null );
 				if ( $current_page ) {
 					$show_author_array[] = $current_page->post_author;
 				}
@@ -21,7 +29,7 @@ function wpv_filter_post_author( $query, $view_settings ) {
 			case 'current_user':
 				global $current_user;
 				if ( is_user_logged_in() ) {
-					get_currentuserinfo();
+					$current_user = wp_get_current_user();
 					$show_author_array[] = $current_user->ID; // set the array to only the current user ID if is logged in
 				}
 				break;
@@ -34,9 +42,9 @@ function wpv_filter_post_author( $query, $view_settings ) {
 					$show_author_array[] = $view_settings['author_id']; // set the array to only the selected user ID
 				}
 				break;
-			case 'parent_view':
-				global $WP_Views;
-				$parent_user_id = $WP_Views->get_parent_view_user();
+			case 'parent_view': // @deprecated in 1.12.1
+			case 'parent_user_view':
+				$parent_user_id = apply_filters( 'wpv_filter_wpv_get_parent_view_user', null );
 				if ( $parent_user_id ) {
 					$show_author_array[] = $parent_user_id;
 				}
@@ -199,7 +207,7 @@ function wpv_filter_post_author( $query, $view_settings ) {
 /**
 * wpv_filter_author_requires_current_page
 *
-* Whether the current View requires the current page data for the filter by author
+* Whether the current View requires the top current post data for the filter by author
 *
 * @param $state (boolean) the state of this need until this filter is applied
 * @param $view_settings
@@ -213,9 +221,42 @@ add_filter( 'wpv_filter_requires_current_page', 'wpv_filter_author_requires_curr
 
 function wpv_filter_author_requires_current_page( $state, $view_settings ) {
 	if ( $state ) {
-		return $state; // Already set
+		return $state;
 	}
-	if ( isset( $view_settings['author_mode'] ) && isset( $view_settings['author_mode'][0] ) && $view_settings['author_mode'][0] == 'current_page' ) {
+	if ( 
+		isset( $view_settings['author_mode'] ) 
+		&& isset( $view_settings['author_mode'][0] ) 
+		&& $view_settings['author_mode'][0] == 'top_current_post' 
+	) {
+		$state = true;
+	}
+	return $state;
+}
+
+/**
+* wpv_filter_author_requires_parent_post
+*
+* Whether the current View requires the current post data for the filter by author
+*
+* @param $state (boolean) the state of this need until this filter is applied
+* @param $view_settings
+*
+* @return $state (boolean)
+*
+* @since 1.6.2
+*/
+
+add_filter( 'wpv_filter_requires_parent_post', 'wpv_filter_author_requires_parent_post', 20, 2 );
+
+function wpv_filter_author_requires_parent_post( $state, $view_settings ) {
+	if ( $state ) {
+		return $state;
+	}
+	if ( 
+		isset( $view_settings['author_mode'] ) 
+		&& isset( $view_settings['author_mode'][0] ) 
+		&& in_array( $view_settings['author_mode'][0], array( 'current_page', 'current_post_or_parent_post_view' ) ) 
+	) {
 		$state = true;
 	}
 	return $state;
@@ -240,7 +281,11 @@ function wpv_filter_author_requires_current_user( $state, $view_settings ) {
 	if ( $state ) {
 		return $state;
 	}
-	if ( isset( $view_settings['author_mode'] ) && isset( $view_settings['author_mode'][0] ) && $view_settings['author_mode'][0] == 'current_user' ) {
+	if ( 
+		isset( $view_settings['author_mode'] ) 
+		&& isset( $view_settings['author_mode'][0] ) 
+		&& $view_settings['author_mode'][0] == 'current_user' 
+	) {
 		$state = true;
 	}
 	return $state;
@@ -265,7 +310,11 @@ function wpv_filter_author_requires_framework_values( $state, $view_settings ) {
 	if ( $state ) {
 		return $state;
 	}
-	if ( isset( $view_settings['author_mode'] ) && isset( $view_settings['author_mode'][0] ) && $view_settings['author_mode'][0] == 'framework' ) {
+	if ( 
+		isset( $view_settings['author_mode'] ) 
+		&& isset( $view_settings['author_mode'][0] ) 
+		&& $view_settings['author_mode'][0] == 'framework' 
+	) {
 		$state = true;
 	}
 	return $state;
@@ -290,7 +339,11 @@ function wpv_filter_author_requires_parent_user( $state, $view_settings ) {
 	if ( $state ) {
 		return $state; // Already set
 	}
-	if ( isset( $view_settings['author_mode'] ) && isset( $view_settings['author_mode'][0] ) && $view_settings['author_mode'][0] == 'parent_view' ) {
+	if ( 
+		isset( $view_settings['author_mode'] ) 
+		&& isset( $view_settings['author_mode'][0] ) 
+		&& in_array( $view_settings['author_mode'][0], array( 'parent_view', 'parent_user_view' ) )
+	) {
 		$state = true;
 	}
 	return $state;

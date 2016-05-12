@@ -3,7 +3,13 @@
 if( !defined('ABSPATH') ) die('Security check');
 if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
 ?>
-
+<?php 
+$shared_import_menu= ModuleManager::modulemanager_can_implement_unified_menu();
+if ( true === $shared_import_menu) {
+	$url = admin_url( 'admin.php?page=toolset-export-import&tab=modules_import' );
+	$mm_url = admin_url( 'admin.php?page=ModuleManager_Modules' );
+}
+?>
 <div class="import-module">
 
 	<div class="import-module-header">
@@ -20,7 +26,7 @@ if(!current_user_can(MODMAN_CAPABILITY)) die('Access Denied');
 		if (!($toolset_all_full)) {
 		?>
 		<p>
-		<strong><?php _e('Tips','module-manager');?></strong>:&nbsp;&nbsp;<strong><?php _e('To prevent importing issues, please activated Types, Views and CRED plugins first. And please use their latest versions.','module-manager');?></strong>
+		<strong><?php _e('Tips','module-manager');?></strong>:&nbsp;&nbsp;<strong><?php _e('To prevent importing issues, please activate all required plugins needed to import the module correctly (at least Types and Views). But if your module also contains CRED forms and Layouts. Then you also need to have CRED and Layouts plugin activated.','module-manager');?></strong>
 		<?php }?>
 		</p>
 
@@ -389,6 +395,12 @@ if ((is_array($custom_import_messages)) && (!(empty($custom_import_messages)))) 
 						<h3><?php _e('Module import details:','module-manager'); ?></h3>
 						<ul>
 							<?php
+								if ( true === $shared_import_menu) {
+									if ( ! ( isset( $sections ) ) ) {
+										$sections=ModMan_Loader::get('MODEL/Modules')->getRegisteredSections();
+									}									
+								}
+								
 								foreach ($results as $section_id=>$data)
 								{
 

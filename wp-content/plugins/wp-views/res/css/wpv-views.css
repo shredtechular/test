@@ -101,7 +101,9 @@
 .wpv-custom-field-date {
 	display:none;
 }
-
+/*
+Please pretty please do not hardcode toolset-common paths...
+*/
 .wpv-help-link {
     display:inline-block;
     min-height:19px;

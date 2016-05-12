@@ -23,7 +23,7 @@ class WPV_Debug{
 		$this->show_type = 'compact';
 		
         // FIXME: Use $WPV_settings, if possible.
-        // WPV_Debug class is initialized before WPV_Settings, can we change that?
+        // WPV_Debug class is initialized before WPV_Settings_Screen, can we change that?
         $options = get_option('wpv_options');
 		if ( !isset($options['wpv_debug_mode']) ) {
 			$options['wpv_debug_mode'] = '';

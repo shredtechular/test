@@ -496,7 +496,7 @@ class WPV_Search_Filter {
 				isset( $filter_search[$set] ) 
 				&& (
 					! isset( $view_array[$set] ) 
-					|| $filter_search[$set] != $filter_search[$set] 
+					|| $view_array[$set] != $filter_search[$set] 
 				)
 			) {
 				if ( is_array( $filter_search[$set] ) ) {

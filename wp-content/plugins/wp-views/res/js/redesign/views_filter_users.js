@@ -38,7 +38,7 @@ WPViews.UsersFilterGUI = function( $ ) {
 		text_hint = $('.js-wpv-user-suggest-values').data('hinttext'),
 		text_search = $('.js-wpv-user-suggest-values').data('search'),
 		users = $('.js-wpv-user-suggest-values').data('users');
-		$(".js-users-suggest-id").tokenInput(ajaxurl + '?action=wpv_suggest_users&view_id='+self.view_id, {
+		$(".js-users-suggest-id").tokenInput( wpv_filter_users_texts.ajaxurl + '&action=wpv_suggest_users&view_id='+self.view_id, {
 			theme: "wpv",
 			preventDuplicates: true,
 			hintText: text_hint,
@@ -137,7 +137,7 @@ WPViews.UsersFilterGUI = function( $ ) {
 					filter_options: self.user_current_options,
 					wpnonce: nonce
 				};
-				$.post( ajaxurl, data, function( response ) {
+				$.post( wpv_filter_users_texts.ajaxurl, data, function( response ) {
 					if ( response.success ) {
 						$( self.user_close_save_selector )
 							.addClass('button-secondary')

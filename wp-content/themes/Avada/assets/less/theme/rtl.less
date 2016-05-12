@@ -219,9 +219,7 @@ Table of Contents
 		margin-right: 0px;
 		margin-left: 10px;
 	}
-	.content-boxes .heading .fontawesome-icon {
-		float: right;
-	}
+	
 	ul.list-icon li {
 		padding: 0 25px 0 0;
 		text-align: right;
@@ -275,7 +273,8 @@ Table of Contents
 		border-right: 4px solid;
 	}
 
-	.fusion-testimonials.classic blockquote {
+	.fusion-testimonials.classic blockquote,
+	.fusion-testimonials.clean blockquote {
 		border: none;
 	}
 
@@ -350,6 +349,32 @@ Table of Contents
 			}
 		}
 	}
+	
+	.fusion-rollover-content {
+		.fusion-product-buttons a {
+			padding-left: 0;
+			padding-right: 16px;
+			text-align: right;
+			
+			&:first-child {
+				float: right;
+				
+				&:before {
+					margin-left: 0;
+					margin-right: -16px;
+				}
+			}			
+			
+			&:last-child {
+				float: left;
+				
+				&:before {
+					margin-left: 0;
+					margin-right: -16px;
+				}				
+			}
+		}
+	}
 
 /* Header Styles
 ================================================================================================= */
@@ -403,23 +428,26 @@ Table of Contents
 /* Main Menu Styles
 ================================================================================================= */
 
-	.fusion-main-menu {
-		> ul > li {
-			float: right;
-		}
+	.fusion-header-v1,
+	.fusion-header-v2,
+	.fusion-header-v3 {	
+		.fusion-main-menu {
+			> ul > li {		
+				float: right;
 
-		.fusion-last-menu-item {
-			padding-left: 0;
+			}
+		}
+	}
+	.fusion-main-menu {
+		.fusion-menu {
+			.fusion-last-menu-item {
+				padding-left: 0;
+			}
 		}
 
 		.sub-menu {
 			right: 0;
 		}
-	}
-
-	.fusion-header-v5 .fusion-main-menu > ul > li {
-		float: none;
-		text-align: right;
 	}
 
 /* Secondary Menu Styles
@@ -518,6 +546,10 @@ Table of Contents
 						}
 					}
 				}
+			}
+			
+			&:last-child {
+				border-right: 1px solid;
 			}
 		}
 	}
@@ -801,7 +833,13 @@ Table of Contents
 	}
 
 	.fusion-button {
-		direction: ltr;
+		.button-icon-left {
+			float: left;
+		}
+		
+		.button-icon-right {
+			float: right;
+		}
 	}
 	.fusion-checklist {
 		.icon-wrapper {
@@ -814,10 +852,17 @@ Table of Contents
 		padding-right: 0px;
 	}
 
-	.fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon .fontawesome-icon,
-	.fusion-content-boxes.content-boxes-icon-on-side .heading-with-icon .fontawesome-icon {
-		margin-right: 0;
+	.fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left,
+	.fusion-content-boxes.content-boxes-icon-on-side .heading-with-icon.icon-left {	
+		direction: ltr;
 	}
+	
+	.fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left .content-box-heading,
+	.fusion-content-boxes.content-boxes-icon-with-title .heading-with-icon.icon-left .content-box-heading {
+		float: right;
+	}
+	
+	
 	.fusion-content-boxes.content-boxes-icon-on-side .content-container {
 		padding-left: 0;
 		padding-right: 45px;
@@ -966,44 +1011,19 @@ Table of Contents
 		padding-left: 30px;
 		padding-right: 0;
 	}
-	.fusion-testimonials .company-name strong {
-		float: right;
+	.fusion-testimonials .company-name {
+		display: inline-block;
+	
+		strong {
+			float: right;
+		}
 	}
 	.fusion-testimonials .author:after {
 		left: auto;
 		right: 35px;
 	}
-
-	.fusion-title {
-		h1,
-		h2,
-		h3,
-		h4,
-		h5,
-		h6 {
-
-			&.title-heading-left {
-				padding-left: 8px;
-				padding-right: 0;
-			}
-
-			&.title-heading-right {
-				padding-left: 0;
-				padding-right: 8px;
-
-				.fontawesome-icon,
-				img {
-					margin-left: 0;
-					margin-right: 10px;
-				}
-			}
-
-			img {
-				margin-left: 10px;
-				margin-right: 0;
-			}
-		}
-	}
+	
+	
 
 	.fusion-accordian {
 
@@ -1103,11 +1123,9 @@ Table of Contents
 
 	.woocommerce-message, .woocommerce-info {
 		padding-left: 0;
-		padding-right: 16px;
 		text-align: right;
 		&:before {
 			margin-left: 0;
-			margin-right: -16px;
 		}
 		.wc-forward {
 			float: left;
@@ -1120,14 +1138,7 @@ Table of Contents
 	&.single-product {
 		.woocommerce-message, .woocommerce-info {
 			text-align: right;
-			&:before {
-				color: transparent;
-			}
-			&:after {
-				content: '\f05d';
-				font-family: 'IcoMoon';
-				margin-left: 5px;
-			}
+
 			.wc-forward {
 				float: left;
 				&:before {
@@ -1255,11 +1266,8 @@ Table of Contents
 	.avada-thank-you .order_details li {
 		padding: 0 25px 0 0;
 	}
-	#main .avada-myaccount-data .addresses .title h3,
-	#main .avada-customer-details .addresses .title h3 {
-		float: right;
-	}
 	.avada-myaccount-data .addresses .title .edit {
+		margin-left: 0;
 		margin-right: 10px;
 	}
 	.woocommerce #customer_login .login .form-row {
@@ -1417,9 +1425,9 @@ Table of Contents
 	&.woocommerce .social-share li:first-child {
 		border-right: 0 none;
 	}
-	&.woocommerce .fusion-woo-social-share-text {
-		margin-left: 0;
-		margin-right: 45px;
+	&.woocommerce .social-share li .fusion-woo-social-share-text {
+		padding-left: 0;
+		padding-right: 10px;
 	}
 	.products li {
 		float: right;
@@ -1490,7 +1498,6 @@ Table of Contents
 	.catalog-ordering > ul,
 	.orderby-order-container > ul,
 	.orderby-order-container {
-		float: right;
 		margin-right: 0;
 	}
 	.catalog-ordering > ul,
@@ -1519,10 +1526,6 @@ Table of Contents
 		left: 0;
 		border-left: 0;
 		border-right: 1px solid #dbdbdb;
-	}
-	.order-dropdown ul li a {
-		padding-right: 0;
-		padding-left: 15px;
 	}
 	.product .onsale {
 		left: auto;

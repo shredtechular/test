@@ -6,6 +6,15 @@
  * it is.
  *
  * @since 1.8
+ *
+ * @property-read bool $has_loop_template
+ * @property int $loop_template_id
+ * @property mixed $loop_included_ct_ids
+ * @property string $loop_meta_html
+ * @property-read array $loop_settings
+ * @property-read array $view_settings
+ * @property-read string $query_mode
+ * @property-read string $query_type
  */
 abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
 
@@ -149,7 +158,8 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
      * @return null|WPV_View_Embedded|WPV_WordPress_Archive_Embedded|WPV_View|WPV_WordPress_Archive The appropriate wrapper or null on error.
      */
     public static function get_instance( $view ) {
-        if( is_integer( $view ) ) {
+        // http://stackoverflow.com/questions/2559923/shortest-way-to-check-if-a-variable-contains-positive-integer-using-php
+        if( (int)$view == $view && (int)$view > 0 ) {
             $post = WP_Post::get_instance( $view );
         } else {
             $post = $view;
@@ -200,6 +210,20 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
 
 
     /**
+     * Generate an unique title for a View/WPA based on a candidate value.
+     *
+     * @param string $title_candidate Non-blank (e.g. not only whitespace) title candidate.
+     * @param int $except_id View/WPA id that should be excluded from the uniqueness check.
+     * @return null|string An unique title or null if the input was invalid.
+     *
+     * @since 1.9
+     */
+    public static function get_unique_title( $title_candidate, $except_id = 0 ) {
+        return WPV_Post_Object_Wrapper::get_unique_title_base( WPV_View_Base::POST_TYPE, $title_candidate, $except_id );
+    }
+
+
+    /**
      * Create new post of the View type.
      *
      * Used for the create() methods for Views and WPAs.
@@ -214,7 +238,7 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
 
         // Ensure unique non-empty title
         if( empty( $title ) ) {
-            $title = __( 'Unnamed View', 'wp-views' );
+            $title = __( 'Unnamed View', 'wpv-views' );
         }
 
         WPV_View_Base::validate_title( $title );
@@ -393,6 +417,26 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
     }
 
 
+	/**
+	 * Determine if this is a View and not a WPA.
+	 * @return bool
+	 * @since 1.12
+	 */
+    public function is_a_view() {
+        return false;
+    }
+
+
+	/**
+	 * Determine if this is a WPA and not a View
+	 * @return bool
+	 * @since 1.12
+	 */
+    public function is_a_wordpress_archive() {
+        return false;
+    }
+
+
     /* ************************************************************************* *\
             Custom getters and setters and validators
     \* ************************************************************************* */
@@ -425,6 +469,8 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
      * Get cached(!) version of View settings array.
      *
      * Please use this only when you are sure you will not break anything by caching.
+     *
+     * @deprecated Deprecated in favor of _get_view_settings().
      *
      * @return array View settings.
      */
@@ -713,6 +759,20 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
     const VIEW_SETTINGS_QUERY_MODE = 'view-query-mode';
 
 
+	/**
+	 * Type of content that is being queried.
+	 *
+	 * Allowed values are:
+	 * - posts
+	 * - taxonomy
+	 * - users
+	 *
+	 * Values are stored as a first element of an array (for historical reasons, I assume).
+	 * For WPAs, only 'posts' is valid.
+	 */
+    const VIEW_SETTINGS_QUERY_TYPE = 'query_type';
+
+
 
     /**
      * Defines whether View settings are in the process of being modified.
@@ -914,6 +974,15 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
     }
 
 
+	/**
+	 * Type of content that is being queried.
+	 *
+	 * @return string Defaults to 'posts', see WPV_View_Base::VIEW_SETTINGS_QUERY_TYPE.
+	 * @since 1.12
+	 */
+	protected function _get_query_type() {
+		return 'posts';
+	}
 
 
     /* ************************************************************************* *\
@@ -1993,42 +2062,47 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
 	/**
 	 * Create a duplicate of this View.
 	 *
-	 * Clone the View and most of it's postmeta. If there is a Loop Template assigned,
-	 * duplicate that as well and update references (in the appropriate postmeta,
-	 * in shortcodes in loop output, etc.) in the duplicated View.
+	 * Clone the View and it's postmeta. If there is a Loop Template assigned, duplicate that as well and update
+	 * references (in the appropriate postmeta, in shortcodes in loop output, etc.) in the duplicated View.
 	 *
-	 * @todo more detailed description
-	 *
-	 * @param string $new_post_title Title of the new View. Must not be used in any
-	 *     existing View or WPA.
-	 *
+	 * @param string $new_post_title Title of the new View. Must not be used in any existing View or WPA.
+	 * @param bool $adjust_duplicate_title If true, the title might get changed in order to ensure it's uniqueness.
+     *     Otherwise, if $title is not unique, the duplication will fail.
 	 * @return bool|int ID of the new View or false on error.
 	 * @since 1.11
 	 */
-	public function duplicate( $new_post_title ) {
+	public function duplicate( $new_post_title, $adjust_duplicate_title = false ) {
 
 		// Sanitize and validate
-		$new_post_name = sanitize_text_field( sanitize_title( $new_post_title ) );
-		$new_post_title = sanitize_text_field( $new_post_title );
+		$new_post_slug = sanitize_text_field( sanitize_title( $new_post_title ) );
+		$sanitized_title = sanitize_text_field( $new_post_title );
 
-		if( empty( $new_post_title ) ) {
+		if( empty( $sanitized_title ) ) {
 			return false;
 		}
 
-		if( WPV_View_Base::is_name_used( $new_post_title ) ) {
-			return false;
+		// Ensure title uniqueness (or fail)
+        $is_title_unique = ! WPV_View_Base::is_name_used( $sanitized_title );
+
+		if( !$is_title_unique ) {
+			if( $adjust_duplicate_title ) {
+				$sanitized_title = WPV_View_Base::get_unique_title( $sanitized_title );
+			} else {
+				// Non-unique title & we're not allowed to re-use it -> fail
+				return null;
+			}
 		}
 
 		// Clone existing View post object
 		$new_post = (array) clone( $this->post() );
-		$new_post['post_title'] = $new_post_title;
+		$new_post['post_title'] = $sanitized_title;
 
 		$keys_to_unset = array( 'ID', 'post_name', 'post_date', 'post_date_gmt' );
 		foreach( $keys_to_unset as $key ) {
 			unset( $new_post[ $key ] );
 		}
 
-		$new_post['post_name'] = $new_post_name;
+		$new_post['post_name'] = $new_post_slug;
 
 		$new_post_id = wp_insert_post( $new_post );
 
@@ -2041,7 +2115,7 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
 
 		// If this View has a loop Template, we need to clone it and adjust the layout settings.
 		if ( $this->has_loop_template ) {
-			$new_postmeta_values = $this->duplicate_loop_template( $new_postmeta_values, $new_post_id, $new_post_title );
+			$new_postmeta_values = $this->duplicate_loop_template( $new_postmeta_values, $new_post_id, $sanitized_title );
 		}
 
 		// Update postmeta of the new View.
@@ -2056,8 +2130,6 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
     /**
      * Duplicate a loop template of a View and update references to it.
      *
-     * @todo detailed description
-     *
      * @param array $new_postmeta_values Array of postmeta of the View.
      * @param int $new_post_id ID of the View.
      * @param string $new_post_title Post title of the View.
@@ -2070,7 +2142,7 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
         $original_ct = new WPV_Content_Template( $this->loop_template_id );
 
         // Clone the Content Template acting as a Loop template
-        $cloned_ct = $original_ct->clone_this( sprintf( __( 'Loop item in %s', 'wpv-views' ), $new_post_title ), true );
+        $cloned_ct = $original_ct->duplicate( sprintf( __( 'Loop item in %s', 'wpv-views' ), $new_post_title ), true );
 
         if( null == $cloned_ct ) {
             throw new RuntimeException( 'unable to clone loop template' );
@@ -2085,7 +2157,6 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
         $cloned_ct->loop_output_id = $new_post_id;
 
         // Process inline Content templates if there are any.
-        // @todo can this be done cleaner?
         $inline_templates = wpv_getarr( $new_postmeta_values[ WPV_View_Base::POSTMETA_LOOP_SETTINGS ], WPV_View_Base::LOOP_SETTINGS_INCLUDED_CT_IDS, '' );
         if ( !empty( $inline_templates ) ) {
             $inline_templates = explode( ',', $inline_templates );
@@ -2109,19 +2180,11 @@ abstract class WPV_View_Base extends WPV_Post_Object_Wrapper {
         $loop_output = wpv_getarr( $new_postmeta_values[ WPV_View_Base::POSTMETA_LOOP_SETTINGS ], WPV_View_Base::LOOP_SETTINGS_META_HTML, '' );
         if ( !empty( $loop_output ) ) {
 
-            // Search and replace Loop template titles
-            // todo consider allways replacing by slug, title could contain quotes at this point
-            $new_loop_output = str_replace(
-                sprintf( 'view_template="%s"', $original_ct->title ),
-                sprintf( 'view_template="%s"', sanitize_text_field( $cloned_ct->title ) ),
-                $loop_output
-            );
+            // Search and replace Loop template references. Replace all occurences of title and slug by new slugs.
+			$new_slug_replacement = sprintf( 'view_template="%s"', sanitize_text_field( $cloned_ct->slug ) );
 
-            $new_loop_output = str_replace(
-                sprintf( 'view_template="%s"', $original_ct->slug ),
-                sprintf( 'view_template="%s"', sanitize_text_field( $cloned_ct->slug ) ),
-                $new_loop_output
-            );
+            $new_loop_output = str_replace( sprintf( 'view_template="%s"', $original_ct->title ), $new_slug_replacement, $loop_output );
+            $new_loop_output = str_replace( sprintf( 'view_template="%s"', $original_ct->slug ), $new_slug_replacement, $new_loop_output );
 
             // Save new value
             $new_postmeta_values[ WPV_View_Base::POSTMETA_LOOP_SETTINGS ][ WPV_View_Base::LOOP_SETTINGS_META_HTML ] = $new_loop_output;

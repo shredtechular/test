@@ -148,7 +148,7 @@ class FusionSC_Blog {
 		}
 		
 		// Combine meta info into one variable
-		$defaults['meta_info_combined'] = $defaults['meta_all'] * ( $defaults['meta_date'] + $defaults['meta_author'] + $defaults['meta_categories'] + $defaults['meta_tags'] + $defaults['meta_comments'] + $defaults['meta_link'] );
+		$defaults['meta_info_combined'] = $defaults['meta_all'] * ( $defaults['meta_author'] + $defaults['meta_date'] + $defaults['meta_categories'] + $defaults['meta_tags'] + $defaults['meta_comments'] + $defaults['meta_link'] );
 		// Create boolean that holds info whether content should be excerpted
 		$defaults['is_zero_excerpt'] = ( $defaults['excerpt'] == 'yes' && $defaults['excerpt_words'] < 1 ) ? 1 : 0;
 

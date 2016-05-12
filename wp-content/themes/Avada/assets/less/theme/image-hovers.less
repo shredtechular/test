@@ -3,13 +3,13 @@
     overflow: hidden;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
 
-    img, .tribe-events-event-image {
+    img, .tribe-events-event-image, .fusion-column-inner-bg-image {
       opacity: 1;
       -webkit-transition: opacity 1s, -webkit-transform 1s;
       transition: opacity 1s, transform 1s;
     }
 
-    &:hover img, &:hover .tribe-events-event-image {
+    &:hover img, &:hover .tribe-events-event-image, &:hover .fusion-column-inner-bg-image {
       opacity: 0.9;
       -webkit-transform: scale3d(1.1, 1.1, 1);
       transform: scale3d(1.1, 1.1, 1);
@@ -20,7 +20,7 @@
     overflow: hidden;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
 
-    img, .tribe-events-event-image {
+    img, .tribe-events-event-image, .fusion-column-inner-bg-image {
       opacity: 1;
       -webkit-transform: scale(1.12);
       transform: scale(1.12);
@@ -28,7 +28,7 @@
       transition: opacity 1s, transform 1s;
     }
 
-    &:hover img, &:hover .tribe-events-event-image {
+    &:hover img, &:hover .tribe-events-event-image, &:hover .fusion-column-inner-bg-image {
       opacity: 0.9;
       -webkit-transform: scale(1);
       transform: scale(1);
@@ -77,9 +77,10 @@
     display: inline-block;
     overflow: visible;
 
-    img, 
+    img,
     .tribe-events-event-image,
-    .tribe-events-list-event-title > a {
+    .tribe-events-list-event-title > a,
+    .fusion-column-inner-bg-image {
       -webkit-transform: perspective(1000px) scale(1);
       transform: perspective(1000px) scale(1);
       -webkit-transition: -webkit-transform 0.35s;
@@ -88,11 +89,24 @@
     }
 
     &:hover {
-      img, 
+      img,
       .tribe-events-event-image,
-      .tribe-events-list-event-title > a {
+      .tribe-events-list-event-title > a,
+      .fusion-column-inner-bg-image {
         -webkit-transform: perspective(1000px) scale(1.03);
         transform: perspective(1000px) scale(1.03);
+      }
+    }
+
+    &.fusion-column-inner-bg {
+      position: absolute;
+
+      .fusion-column-inner-bg-image {
+        position: absolute;
+      }
+
+      &:hover .fusion-column-inner-bg-image {
+        position: absolute;
       }
     }
 
@@ -106,7 +120,7 @@
       content: '';
       -webkit-transition: opacity 0.35s;
       transition: opacity 0.35s;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
       opacity: 0;
     }
 

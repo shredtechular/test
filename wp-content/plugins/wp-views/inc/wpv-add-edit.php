@@ -22,9 +22,6 @@ require_once WPV_PATH . '/inc/redesign/wpv-section-layout-extra.php';
 require_once WPV_PATH . '/inc/redesign/wpv-section-layout-extra-js.php';
 // Extra section files
 require_once WPV_PATH . '/inc/redesign/wpv-section-content.php';
-// editor addon
-require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/editor-addon.class.php';
-
 
 /**
  * View edit screen
@@ -44,7 +41,7 @@ function views_redesign_html() {
 		} elseif ( 'view'!= $view->post_type ) {
 			wpv_die_toolset_alert_error( __( 'You attempted to edit a View that doesn&#8217;t exist. Perhaps it was deleted?', 'wpv-views' ) );
 		} else {
-			$view_settings = get_post_meta( $_GET['view_id'], '_wpv_settings', true );
+			$view_settings = get_post_meta( $view_id, '_wpv_settings', true );
 			
 			/**
 			* wpv_view_settings
@@ -63,7 +60,7 @@ function views_redesign_html() {
 			
 			$view_settings = apply_filters( 'wpv_view_settings', $view_settings, $view_id );
 			
-			$view_layout_settings = get_post_meta( $_GET['view_id'], '_wpv_layout_settings', true );
+			$view_layout_settings = get_post_meta( $view_id, '_wpv_layout_settings', true );
 			
 			/**
 			* wpv_view_layout_settings
@@ -259,7 +256,7 @@ function views_redesign_html() {
 						'pagination' => __('Display the results with pagination', 'wpv-views'),
 						'slider' => __('Display the results as a slider', 'wpv-views'),
 						'parametric' => __('Display the results as a parametric search', 'wpv-views'),
-						'full' => __('Full custom display mode', 'wwpv-views')
+						'full' => __('Full custom display mode', 'wpv-views')
 					);
 					foreach ( $purpose_options as $opt => $opt_name ) { ?>
 						<option id="wpv-settings-query-type-posts" <?php selected( $view_settings['view_purpose'], $opt ); ?> value="<?php echo esc_attr( $opt ); ?>"><?php echo $opt_name; ?></option>
@@ -290,6 +287,15 @@ function views_redesign_html() {
 	<input type="hidden" class="js-wpv-display-in-iframe" value="<?php echo esc_attr( $in_iframe ); ?>" />
 		<div id="js-wpv-general-actions-bar" class="wpv-settings-save-all wpv-general-actions-bar wpv-setting-container js-wpv-no-lock js-wpv-general-actions-bar">
 			<p class="update-button-wrap js-wpv-update-button-wrap">
+				<?php
+				if ( ! defined( 'WPDDL_VERSION' ) ) {
+				?>
+				<button class="button-secondary button button-large js-wpv-view-create-page" data-error="<?php _e( 'An error occurred, try again.', 'wpv-views' ); ?>">
+					<?php _e( 'Create a page with this View', 'wpv-views' ); ?>
+				</button>
+				<?php
+				}
+				?>
 				<button class="button-secondary button button-large js-wpv-view-save-all"
 						disabled="disabled"
 						data-success="<?php echo esc_attr( __('View saved', 'wpv-views') ); ?>"
@@ -305,7 +311,7 @@ function views_redesign_html() {
 				<div class="wpv-setting">
 					<div id="titlediv">
 						<div id="titlewrap" class="wpv-titlewrap js-wpv-titlewrap">
-							<label class="screen-reader-text js-title-reader" id="title-prompt-text" for="title"><?php _e('Enter title here','wp-views'); ?></label>
+							<label class="screen-reader-text js-title-reader" id="title-prompt-text" for="title"><?php _e('Enter title here','wpv-views'); ?></label>
                             <input id="title" class="wpv-title js-title" type="text" name="post_title" size="30" value="<?php echo esc_attr( $view->post_title ); ?>" id="title" autocomplete="off">
 							<span class="update-button-wrap js-wpv-update-button-wrap">
 								<button
@@ -487,3 +493,34 @@ function views_redesign_html() {
 		_WP_Editors::wp_link_dialog();
 	?>
 <?php }
+
+
+add_filter( 'icl_post_link', 'wpv_provide_edit_view_link', 10, 4 );
+
+/**
+ * Provide link for editing Views via icl_post_link.
+ *
+ * @param array|null|mixed $link
+ * @param string $post_type
+ * @param int $post_id
+ * @param string $link_purpose
+ * @return array|null|mixed Link data or $link.
+ * @since 1.12
+ */
+function wpv_provide_edit_view_link( $link, $post_type, $post_id, $link_purpose ) {
+	if( WPV_View_Base::POST_TYPE == $post_type && 'edit' == $link_purpose ) {
+		$view = WPV_View_Base::get_instance( $post_id );
+		if( null != $view && $view->is_a_view() ) {
+			$link = array(
+				'is_disabled' => false,
+				'url' => esc_url_raw(
+					add_query_arg(
+						array( 'page' => 'views-editor', 'view_id' => $post_id ),
+						admin_url( 'admin.php' )
+					)
+				)
+			);
+		}
+	}
+	return $link;
+}

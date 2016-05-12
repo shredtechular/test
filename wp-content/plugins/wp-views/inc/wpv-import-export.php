@@ -1,57 +1,52 @@
 <?php
 
+// @todo DEPRECATED
 function wpv_admin_menu_import_export() {
 
     ?>
-    <div class="wrap">
+	<div class="toolset-setting-container">
 
-        <h1><?php _e('Views Import / Export', 'wpv-views') ?></h1>
+		<div class="toolset-settings-header">
+			<h2><?php _e( 'Export Views, WordPress Archives and Content Templates', 'wpv-views' ); ?></h2>
+		</div>
 
-		<div class="wpv-setting-container">
+		<div class="toolset-setting">
+			<form name="View_export" action="<?php echo admin_url('edit.php'); ?>" method="post">					
+				<div class="toolset-advanced-setting">
+				<h3><?php _e( 'Affiliate details for theme designers', 'wpv-views' ); ?></h3>
+				<ul>
+					<li>
+						<label for="aid"><?php _e( 'Affiliate ID:', 'wpv-views' ); ?></label><br>
+						<input type="text" name="aid" id="aid" />
+					</li>
+					<li>
+						<label for="akey"><?php _e( 'Affiliate Key:', 'wpv-views' ); ?></label><br>
+						<input type="text" name="akey" id="akey" />
+					</li>
+				</ul>
+				<p>
+					<?php _e( 'You only need to enter affiliate settings if you are a theme designer and want to receive affiliate commission.', 'wpv-views' ); ?>
+					<?php echo sprintf(
+						__( 'Log into <a href="%s">your account</a> and go to <a href="%s">affiliate settings</a> for details.', 'wpv-views' ),
+						'http://wp-types.com?utm_source=viewsplugin&utm_campaign=views&utm_medium=import-export-login-to-wp-types-com&utm_term=your account',
+						'https://wp-types.com/account/affiliate/?utm_source=viewsplugin&utm_campaign=views&utm_medium=import-export-get-affiliate-link&utm_term=affiliate settings'
+					);
+					?>
+				</p>
+				</div>
+				<p class="toolset-update-button-wrap">
+					<input id="wpv-export" type="hidden" value="wpv-export" name="export" />
+					<button id="wpv-export-button" class="button-primary"><?php _e( 'Export', 'wpv-views' ); ?></button>
+				</p>
 
-			<div class="wpv-settings-header">
-				<h2><?php _e( 'Export Views, WordPress Archives and Content Templates', 'wpv-views' ); ?></h2>
-			</div>
+				<?php wp_nonce_field( 'wpv-export-nonce', 'wpv-export-nonce' ); ?>
 
-			<div class="wpv-setting">
-		        <form name="View_export" action="<?php echo admin_url('edit.php'); ?>" method="post">					
-					<div class="wpv-advanced-setting">
-					<h3><?php _e( 'Affiliate details for theme designers', 'wpv-views' ); ?></h3>
-		            <ul>
-						<li>
-							<label for="aid"><?php _e( 'Affiliate ID:', 'wpv-views' ); ?></label><br>
-							<input type="text" name="aid" id="aid" />
-						</li>
-						<li>
-							<label for="akey"><?php _e( 'Affiliate Key:', 'wpv-views' ); ?></label><br>
-							<input type="text" name="akey" id="akey" />
-						</li>
-		            </ul>
-		            <p>
-			            <?php _e( 'You only need to enter affiliate settings if you are a theme designer and want to receive affiliate commission.', 'wpv-views' ); ?>
-			            <?php echo sprintf(
-							__( 'Log into <a href="%s">your account</a> and go to <a href="%s">affiliate settings</a> for details.', 'wpv-views' ),
-			                'http://wp-types.com?utm_source=viewsplugin&utm_campaign=views&utm_medium=import-export-login-to-wp-types-com&utm_term=your account',
-			                'https://wp-types.com/account/affiliate/?utm_source=viewsplugin&utm_campaign=views&utm_medium=import-export-get-affiliate-link&utm_term=affiliate settings'
-						);
-			            ?>
-		            </p>
-					</div>
-		            <p class="update-button-wrap">
-		            	<input id="wpv-export" type="hidden" value="wpv-export" name="export" />
-						<button id="wpv-export-button" class="button-primary"><?php _e( 'Export', 'wpv-views' ); ?></button>
-		            </p>
+			</form>
+		</div>
 
-		            <?php wp_nonce_field( 'wpv-export-nonce', 'wpv-export-nonce' ); ?>
+	</div> <!-- .toolset-setting-container -->
 
-		        </form>
-			</div>
-
-		</div> <!-- .wpv-setting-container -->
-
-        <?php wpv_admin_import_form(); ?>
-
-    </div> <!-- .wrap -->
+	<?php wpv_admin_import_form(); ?>
 
     <?php
 }
@@ -59,7 +54,7 @@ function wpv_admin_menu_import_export() {
 add_action( 'wp_loaded', 'wpv_admin_export_on_form_submit' );
 
 /**
-* wpv_admin_menu_import_export_hook
+* wpv_admin_export_on_form_submit
 *
 * Performs the actual export and inport based on $_POST data. Executed on wp_loaded
 *
@@ -88,13 +83,8 @@ function wpv_admin_export_on_form_submit() {
 function wpv_admin_export_data( $download = true ) {
     global $WP_Views, $_wp_additional_image_sizes;
 
-    require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/array2xml.php';
     $xml = new ICL_Array2XML();
     $data = array();
-
-    // SRDJAN - add siteurl, upload url, record taxonomies old IDs
-    // https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142382866/comments
-    // https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/142389966/comments
     $data['site_url'] = get_site_url();
     if ( is_multisite() ) {
         $data['fileupload_url'] = get_option('fileupload_url');
@@ -241,8 +231,6 @@ function wpv_admin_export_data( $download = true ) {
                         unset( $data['views']['view-' . $post['ID']]['meta'] );
                     }
                 }
-                // Juan - add images for exporting
-				// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
 				$att_args = array( 
 					'post_type' => 'attachment', 
 					'numberposts' => -1, 
@@ -397,8 +385,6 @@ function wpv_admin_export_data( $download = true ) {
 				$post_data['template_extra_css'] = $template_extra_css;
 				$post_data['template_extra_js'] = $template_extra_js;
 				$post_data['template_description'] = $template_description;
-                // Juan - add images for exporting
-				// https://icanlocalize.basecamphq.com/projects/7393061-wp-views/todo_items/150919286/comments
                 $att_args = array( 
 					'post_type' => 'attachment',
 					'numberposts' => -1,
@@ -491,10 +477,11 @@ function wpv_admin_export_data( $download = true ) {
 
     // Get settings
     global $WPV_settings;
-    if ( ! $WPV_settings->is_empty() ) {
+	$settings_array = $WPV_settings->get();
+    if ( ! empty( $settings_array ) ) {
 		global $wpdb;
 		$wpv_settings_to_export = array();
-        foreach ( $WPV_settings as $option_name => $option_value ) {
+        foreach ( $settings_array as $option_name => $option_value ) {
             if ( 
 				strpos( $option_name, 'view_' ) === 0 
 				|| strpos( $option_name, 'views_template_' ) === 0 

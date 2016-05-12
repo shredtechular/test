@@ -29,6 +29,13 @@
  * Provides basic functionality to wrap a WP_Post object and access it's properties and metadata easily.
  *
  * @since 1.8
+ *
+ * @property-read string $content
+ * @property-read string $id
+ * @property-read bool $is_published
+ * @property-read string $post_status
+ * @property-read string $slug
+ * @property-read string $title
  */
 abstract class WPV_Post_Object_Wrapper {
 
@@ -123,6 +130,54 @@ abstract class WPV_Post_Object_Wrapper {
         }
 
         return $collision_exists;
+    }
+
+
+    /**
+     * Generate an unique title for an object based on a candidate value.
+     *
+     * Note that this might be quite a database-intensive operation under certain circumstances.
+     *
+     * @param string $post_type Post type slug.
+     * @param string $title_candidate Non-blank (e.g. not only whitespace) title candidate.
+     * @param int $except_id CT id that should be excluded from the uniqueness check.
+     * @return null|string An unique title or null if the input was invalid.
+     *
+     * @since 1.12
+     */
+    public static function get_unique_title_base( $post_type, $title_candidate, $except_id = 0 ) {
+
+        $title_candidate = trim( $title_candidate );
+        if( empty( $title_candidate ) ) {
+            return null;
+        }
+
+        // If the title is already unique, we're done.
+        if( ! WPV_Post_Object_Wrapper::is_name_used_base( $title_candidate, $post_type, $except_id ) ) {
+            return $title_candidate;
+        }
+
+        // If current title has a number at it's end, we'll use it and start incrementing it. If not,
+        // we will just add a number as a suffix.
+        $title_parts = explode( ' ', trim( $title_candidate ) );
+        // there will allways be at least one part
+        $last_title_part = $title_parts[ count( $title_parts ) - 1 ];
+
+        if( is_numeric( $last_title_part ) ) {
+            $numeric_suffix =  $last_title_part + 1;
+            $title_base = implode( ' ', array_slice( $title_parts, 0, -1 ) );
+        } else {
+            $numeric_suffix = 2;
+            $title_base = $title_candidate;
+        }
+
+        // Keep incrementing the suffix until an unique title is found.
+        do {
+            $title_candidate = "$title_base $numeric_suffix";
+            ++$numeric_suffix;
+        } while( WPV_Post_Object_Wrapper::is_name_used_base( $title_candidate, $post_type, $except_id ) );
+
+        return $title_candidate;
     }
 
 
@@ -396,7 +451,7 @@ abstract class WPV_Post_Object_Wrapper {
      * Failure to follow this rule might cause "partial success" of this method, which
      * is exactly what it tries to avoid.
      *
-     * @param $data Array with update data, property values indexed by their names.
+     * @param array $data Array with update data, property values indexed by their names.
      *     array( 'property_one' => $any_value, 'property_two' => ... )
      * @param bool $break_on_error Define whether to stop validation on first error or continue
      *     validating other properties even after it's clear that the transaction will fail.

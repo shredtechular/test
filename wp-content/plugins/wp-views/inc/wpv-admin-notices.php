@@ -49,6 +49,7 @@ class WPToolset_Admin_Notices {
 		// Global notice when WooCommerce is active but WooCommerce Views is not
 		add_filter( 'wptoolset_filter_admin_notices', array( $this, 'wpv_woocommerce_recommend_woocommerceviews' ) );
 		// Global notice about release notes
+		// @since 2.0 Disabled by design
 		//add_filter( 'wptoolset_filter_admin_notices', array( $this, 'release_notes' ) );
 	}
 	
@@ -125,6 +126,7 @@ class WPToolset_Admin_Notices {
 	* Display an admin notice on each release, linking to the wp-types.com Version page
 	*
 	* @since 1.10
+	* @since 2.0	Disabled by design
 	*/
 	
 	function release_notes( $notices ) {
@@ -140,21 +142,21 @@ class WPToolset_Admin_Notices {
 			) {
 				$dismissed_notices = array();
 			}
-			if ( isset( $dismissed_notices['wpv_release_notes_oneeleven'] ) ) {
+			if ( isset( $dismissed_notices['wpv_release_notes_onetwelve'] ) ) {
 				return $notices;
 			} else {
 				$notice_text = '<p>'
 					. '<i class="icon-views-logo fa fa-wpv-custom ont-color-orange ont-icon-24" style="margin-right:5px;vertical-align:-2px;"></i>'
 					. __( 'This version of Views includes major updates and improvements.', 'wpv-views' )
 					. ' <a href="'
-					. 'https://wp-types.com/version/views-1-11/?utm_source=viewsplugin&utm_campaign=views&utm_medium=release-notes-admin-notice&utm_term=Views 1.11 release notes'
+					. 'https://wp-types.com/version/views-1-12/?utm_source=viewsplugin&utm_campaign=views&utm_medium=release-notes-admin-notice&utm_term=Views 1.12 release notes'
 					. '" class="button button-primary button-primary-toolset" target="_blank">'
-					. __( 'Views 1.11 release notes', 'wpv-views' )
+					. __( 'Views 1.12 release notes', 'wpv-views' )
 					. '</a>';
 				
 				global $wp_version;
 				if ( version_compare( $wp_version, '4.2.2', '<' ) ) {
-				$notice_text .= '  <a class="button button-secondary js-wpv-dismiss" href="' . esc_url( add_query_arg( array( 'wpv_dismiss_global_notice' => 'wpv_release_notes_oneeleven' ) ) ) . '">'
+				$notice_text .= '  <a class="button button-secondary js-wpv-dismiss" href="' . esc_url( add_query_arg( array( 'wpv_dismiss_global_notice' => 'wpv_release_notes_onetwelve' ) ) ) . '">'
 					. __( 'Dismiss', 'wpv-views' )
 					. '</a>';
 				}
@@ -165,7 +167,7 @@ class WPToolset_Admin_Notices {
 					'notice_text' => $notice_text,
 					'notice_type' => 'global'
 				);
-				$notices['wpv_release_notes_oneeleven'] = $args;
+				$notices['wpv_release_notes_onetwelve'] = $args;
 			}
 		}
 		return $notices;

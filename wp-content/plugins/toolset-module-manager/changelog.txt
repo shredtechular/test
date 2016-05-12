@@ -1,5 +1,5 @@
 Wordpress Plugin: 
-Module Manager, by OnTheGoSystems
+Toolset Module Manager, by OnTheGoSystems
 
 Changelog:
 
@@ -77,3 +77,15 @@ Changelog:
 * Added support for Layouts plugin in modules.
 * Added more user friendly warnings.
 * Fixed issues on expanding module info right after it's was added.
+
+1.6.4
+
+* Fixed a couple of typo errors in text.
+* Fixed: Updated links to the new Toolset components page.
+* Fixed: Issue when adding a module with the same name as existing module.
+* Fixed: PHP notices found during export.
+
+1.6.5
+
+* New: Support for new Toolset shared menu.
+* Usability: Added release notes link.

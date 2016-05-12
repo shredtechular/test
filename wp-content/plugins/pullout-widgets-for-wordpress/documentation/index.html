@@ -1,0 +1,1907 @@
+<!doctype html>  
+<!--[if IE 6 ]><html lang="en-us" class="ie6"> <![endif]-->
+<!--[if IE 7 ]><html lang="en-us" class="ie7"> <![endif]-->
+<!--[if IE 8 ]><html lang="en-us" class="ie8"> <![endif]-->
+<!--[if (gt IE 7)|!(IE)]><!-->
+<html lang="en-us"><!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	
+	<title>PullOut Widgets v.2.9 - Plugin for WordPress</title>
+	
+	<meta name="description" content="">
+	<meta name="author" content="Max Chirkov">
+	<meta name="copyright" content="Max Chirkov">
+	<meta name="generator" content="Documenter v2.0 http://rxa.li/documenter">
+	<meta name="date" content="2013-08-25T00:00:00+02:00">
+	
+	<link rel="stylesheet" href="assets/css/documenter_style.css" media="all">
+	<link rel="stylesheet" href="assets/js/google-code-prettify/prettify.css" media="screen">
+	<script src="assets/js/google-code-prettify/prettify.js"></script>
+
+	
+	
+	<script src="assets/js/jquery.js"></script>
+	
+	<script src="assets/js/jquery.scrollTo.js"></script>
+	<script src="assets/js/jquery.easing.js"></script>
+	
+	<script>document.createElement('section');var duration='500',easing='swing';</script>
+	<script src="assets/js/script.js"></script>
+	
+	<style>
+		html{background-color:#EEEEEE;color:#383838;}
+		::-moz-selection{background:#333636;color:#00DFFC;}
+		::selection{background:#333636;color:#00DFFC;}
+		#documenter_sidebar #documenter_logo{background-image:url(assets/images/image_1.png);}
+		a{color:#008C9E;}
+		.btn {
+			border-radius:3px;
+		}
+		.btn-primary {
+			  background-image: -moz-linear-gradient(top, #, #);
+			  background-image: -ms-linear-gradient(top, #, #);
+			  background-image: -webkit-gradient(linear, 0 0, 0 %, from(#343838), to(#));
+			  background-image: -webkit-linear-gradient(top, #, #);
+			  background-image: -o-linear-gradient(top, #, #);
+			  background-image: linear-gradient(top, #, #);
+			  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#', endColorstr='#', GradientType=0);
+			  border-color: # # #bfbfbf;
+			  color:#;
+		}
+		.btn-primary:hover,
+		.btn-primary:active,
+		.btn-primary.active,
+		.btn-primary.disabled,
+		.btn-primary[disabled] {
+		  border-color: # # #bfbfbf;
+		  background-color: #;
+		}
+		hr{border-top:1px solid #D4D4D4;border-bottom:1px solid #FFFFFF;}
+		#documenter_sidebar, #documenter_sidebar ul a{background-color:#343838;color:#FFFFFF;}
+		#documenter_sidebar ul a{-webkit-text-shadow:1px 1px 0px #494F4F;-moz-text-shadow:1px 1px 0px #494F4F;text-shadow:1px 1px 0px #494F4F;}
+		#documenter_sidebar ul{border-top:1px solid #212424;}
+		#documenter_sidebar ul a{border-top:1px solid #494F4F;border-bottom:1px solid #212424;color:#FFFFFF;}
+		#documenter_sidebar ul a:hover{background:#333636;color:#00DFFC;border-top:1px solid #333636;}
+		#documenter_sidebar ul a.current{background:#333636;color:#00DFFC;border-top:1px solid #333636;}
+		#documenter_copyright{display:block !important;visibility:visible !important;}
+	</style>
+	
+</head>
+<body class="documenter-project-pullout-widgets-v29">
+	<div id="documenter_sidebar">
+		<a href="#documenter_cover" id="documenter_logo"></a>
+		<ul id="documenter_nav">
+			<li><a class="current" href="#documenter_cover">Start</a></li>
+				
+			<li><a href="#quick_start_video_guide" title="Quick Start Video Guide">Quick Start Video Guide</a></li>
+			<li><a href="#installation" title="Installation">Installation</a></li>
+			<li><a href="#creating_pullouts" title="Creating PullOuts">Creating PullOuts</a></li>
+			<li><a href="#pullout_widget_options" title="Pullout Widget Options">Pullout Widget Options</a>
+				<ul>
+					<li><a href="#pullout_widget_options_positioning">Positioning</a>
+					<li><a href="#pullout_widget_options_behavior">Behavior</a>
+					<li><a href="#pullout_widget_options_style">Style</a>
+					<li><a href="#pullout_widget_options_pullout_tab">PullOut Tab</a>
+				</ul>
+			</li>
+			<li><a href="#mobile_devices" title="Mobile Devices">Mobile Devices</a></li>
+			<li><a href="#most_frequent_issues" title="Most Frequent Issues">Most Frequent Issues</a></li>
+			<li><a href="#other_notes" title="Other Notes">Other Notes</a></li>
+			<li><a href="#changelog" title="Changelog">Changelog</a></li>
+			<li><a href="#source_credits" title="Source & Credits">Source & Credits</a></li>
+			<li><a href="#license" title="License">License</a></li>
+
+		</ul>
+		<div id="documenter_copyright">Copyright Max Chirkov 2013<br>
+		made with the <a href="http://rxa.li/documenter">Documenter v2.0</a> 
+		</div>
+	</div>
+	<div id="documenter_content">
+	<section id="documenter_cover">
+	<h1>PullOut Widgets v.2.9</h1>
+	<h2>Plugin for WordPress</h2>
+	<div id="documenter_buttons">
+		
+	</div>
+	<hr>
+	<ul>
+	<li>created: 03/09/2012</li>
+	<li>latest update: 08/25/2013</li>
+	<li>by: Max Chirkov</li>
+	<li><a href=""></a></li>
+	<li>email: <a href="mailto:&#109;&#97;&#120;&#46;&#99;&#104;&#105;&#114;&#107;&#111;&#118;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;">&#109;&#97;&#120;&#46;&#99;&#104;&#105;&#114;&#107;&#111;&#118;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</a></li>
+	</ul>
+	<p>Turn regular widgets into slick sliding-out pullouts in seconds!</p>
+	</section>
+	
+	<section id="quick_start_video_guide">
+	<div class="page-header"><h3>Quick Start Video Guide</h3><hr class="notop"></div>
+<p>
+	<iframe allowfullscreen="" frameborder="0" height="480" src="http://www.youtube.com/embed/qD-gnPEDl0c" width="640"></iframe></p>
+</section>
+<section id="installation">
+	<div class="page-header"><h3>Installation</h3><hr class="notop"></div>
+<ol>
+	<li>		After you downloaded the plugin to your hard drive, login into your WordPress Dashobard and navigate to <strong>Plugins =&gt; Add New</strong>.</li>
+	<li>		Click <strong>Upload </strong>at the very top. Choose the Zip package file and click <strong>Install Now</strong>.</li>
+	<li>		After you receive confirmation <strong>&quot;Plugin installed successfully&quot;</strong>, click <strong>Activate Pluign</strong> right below it.&nbsp;You can also Activate/Deactivate this plugin by navigating to <strong>Plugins =&gt; Installed Plugins</strong>.</li>
+</ol>
+</section>
+<section id="creating_pullouts">
+	<div class="page-header"><h3>Creating PullOuts</h3><hr class="notop"></div>
+<p>	Creating PullOuts is as easy as adding widgets to your sidebar. Pullout options will be added at the bottom of each active widget.</p>
+<p>	So, go to the <strong>Appearance =&gt; Widgets</strong> section. After draggin a desired widget into PullOut Widgets Container sidebar expand it. At the bottom of the widget check &quot;Turn Pullout On&quot; box. Then click on Pullout Options button and options dialog will pop-up.&nbsp; Set the preferences you require and then click Save. That&#39;s it. If you refresh your page with the widget, it should be displayed as a pullout.</p>
+</section>
+<section id="pullout_widget_options">
+	<div class="page-header"><h3>Pullout Widget Options</h3><hr class="notop"></div>
+<h4 id="pullout_widget_options_positioning">Positioning</h4>
+<h5 style="margin-left: 40px; ">
+	Screen Side</h5>
+<p style="margin-left: 40px; ">
+	The side of the screen where the widget will be positioned (top, right, bottom, left).</p>
+<h5 style="margin-left: 40px; ">
+	Position on the Side</h5>
+<p style="margin-left: 40px; ">
+	Position/offset of the pullout widget along the side of the screen. Can be set in pixels or percentages. Calculations are done from left to right on top and bottom sides ( where very left is 0% and very right is 100%) and top to bottom on left and right sides (where top is 0% and bottom is 100%).</p>
+<p style="margin-left: 40px; ">
+	Scroll with Page</p>
+<p style="margin-left: 40px; ">
+	By default this option is turned off and therefore the positioning of the widget on the side is relative to the dimensions of the windows. When this option is turned on, the porisioning of the widget on the side is retalive to the dimensions of the content rather than the window. Therefore widget is percieved as scrolling together with the content.</p>
+<h4 id="pullout_widget_options_behavior">Behavior</h4>
+<h5 style="margin-left: 40px; ">
+	Show/Slide Out</h5>
+<p style="margin-left: 40px; ">
+	<strong>On Click</strong> - a widget is revealed when mouse clicks on its tab.</p>
+<p style="margin-left: 40px; ">
+	<strong>On Mouse Over</strong> - a widget is revealed when mouse hovers over its tab.</p>
+<p style="margin-left: 40px; ">
+	<strong>Once - when Element Appears on Screen [<a href="http://youtu.be/vhzsrQyowsk?hd=1" target="_blank">VIDEO DEMO #1</a>]</strong> - this option is useful for auto-revealing widgets when specified elements are below the fold. For example, by specifying an element with ID #footer, our subscription widget will reveal iself automatically when user scrolls down to the end of the page. This action will happen only &quot;once&quot; every time the page is loaded. So, if user reaches footer multiple times on the same page - the widget will only reveal itself once automatically. But it will function this way every time the page is re-loaded.</p>
+<p style="margin-left: 40px; ">
+	<strong>Always - when Element Appears on Screen [<a href="http://youtu.be/RE2f1yJRgjs?hd=1" target="_blank">VIDEO DEMO #2</a>]</strong>&nbsp;- the same as option &quot;once&quot; (above), with the exception that widget will automatically reveal itself every time a specified element appears on the screen.</p>
+<p style="margin-left: 40px; ">
+	<strong>Once - After X Seconds*&nbsp;</strong><strong>[<a href="http://youtu.be/RE2f1yJRgjs?hd=1" target="_blank">VIDEO DEMO #2</a>]&nbsp;</strong>- a widget will automatically reveal itself after specified number of seconds from the moment the first page with the current widget is loaded. If timer is set for a longer time frame, the trigger should work throughout multiple pages as well. For example: if you set a widget to automatically reveal itself after 0.5 seconds, it will show up almost immediately after the page is loaded. The option &quot;once&quot; assures that it happens only once on the site. If you set the timer to 180 seconds, then the widget will reveal itself after 3 minutes. The countdown of the time continues even if user moves to the next page of your site. As long as the current widget exists on other pages, it will get triggered automatically after the specified time frame.</p>
+<p style="margin-left: 40px; ">
+	<strong>Always - After X Seconds&nbsp;</strong><strong>[<a href="http://youtu.be/RE2f1yJRgjs?hd=1" target="_blank">VIDEO DEMO #2</a>]</strong><strong>&nbsp;</strong> - same behavior as &quot;Once - After X Seconds&quot; with the exception that the timer will start countdown every time a user visits your website.</p>
+<p style="margin-left: 40px; ">
+	<em>*Once - After X Seconds behaviour is using 30-day cookie to determine if a widget needs to be triggered or not. After the cookie expires, the behavior will be triggered again for returning users.</em></p>
+<p style="margin-left: 40px; ">
+	<strong>Once - After Visiting X Pages** [<a href="http://youtu.be/m_U2iZhkrdk?hd=1" target="_blank">VIDEO DEMO #3</a>]</strong> - a widget will automatically reveal itself after user visits the specified number of pages on the site. The count begins from the page where the widget is loaded for the first time. The widget will get triggered only on the pages where it rendered.</p>
+<p style="margin-left: 40px; ">
+	<strong>Always - After Visiting X Pages&nbsp;</strong><strong>[<a href="http://youtu.be/m_U2iZhkrdk?hd=1" target="_blank">VIDEO DEMO #3</a>]</strong>&nbsp;- same behavior as &quot;Once - After Visiting X Pages&quot; with the exception that the counter will be reset after X pages and widgets will appear every time the user views X number of pages. For example, if the option is set to 3 - the widget will automatically reveal itself on every 3-rd page. So, if a user views 7 pages - widgets will show up twice during the user&#39;s stay on your site.</p>
+<p style="margin-left: 40px; ">
+	**Once - After Visiting X Pages behavior is using 1-hour cookie, which means that widgets with this option will get triggered only one time within an hour of browsing of the site by the same user.</p>
+<p style="margin-left: 40px; ">
+	<strong>Easing Effeects</strong> - these are animated sliding effects that you can apply to your pullout widgets. For more examples on the effects check ot this <a href="http://jqueryui.com/demos/effect/easing.html" target="_blank">demostration</a>.</p>
+<p style="margin-left: 40px; ">
+	<strong>Sliding Speed</strong> - sliding animation speed of the widget in miliseconds. The desired speed can very greatly depending on the selected Easing Effect. For example - &quot;linear&quot; easing effect works well with a speed of 500 miliseconds, while &quot;easeOutBounce&quot; will seem too fast and unattractive with the same speed, and rather works much better with 1500 miliseconds.</p>
+<p>	&nbsp;</p>
+<h4 id="pullout_widget_options_style">Style</h4>
+<h5 style="margin-left: 40px; ">
+	Widget Width</h5>
+<p style="margin-left: 40px; ">
+	A width of the widget. By default widgets will try to auto-adjust their width and appear nicely as is. But sometimes they may span across the whole screen or be not whide enough for your content. You can always re-djust the width manually via this option.</p>
+<h5 style="margin-left: 40px; ">
+	Background, Border, Text and Link Colors</h5>
+<p style="margin-left: 40px; ">
+	By default style of your widget content is inhereted from your theme. If you place your pullout widgets into a different from the PullOut Widgets Container sidebar, then the widgets will inherit the styles of that particular sidebar. Current color options allow you to adjust the color to your desires.</p>
+<h5 style="margin-left: 40px; ">
+	Trim Styles</h5>
+<p style="margin-left: 40px; ">
+	Trim styles offer you options to add a border to your widgets as well as rounded corners***.&nbsp;</p>
+<p style="margin-left: 40px; ">
+	***Rounded Corners is a CSS3 options and only supported by modern browsers. IE6, IE7 and IE8 do not support this option.</p>
+<p>	&nbsp;</p>
+<h4 id="pullout_widget_options_pullout_tab">PullOut Tab</h4>
+<p>	<a href="http://youtu.be/HQP5Kx6nT48?hd=1" target="_blank">Video Demo #4 for PullOut Tab Options</a></p>
+<h5 style="margin-left: 40px; ">
+	Tab Offset</h5>
+<p style="margin-left: 40px; ">
+	Positioning of the tab along the side of the pullout widget.</p>
+<h5 style="margin-left: 40px; ">
+	Vertical Tab</h5>
+<p style="margin-left: 40px; ">
+	By default all tab labels are rendered from left to right. Vertical orientation allows you to rotate the label vertically and is useful for longer labels. This is a CSS3 options and is not supported by IE6, IE7, IE8 and IE9.</p>
+<h5 style="margin-left: 40px; ">
+	Tab Icons</h5>
+<p style="margin-left: 40px; ">
+	An image icon can be displayed in the tab of a pullout widget.</p>
+<h5 style="margin-left: 40px; ">
+	Open/Close Labels</h5>
+<p style="margin-left: 40px; ">
+	You can enter custom label names for the opened and closed state of the pullout widget. For example, you can set the labels to Open Me and Close Me. When the widget is in a closed state, the label will display &quot;Open Me&quot;. When the widget is opened state - the label will display &quot;Close Me&quot;.</p>
+<p style="margin-left: 40px; ">
+	By default the tab label will use the Title of the widget. If the title of the widget is not set, then the widget will fall back on default &quot;Open/Close&quot; labels. You can always overwrite those labels in the current option.</p>
+<p style="margin-left: 40px; ">
+	If you wish to have a custom label different form the Title of the widget, it is sufficient to define only &quot;Open&quot; Label. In this case the Open Label and Close Label will be the same.</p>
+<h5 style="margin-left: 40px; ">
+	Hide Text Label</h5>
+<p style="margin-left: 40px; ">
+	Tab will display selected icon only - no text label will be displayed.</p>
+</section>
+<section id="mobile_devices">
+	<div class="page-header"><h3>Mobile Devices</h3><hr class="notop"></div>
+<div class="alert">
+	<strong>Important:&nbsp;</strong>PullOut Widgets by default are turned OFF for mobile phones, but will work on tablets.</div>
+<p>
+	While PullOut Widgets plugin was not intended to be used on mobile devices, in my experience it works. Not always perfect, but it functions. On smaller devices, like phones, user experience is rather questionable - quite often, pullout widgets cover whole screen and it is hard to close them in smaller screen resolutions.</p>
+<p>
+	Since version 2.6 PullOut Widgets can be selectively turned off for phones, tablets or all mobile devices. By default, they are turned off for phones only.</p>
+<p>
+	<strong>Turn On/Off for selected device types</strong></p>
+<p>
+	If you want to change the default option, add one of the definitions below to your wp-config.php file. I usually add it below <code>define(&#39;WPLANG&#39;, &#39;&#39;);</code> definition.</p>
+<pre class="prettyprint lang-php linenums">
+define(&#39;POW_OFF&#39;, &#39;phone&#39;); //OFF on phones</pre>
+<p>
+	Allow to display PullOut Widgets on all devices:</p>
+<pre class="prettyprint lang-php linenums">
+define(&#39;POW_OFF&#39;, false); //ON for ALL devices</pre>
+<p>
+	OFF on Tablets:</p>
+<pre class="prettyprint lang-php linenums">
+define(&#39;POW_OFF&#39;, &#39;tablet&#39;); //OFF on tablets</pre>
+<div>
+	&nbsp;</div>
+</section>
+<section id="most_frequent_issues">
+	<div class="page-header"><h3>Most Frequent Issues</h3><hr class="notop"></div>
+<p>
+	<strong>Issue 1: &nbsp;When I click on Pullout Options link/button in the Widgets Dashboard - nothing happens.</strong></p>
+<p>
+	<a name="solution-1"></a><strong>Solution:</strong> 99% of the time this issues arises when a theme or a third party plugins loads jQuery UI library on the Widgets Dashboard page (widgets.php). Widgets Dashboard loads jQuery UI automatically and a duplicate library will case the Pullout Options to fail. To fix the issue, you need to identify which plugin or theme is loading the library:</p>
+<p style="margin-left: 40px; ">
+	Step 1: Click right mouse button anywhere on the widgets dashboard page and select View Source.</p>
+<p style="margin-left: 40px; ">
+	Step 2: In the source perform 2 searches: first for jquery-ui and second for jquery.ui. You might find 2 records of either of them or one of each. When reading the records, make sure they are references to the JavaScript and not CSS (JS tags will begin with &lt;script and CSS - with &lt;link rel=&quot;stylesheet&quot;). Native WordPress library record should look like this:</p>
+<pre class="prettyprint lang-js linenums" style="margin-left: 40px; ">
+&lt;script type=&#39;text/javascript&#39; src=&#39;http://mysite.com/wp-admin/load-scripts.php?c=1&amp;amp;load=thickbox,admin-bar,jquery-ui-core,jquery-ui-datepicker,hoverIntent,common,jquery-color,jquery-ui-widget,jquery-ui-accordion,jquery-ui-mouse,jquery-ui-resizable,jquery-ui-draggable,jquery-ui-button,jquery-ui-position,jquery-ui-dialog,jquery-ui-sortable,jquery-ui-droppable,admin-widgets&amp;amp;ver=fa7adaf29bfed546f3751df8d94c1ab1&#39;&gt;&lt;/script&gt;</pre>
+<p style="margin-left: 40px; ">
+	WordPress load jquery-ui-core by default.&nbsp;Quite often a duplicate library is loaded by a custom theme from Google CDN and may look like this:</p>
+<pre class="prettyprint lang-js linenums" style="margin-left: 40px; ">
+&lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js&quot;&gt;</pre>
+<p style="margin-left: 40px; ">
+	Step 3: &nbsp;If you&#39;re fluent in PHP and WP coding - find the place where your theme or a plugin (if the library is loaded by a plugin, there might be another JS file loaded next to the library, which name you can identify by its URL) - and adjust it to load scripts <a href="http://codex.wordpress.org/Function_Reference/wp_enqueue_script" target="_blank">wp_enqueue_script() function</a>. Make sure the handle of jQuery UI library is &#39;jquery-ui-core&#39; - this way WP will be able to determin if the library has already loaded or not and therefore avoid loading duplicates.</p>
+<p style="margin-left: 40px; ">
+	If Step 3 makes no sense to you, forward these instructions to your theme developer and ask him/her to fix your theme.</p>
+<p>
+	&nbsp;</p>
+<p>
+	<strong>Issue 2: JavaScript Error in the Widgets Dashboard: </strong></p>
+<pre class="prettyprint lang-js linenums">
+Uncaught TypeError: Object [object Object] has no method &lsquo;propAttr&rsquo;.</pre>
+<p>
+	<strong>Solution:</strong> <a href="#solution-1">See solution for Issue 1</a>.</p>
+<p>
+	&nbsp;</p>
+<p>
+	<strong>Issue 3 : When I expend widgets in the Widget Dashboard, Pullout Options are being displayed inside the widget and not in a pop-up dialog.</strong></p>
+<p>
+	<strong>Solution:</strong> This happens when admin_widgets.js is not being loaded on the Widgets Dashboard page (widgets.php) - most often the folder&#39;s name contains spaces.&nbsp;</p>
+<p style="margin-left: 40px; ">
+	Step 1: Click right mouse button anywhere on the Widgets Dashboard page and select to view source.</p>
+<p style="margin-left: 40px; ">
+	Step 2: In the source perform a search for admin_widgets.js. You should be able to find something like this:</p>
+<pre class="prettyprint lang-js linenums" style="margin-left: 40px; ">
+&lt;script type=&#39;text/javascript&#39; src=&#39;http://mysite.com/wp-content/plugins/pullout-widgets/js/admin_widgets.js?ver=1.0&#39;&gt;&lt;/script&gt;</pre>
+<p style="margin-left: 40px; ">
+	Step 3: Make sure that the URL displayed within the &quot;src&quot; attribute is correct. Make sure that the PullOut Widgets plugins&#39; folder doesn&#39;t contain any weird characters - only letters, digits, periods, hyphens and underscores supported. Navigato to the folder via your FTP browser and re-name the folder if necessary.</p>
+<p>
+	&nbsp;</p>
+<p>
+	<strong>Issue 4: Extra horizontal (or vertical) scrolling bar appears when PullOut Widgets plugin is active.</strong></p>
+<p>
+	<strong>Solution:</strong> You will need to edit a /css/pullouts.css file that is located in the plugins&#39; folder. Comment out the first &quot;body&quot; rule that appears at the top of the stylesheet. Simply wrap it with /* and */ like this:</p>
+<pre class="prettyprint lang-css linenums">
+/*
+body {
+    overflow-x: hidden;
+    position: relative;
+}
+*/</pre>
+<p>
+	&nbsp;</p>
+<p>
+	<strong>Issue 5: PullOut Widgets appear in a sidebar instead of on the sides of the screen.</strong></p>
+<p>
+	Solution: Make sure you place the PullOut Widgets inside of the PullOut Widgets Container on the Widgets Dashboard page. If this doesn&#39;t help - <a href="#solution-6">see solution for Issue 6</a>.</p>
+<p>
+	&nbsp;</p>
+<p>
+	<strong><a name="solution-6"></a>Issue 6: I placed the widgets into the Widgets Pullout Container, but they don&#39;t appear on any of my pages.</strong></p>
+<p>
+	<strong>Solution:</strong> Look around the page and see if any of the pullout widgets are rendered anywayere on the page. Check the bottom of the page as well, since this is where the PullOut Widgets Container is supposed to be loaded. If nothing found, click right mouse button on the page and select view source - search for any part of the content within the pullout widgets. If no sign of pullout widgets within the source code, that means that your theme doesn&#39;t use the <a href="http://codex.wordpress.org/Function_Reference/wp_footer" target="_blank">wp_footer() function</a> in its templates. What you need to do, is to edit your page.php template and add the following at the very bottom:</p>
+<pre class="prettyprint lang-php linenums" style="margin-left: 40px; ">
+&lt;?php wp_footer(); ?&gt;</pre>
+<p>
+	You might need to repeat the same for other templates as well: home.php, front-page.php, single.php and archive.php. If you have difficulties, please contact your theme developer and point him/her to this solution.</p>
+<p>
+	&nbsp;</p>
+<p>
+	<strong>Issue 7: Pullout Widgets load but don&#39;t function on the page.</strong></p>
+<p>
+	<strong>Solution:</strong> Most of the time the PullOut Widgets fail to function when a custom theme is loading an old jQuery library. WordPress comes with jQuery by default, but some theme authors ignore (or unaware of) this fact and load the library from Google CDN. Perform the following steps:</p>
+<p style="margin-left: 40px; ">
+	Step 1: Click right mouse button anywhere on the page and select View Source.</p>
+<p style="margin-left: 40px; ">
+	Step 2: Within source perform a search for jqueryi and jquery-ui. You might find the following:</p>
+<p style="margin-left: 40px; ">
+	1. You might find that there are multiple jQuery libraries are loaded.</p>
+<p style="margin-left: 40px; ">
+	2. WP comes with jQuery version 1.7.1, some themes may load older version of this library:</p>
+<pre class="prettyprint lang-js linenums" style="margin-left: 40px; ">
+&lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js&quot;&gt;</pre>
+<p style="margin-left: 40px; ">
+	If any of the above is true, then proceed with Step 3.</p>
+<p style="margin-left: 40px; ">
+	Step 3: if you&#39;re familiar with PHP coding, find the place in your theme where the jQuery library is loaded and simply comment that part out. Then add the following line below the one you commented out:</p>
+<pre class="prettyprint lang-php linenums" style="margin-left: 40px; ">
+wp_enqueue_script(&#39;jquery&#39;);</pre>
+<p style="margin-left: 40px; ">
+	Also, look around the same code and comment out the following function (if you find it) like this:</p>
+<pre class="prettyprint lang-php linenums" style="margin-left: 40px; ">
+//wp_deregister_script(&#39;jquery&#39;);</pre>
+<p>
+	If none of the above issues/solutions match your case, feel free to email me directly at &#109;&#97;&#120;&#46;&#99;&#104;&#105;&#114;&#107;&#111;&#118;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</p>
+</section>
+<section id="other_notes">
+	<div class="page-header"><h3>Other Notes</h3><hr class="notop"></div>
+<p>
+	PullOut Widgets plugin comes with 2 sets of icons:</p>
+<ul>
+	<li>
+		default &nbsp;- /images/icons.png (dark purple color);</li>
+	<li>
+		optional - /imags/icons-gray.png (gray color);</li>
+</ul>
+<p>
+	You can easily change icon color to gray by editing /css/pullouts.css and changing background file name in the following rule: &quot;.pullout-button .icon&quot;.</p>
+</section>
+<section id="changelog">
+	<div class="page-header"><h3>Changelog</h3><hr class="notop"></div>
+<p>
+	<strong>2.9</strong></p>
+<ul>
+	<li>
+		Re-adjusted calculations of tabs positioning to make them pixel-perfect in different browsers.</li>
+	<li>
+		Updated js code for compatibility with latest jQuery 2.03 and jQuery UI 1.10.3.</li>
+</ul>
+<p>
+	<strong>2.8</strong></p>
+<ul>
+	<li>
+		Improved detection if widgets have IDs, which supposed to be created via register_sidebar() function. If ID doesn&#39;t exist, PullOut Widgets adds an inner DIV wrapper for widgets with correct IDs.</li>
+	<li>
+		Fixed: phone detection wasn&#39;t working correctly for deactivating the plugin on phones.</li>
+	<li>
+		Improved: On/Off switch for mobile devices is now can be set in wp-config.php file by adding define(&#39;POW_OFF&#39;, false); or other preferred value (phone/tablet).</li>
+</ul>
+<p>
+	<strong>2.7</strong></p>
+<ul>
+	<li>
+		<div>
+			Removed console.log() form the JS code, which is not supported by IE7.</div>
+	</li>
+	<li>
+		<div>
+			Improved: page loading speed of the administrative Widgets dashboard.</div>
+	</li>
+	<li>
+		<div>
+			Improved: CSS for IE7 has its own hack without affecting other browsers.</div>
+	</li>
+	<li>
+		<div>
+			Improved: removed dependency on jQuery.browser since it&#39;s no longer exist in jQuery 1.9+. Thanks Michele Beltrame for the heads up.</div>
+	</li>
+</ul>
+<p>
+	<strong>2.6</strong></p>
+<ul>
+	<li>
+		<div>
+			Fixed: compatibility issue with WP3.5.</div>
+	</li>
+	<li>
+		<div>
+			Fixed: cookie wasn&#39;t read correctly.</div>
+	</li>
+	<li>
+		<div>
+			New: POW_OFF setting in pullouts.php - allows to turn off the plugin for mobile devices (phones, tablets or all mobile devices). By default turns off plugin for phones only.</div>
+	</li>
+</ul>
+<p>
+	<strong>2.5</strong></p>
+<ul>
+	<li>
+		<div>
+			Fixed: tab icons didn&#39;t display in IE and Opera.</div>
+	</li>
+	<li>
+		<div>
+			Fixed: widgets stopped working in IE7/8. Some dimension getters were returning NuN, which weren&#39;t correctly validated.</div>
+	</li>
+</ul>
+<p>
+	<strong>2.4</strong></p>
+<ul>
+	<li>
+		Fixed: pullout widget wouldn&#39;t open second time when triggered in IE8/7 due to an older version of JS interpreter, which doesn&#39;t support indexOf() function.</li>
+</ul>
+<p>
+	<strong>2.3</strong></p>
+<ul>
+	<li>
+		Fixed: prevented animation queue build-up when triggering tabs during closing of the widgets.</li>
+</ul>
+<p>
+	<strong>2.2</strong></p>
+<ul>
+	<li>
+		Fixed: pullout ID wasn&#39;t saved in pullout JS vars when used with ATW plugin.</li>
+	<li>
+		Fixed: pullout JS vars were output multiple times on the page.</li>
+</ul>
+<p>
+	<strong>2.1</strong></p>
+<ul>
+	<li>
+		<div>
+			Improvement: in some themes JS parameters of pullouts were not included into the footer. Moving wp_localize_script() function form footer solves this issue. This also eliminates dependency on wp_footer() completely.</div>
+	</li>
+	<li>
+		<div>
+			Imporovement: IE9 support for vertical tabs.</div>
+	</li>
+	<li>
+		<div>
+			Fixed: Widgets with vertical tabs were invisible in Opera browsers.</div>
+	</li>
+	<li>
+		<div>
+			Fixed: Minor PHP notices.</div>
+	</li>
+</ul>
+<p>
+	<strong>2.0</strong></p>
+<ul>
+	<li>
+		New: Auto-pullout timer.</li>
+	<li>
+		New: Auto-pullout after visiting number of pages.</li>
+	<li>
+		New: Auto-pullout triggered by appearance of specified element on the page.</li>
+	<li>
+		New: 32 sliding/easing effects.</li>
+	<li>
+		New: Custom styles:
+		<ul>
+			<li>
+				background color;</li>
+			<li>
+				border color;</li>
+			<li>
+				text color;</li>
+			<li>
+				link color;</li>
+			<li>
+				tab offset along the side of the widget;</li>
+		</ul>
+	</li>
+	<li>
+		New: Customizable sliding/pullout speed.</li>
+	<li>
+		New: Customizable open/close tab labels.</li>
+	<li>
+		Updated widget settings dialog with all options organized into an accordion.</li>
+	<li>
+		Nomerous improvements to avoid JS errors when widgets are loaded into the memory but not displayed on the page.</li>
+</ul>
+<p>
+	<strong>1.3</strong></p>
+<ul>
+	<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 2px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 8px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; outline-width: 0px; outline-style: initial; outline-color: initial; font-style: inherit; font-family: inherit; vertical-align: baseline; ">
+		Fixed: icon preview wasn&rsquo;t functioning when icon was selected for the first time within the options.</li>
+	<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 2px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 8px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; outline-width: 0px; outline-style: initial; outline-color: initial; font-style: inherit; font-family: inherit; vertical-align: baseline; ">
+		Fixed: color picker wasn&rsquo;t initiating when clicking on the color field on newly dragged into the sidebar widgets. This wasn&rsquo;t happening with widgets which settings were saved at least once.</li>
+	<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 2px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 8px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; outline-width: 0px; outline-style: initial; outline-color: initial; font-style: inherit; font-family: inherit; vertical-align: baseline; ">
+		Fixed: there were issues in IE due to overlooked console log declarations on my part that weren&rsquo;t supported by IE.</li>
+	<li style="margin-top: 0px; margin-right: 0px; margin-bottom: 2px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 8px; border-top-width: 0px; border-right-width: 0px; border-bottom-width: 0px; border-left-width: 0px; border-style: initial; border-color: initial; border-image: initial; outline-width: 0px; outline-style: initial; outline-color: initial; font-style: inherit; font-family: inherit; vertical-align: baseline; ">
+		Improvement: forcing to use default jQuery library that is included into WordPress. This should help to avoid issues with themes and plugins that overwrite the default library with older versions.</li>
+</ul>
+<p>
+	<strong>1.2</strong></p>
+<ul>
+	<li>
+		<div>
+			Added on-the-fly wrapper for widgets if their original IDs are not in the theme&#39;s markup.</div>
+	</li>
+	<li>
+		<div>
+			Eliminated the wp_footer() dependency.</div>
+	</li>
+	<li>
+		<div>
+			Added default positioning of the widget in case it&#39;s not specified.</div>
+	</li>
+</ul>
+<p>
+	<strong>1.1</strong></p>
+<ul>
+	<li>
+		BugFix: Icons weren&#39;t displaying in the pullout widgets options dialog.</li>
+</ul>
+<p>
+	<strong>1.0</strong></p>
+<ul>
+	<li>
+		Initial release.</li>
+</ul>
+</section>
+<section id="source_credits">
+	<div class="page-header"><h3>Source & Credits</h3><hr class="notop"></div>
+<ul>	<li>		Icons from <a href="http://iconsweets2.com/">iconSweets 2</a></li>
+	<li>		<a href="http://jquery.com/">jQuery</a>, <a href="http://jqueryui.com/" target="_blank">jQuery UI</a></li>
+	<li>		<a href="http://code.google.com/p/jquery-appear/" target="_blank">jQuery Appear</a>&nbsp;(<a href="http://www.opensource.org/licenses/mit-license.php" target="_blank">MIT License</a>)</li>
+</ul>
+<p>	Special Thanks to WordPress community, WordPress.org and <a href="http://codex.wordpress.org/">WordPress Codex</a>.</p>
+</section>
+<section id="license">
+	<div class="page-header"><h3>License</h3><hr class="notop"></div>
+<p>	&nbsp;</p>
+<div>
+	GNU GENERAL PUBLIC LICENSE</div>
+<div>
+	&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Version 3, 29 June 2007</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp;Copyright (C) 2007 Free Software Foundation, Inc. &lt;http://fsf.org/&gt;</div>
+<div>
+	&nbsp;Everyone is permitted to copy and distribute verbatim copies</div>
+<div>
+	&nbsp;of this license document, but changing it is not allowed.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Preamble</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The GNU General Public License is a free, copyleft license for</div>
+<div>
+	software and other kinds of works.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The licenses for most software and other practical works are designed</div>
+<div>
+	to take away your freedom to share and change the works. &nbsp;By contrast,</div>
+<div>
+	the GNU General Public License is intended to guarantee your freedom to</div>
+<div>
+	share and change all versions of a program--to make sure it remains free</div>
+<div>
+	software for all its users. &nbsp;We, the Free Software Foundation, use the</div>
+<div>
+	GNU General Public License for most of our software; it applies also to</div>
+<div>
+	any other work released this way by its authors. &nbsp;You can apply it to</div>
+<div>
+	your programs, too.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; When we speak of free software, we are referring to freedom, not</div>
+<div>
+	price. &nbsp;Our General Public Licenses are designed to make sure that you</div>
+<div>
+	have the freedom to distribute copies of free software (and charge for</div>
+<div>
+	them if you wish), that you receive source code or can get it if you</div>
+<div>
+	want it, that you can change the software or use pieces of it in new</div>
+<div>
+	free programs, and that you know you can do these things.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; To protect your rights, we need to prevent others from denying you</div>
+<div>
+	these rights or asking you to surrender the rights. &nbsp;Therefore, you have</div>
+<div>
+	certain responsibilities if you distribute copies of the software, or if</div>
+<div>
+	you modify it: responsibilities to respect the freedom of others.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; For example, if you distribute copies of such a program, whether</div>
+<div>
+	gratis or for a fee, you must pass on to the recipients the same</div>
+<div>
+	freedoms that you received. &nbsp;You must make sure that they, too, receive</div>
+<div>
+	or can get the source code. &nbsp;And you must show them these terms so they</div>
+<div>
+	know their rights.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Developers that use the GNU GPL protect your rights with two steps:</div>
+<div>
+	(1) assert copyright on the software, and (2) offer you this License</div>
+<div>
+	giving you legal permission to copy, distribute and/or modify it.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; For the developers&#39; and authors&#39; protection, the GPL clearly explains</div>
+<div>
+	that there is no warranty for this free software. &nbsp;For both users&#39; and</div>
+<div>
+	authors&#39; sake, the GPL requires that modified versions be marked as</div>
+<div>
+	changed, so that their problems will not be attributed erroneously to</div>
+<div>
+	authors of previous versions.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Some devices are designed to deny users access to install or run</div>
+<div>
+	modified versions of the software inside them, although the manufacturer</div>
+<div>
+	can do so. &nbsp;This is fundamentally incompatible with the aim of</div>
+<div>
+	protecting users&#39; freedom to change the software. &nbsp;The systematic</div>
+<div>
+	pattern of such abuse occurs in the area of products for individuals to</div>
+<div>
+	use, which is precisely where it is most unacceptable. &nbsp;Therefore, we</div>
+<div>
+	have designed this version of the GPL to prohibit the practice for those</div>
+<div>
+	products. &nbsp;If such problems arise substantially in other domains, we</div>
+<div>
+	stand ready to extend this provision to those domains in future versions</div>
+<div>
+	of the GPL, as needed to protect the freedom of users.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Finally, every program is threatened constantly by software patents.</div>
+<div>
+	States should not allow patents to restrict development and use of</div>
+<div>
+	software on general-purpose computers, but in those that do, we wish to</div>
+<div>
+	avoid the special danger that patents applied to a free program could</div>
+<div>
+	make it effectively proprietary. &nbsp;To prevent this, the GPL assures that</div>
+<div>
+	patents cannot be used to render the program non-free.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The precise terms and conditions for copying, distribution and</div>
+<div>
+	modification follow.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;TERMS AND CONDITIONS</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 0. Definitions.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &quot;This License&quot; refers to version 3 of the GNU General Public License.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &quot;Copyright&quot; also means copyright-like laws that apply to other kinds of</div>
+<div>
+	works, such as semiconductor masks.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &quot;The Program&quot; refers to any copyrightable work licensed under this</div>
+<div>
+	License. &nbsp;Each licensee is addressed as &quot;you&quot;. &nbsp;&quot;Licensees&quot; and</div>
+<div>
+	&quot;recipients&quot; may be individuals or organizations.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; To &quot;modify&quot; a work means to copy from or adapt all or part of the work</div>
+<div>
+	in a fashion requiring copyright permission, other than the making of an</div>
+<div>
+	exact copy. &nbsp;The resulting work is called a &quot;modified version&quot; of the</div>
+<div>
+	earlier work or a work &quot;based on&quot; the earlier work.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A &quot;covered work&quot; means either the unmodified Program or a work based</div>
+<div>
+	on the Program.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; To &quot;propagate&quot; a work means to do anything with it that, without</div>
+<div>
+	permission, would make you directly or secondarily liable for</div>
+<div>
+	infringement under applicable copyright law, except executing it on a</div>
+<div>
+	computer or modifying a private copy. &nbsp;Propagation includes copying,</div>
+<div>
+	distribution (with or without modification), making available to the</div>
+<div>
+	public, and in some countries other activities as well.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; To &quot;convey&quot; a work means any kind of propagation that enables other</div>
+<div>
+	parties to make or receive copies. &nbsp;Mere interaction with a user through</div>
+<div>
+	a computer network, with no transfer of a copy, is not conveying.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; An interactive user interface displays &quot;Appropriate Legal Notices&quot;</div>
+<div>
+	to the extent that it includes a convenient and prominently visible</div>
+<div>
+	feature that (1) displays an appropriate copyright notice, and (2)</div>
+<div>
+	tells the user that there is no warranty for the work (except to the</div>
+<div>
+	extent that warranties are provided), that licensees may convey the</div>
+<div>
+	work under this License, and how to view a copy of this License. &nbsp;If</div>
+<div>
+	the interface presents a list of user commands or options, such as a</div>
+<div>
+	menu, a prominent item in the list meets this criterion.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 1. Source Code.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The &quot;source code&quot; for a work means the preferred form of the work</div>
+<div>
+	for making modifications to it. &nbsp;&quot;Object code&quot; means any non-source</div>
+<div>
+	form of a work.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A &quot;Standard Interface&quot; means an interface that either is an official</div>
+<div>
+	standard defined by a recognized standards body, or, in the case of</div>
+<div>
+	interfaces specified for a particular programming language, one that</div>
+<div>
+	is widely used among developers working in that language.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The &quot;System Libraries&quot; of an executable work include anything, other</div>
+<div>
+	than the work as a whole, that (a) is included in the normal form of</div>
+<div>
+	packaging a Major Component, but which is not part of that Major</div>
+<div>
+	Component, and (b) serves only to enable use of the work with that</div>
+<div>
+	Major Component, or to implement a Standard Interface for which an</div>
+<div>
+	implementation is available to the public in source code form. &nbsp;A</div>
+<div>
+	&quot;Major Component&quot;, in this context, means a major essential component</div>
+<div>
+	(kernel, window system, and so on) of the specific operating system</div>
+<div>
+	(if any) on which the executable work runs, or a compiler used to</div>
+<div>
+	produce the work, or an object code interpreter used to run it.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The &quot;Corresponding Source&quot; for a work in object code form means all</div>
+<div>
+	the source code needed to generate, install, and (for an executable</div>
+<div>
+	work) run the object code and to modify the work, including scripts to</div>
+<div>
+	control those activities. &nbsp;However, it does not include the work&#39;s</div>
+<div>
+	System Libraries, or general-purpose tools or generally available free</div>
+<div>
+	programs which are used unmodified in performing those activities but</div>
+<div>
+	which are not part of the work. &nbsp;For example, Corresponding Source</div>
+<div>
+	includes interface definition files associated with source files for</div>
+<div>
+	the work, and the source code for shared libraries and dynamically</div>
+<div>
+	linked subprograms that the work is specifically designed to require,</div>
+<div>
+	such as by intimate data communication or control flow between those</div>
+<div>
+	subprograms and other parts of the work.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The Corresponding Source need not include anything that users</div>
+<div>
+	can regenerate automatically from other parts of the Corresponding</div>
+<div>
+	Source.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The Corresponding Source for a work in source code form is that</div>
+<div>
+	same work.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 2. Basic Permissions.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; All rights granted under this License are granted for the term of</div>
+<div>
+	copyright on the Program, and are irrevocable provided the stated</div>
+<div>
+	conditions are met. &nbsp;This License explicitly affirms your unlimited</div>
+<div>
+	permission to run the unmodified Program. &nbsp;The output from running a</div>
+<div>
+	covered work is covered by this License only if the output, given its</div>
+<div>
+	content, constitutes a covered work. &nbsp;This License acknowledges your</div>
+<div>
+	rights of fair use or other equivalent, as provided by copyright law.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may make, run and propagate covered works that you do not</div>
+<div>
+	convey, without conditions so long as your license otherwise remains</div>
+<div>
+	in force. &nbsp;You may convey covered works to others for the sole purpose</div>
+<div>
+	of having them make modifications exclusively for you, or provide you</div>
+<div>
+	with facilities for running those works, provided that you comply with</div>
+<div>
+	the terms of this License in conveying all material for which you do</div>
+<div>
+	not control copyright. &nbsp;Those thus making or running the covered works</div>
+<div>
+	for you must do so exclusively on your behalf, under your direction</div>
+<div>
+	and control, on terms that prohibit them from making any copies of</div>
+<div>
+	your copyrighted material outside their relationship with you.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Conveying under any other circumstances is permitted solely under</div>
+<div>
+	the conditions stated below. &nbsp;Sublicensing is not allowed; section 10</div>
+<div>
+	makes it unnecessary.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 3. Protecting Users&#39; Legal Rights From Anti-Circumvention Law.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; No covered work shall be deemed part of an effective technological</div>
+<div>
+	measure under any applicable law fulfilling obligations under article</div>
+<div>
+	11 of the WIPO copyright treaty adopted on 20 December 1996, or</div>
+<div>
+	similar laws prohibiting or restricting circumvention of such</div>
+<div>
+	measures.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; When you convey a covered work, you waive any legal power to forbid</div>
+<div>
+	circumvention of technological measures to the extent such circumvention</div>
+<div>
+	is effected by exercising rights under this License with respect to</div>
+<div>
+	the covered work, and you disclaim any intention to limit operation or</div>
+<div>
+	modification of the work as a means of enforcing, against the work&#39;s</div>
+<div>
+	users, your or third parties&#39; legal rights to forbid circumvention of</div>
+<div>
+	technological measures.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 4. Conveying Verbatim Copies.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may convey verbatim copies of the Program&#39;s source code as you</div>
+<div>
+	receive it, in any medium, provided that you conspicuously and</div>
+<div>
+	appropriately publish on each copy an appropriate copyright notice;</div>
+<div>
+	keep intact all notices stating that this License and any</div>
+<div>
+	non-permissive terms added in accord with section 7 apply to the code;</div>
+<div>
+	keep intact all notices of the absence of any warranty; and give all</div>
+<div>
+	recipients a copy of this License along with the Program.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may charge any price or no price for each copy that you convey,</div>
+<div>
+	and you may offer support or warranty protection for a fee.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 5. Conveying Modified Source Versions.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may convey a work based on the Program, or the modifications to</div>
+<div>
+	produce it from the Program, in the form of source code under the</div>
+<div>
+	terms of section 4, provided that you also meet all of these conditions:</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; a) The work must carry prominent notices stating that you modified</div>
+<div>
+	&nbsp; &nbsp; it, and giving a relevant date.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; b) The work must carry prominent notices stating that it is</div>
+<div>
+	&nbsp; &nbsp; released under this License and any conditions added under section</div>
+<div>
+	&nbsp; &nbsp; 7. &nbsp;This requirement modifies the requirement in section 4 to</div>
+<div>
+	&nbsp; &nbsp; &quot;keep intact all notices&quot;.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; c) You must license the entire work, as a whole, under this</div>
+<div>
+	&nbsp; &nbsp; License to anyone who comes into possession of a copy. &nbsp;This</div>
+<div>
+	&nbsp; &nbsp; License will therefore apply, along with any applicable section 7</div>
+<div>
+	&nbsp; &nbsp; additional terms, to the whole of the work, and all its parts,</div>
+<div>
+	&nbsp; &nbsp; regardless of how they are packaged. &nbsp;This License gives no</div>
+<div>
+	&nbsp; &nbsp; permission to license the work in any other way, but it does not</div>
+<div>
+	&nbsp; &nbsp; invalidate such permission if you have separately received it.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; d) If the work has interactive user interfaces, each must display</div>
+<div>
+	&nbsp; &nbsp; Appropriate Legal Notices; however, if the Program has interactive</div>
+<div>
+	&nbsp; &nbsp; interfaces that do not display Appropriate Legal Notices, your</div>
+<div>
+	&nbsp; &nbsp; work need not make them do so.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A compilation of a covered work with other separate and independent</div>
+<div>
+	works, which are not by their nature extensions of the covered work,</div>
+<div>
+	and which are not combined with it such as to form a larger program,</div>
+<div>
+	in or on a volume of a storage or distribution medium, is called an</div>
+<div>
+	&quot;aggregate&quot; if the compilation and its resulting copyright are not</div>
+<div>
+	used to limit the access or legal rights of the compilation&#39;s users</div>
+<div>
+	beyond what the individual works permit. &nbsp;Inclusion of a covered work</div>
+<div>
+	in an aggregate does not cause this License to apply to the other</div>
+<div>
+	parts of the aggregate.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 6. Conveying Non-Source Forms.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may convey a covered work in object code form under the terms</div>
+<div>
+	of sections 4 and 5, provided that you also convey the</div>
+<div>
+	machine-readable Corresponding Source under the terms of this License,</div>
+<div>
+	in one of these ways:</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; a) Convey the object code in, or embodied in, a physical product</div>
+<div>
+	&nbsp; &nbsp; (including a physical distribution medium), accompanied by the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source fixed on a durable physical medium</div>
+<div>
+	&nbsp; &nbsp; customarily used for software interchange.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; b) Convey the object code in, or embodied in, a physical product</div>
+<div>
+	&nbsp; &nbsp; (including a physical distribution medium), accompanied by a</div>
+<div>
+	&nbsp; &nbsp; written offer, valid for at least three years and valid for as</div>
+<div>
+	&nbsp; &nbsp; long as you offer spare parts or customer support for that product</div>
+<div>
+	&nbsp; &nbsp; model, to give anyone who possesses the object code either (1) a</div>
+<div>
+	&nbsp; &nbsp; copy of the Corresponding Source for all the software in the</div>
+<div>
+	&nbsp; &nbsp; product that is covered by this License, on a durable physical</div>
+<div>
+	&nbsp; &nbsp; medium customarily used for software interchange, for a price no</div>
+<div>
+	&nbsp; &nbsp; more than your reasonable cost of physically performing this</div>
+<div>
+	&nbsp; &nbsp; conveying of source, or (2) access to copy the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source from a network server at no charge.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; c) Convey individual copies of the object code with a copy of the</div>
+<div>
+	&nbsp; &nbsp; written offer to provide the Corresponding Source. &nbsp;This</div>
+<div>
+	&nbsp; &nbsp; alternative is allowed only occasionally and noncommercially, and</div>
+<div>
+	&nbsp; &nbsp; only if you received the object code with such an offer, in accord</div>
+<div>
+	&nbsp; &nbsp; with subsection 6b.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; d) Convey the object code by offering access from a designated</div>
+<div>
+	&nbsp; &nbsp; place (gratis or for a charge), and offer equivalent access to the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source in the same way through the same place at no</div>
+<div>
+	&nbsp; &nbsp; further charge. &nbsp;You need not require recipients to copy the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source along with the object code. &nbsp;If the place to</div>
+<div>
+	&nbsp; &nbsp; copy the object code is a network server, the Corresponding Source</div>
+<div>
+	&nbsp; &nbsp; may be on a different server (operated by you or a third party)</div>
+<div>
+	&nbsp; &nbsp; that supports equivalent copying facilities, provided you maintain</div>
+<div>
+	&nbsp; &nbsp; clear directions next to the object code saying where to find the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source. &nbsp;Regardless of what server hosts the</div>
+<div>
+	&nbsp; &nbsp; Corresponding Source, you remain obligated to ensure that it is</div>
+<div>
+	&nbsp; &nbsp; available for as long as needed to satisfy these requirements.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; e) Convey the object code using peer-to-peer transmission, provided</div>
+<div>
+	&nbsp; &nbsp; you inform other peers where the object code and Corresponding</div>
+<div>
+	&nbsp; &nbsp; Source of the work are being offered to the general public at no</div>
+<div>
+	&nbsp; &nbsp; charge under subsection 6d.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A separable portion of the object code, whose source code is excluded</div>
+<div>
+	from the Corresponding Source as a System Library, need not be</div>
+<div>
+	included in conveying the object code work.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A &quot;User Product&quot; is either (1) a &quot;consumer product&quot;, which means any</div>
+<div>
+	tangible personal property which is normally used for personal, family,</div>
+<div>
+	or household purposes, or (2) anything designed or sold for incorporation</div>
+<div>
+	into a dwelling. &nbsp;In determining whether a product is a consumer product,</div>
+<div>
+	doubtful cases shall be resolved in favor of coverage. &nbsp;For a particular</div>
+<div>
+	product received by a particular user, &quot;normally used&quot; refers to a</div>
+<div>
+	typical or common use of that class of product, regardless of the status</div>
+<div>
+	of the particular user or of the way in which the particular user</div>
+<div>
+	actually uses, or expects or is expected to use, the product. &nbsp;A product</div>
+<div>
+	is a consumer product regardless of whether the product has substantial</div>
+<div>
+	commercial, industrial or non-consumer uses, unless such uses represent</div>
+<div>
+	the only significant mode of use of the product.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &quot;Installation Information&quot; for a User Product means any methods,</div>
+<div>
+	procedures, authorization keys, or other information required to install</div>
+<div>
+	and execute modified versions of a covered work in that User Product from</div>
+<div>
+	a modified version of its Corresponding Source. &nbsp;The information must</div>
+<div>
+	suffice to ensure that the continued functioning of the modified object</div>
+<div>
+	code is in no case prevented or interfered with solely because</div>
+<div>
+	modification has been made.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If you convey an object code work under this section in, or with, or</div>
+<div>
+	specifically for use in, a User Product, and the conveying occurs as</div>
+<div>
+	part of a transaction in which the right of possession and use of the</div>
+<div>
+	User Product is transferred to the recipient in perpetuity or for a</div>
+<div>
+	fixed term (regardless of how the transaction is characterized), the</div>
+<div>
+	Corresponding Source conveyed under this section must be accompanied</div>
+<div>
+	by the Installation Information. &nbsp;But this requirement does not apply</div>
+<div>
+	if neither you nor any third party retains the ability to install</div>
+<div>
+	modified object code on the User Product (for example, the work has</div>
+<div>
+	been installed in ROM).</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The requirement to provide Installation Information does not include a</div>
+<div>
+	requirement to continue to provide support service, warranty, or updates</div>
+<div>
+	for a work that has been modified or installed by the recipient, or for</div>
+<div>
+	the User Product in which it has been modified or installed. &nbsp;Access to a</div>
+<div>
+	network may be denied when the modification itself materially and</div>
+<div>
+	adversely affects the operation of the network or violates the rules and</div>
+<div>
+	protocols for communication across the network.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Corresponding Source conveyed, and Installation Information provided,</div>
+<div>
+	in accord with this section must be in a format that is publicly</div>
+<div>
+	documented (and with an implementation available to the public in</div>
+<div>
+	source code form), and must require no special password or key for</div>
+<div>
+	unpacking, reading or copying.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 7. Additional Terms.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &quot;Additional permissions&quot; are terms that supplement the terms of this</div>
+<div>
+	License by making exceptions from one or more of its conditions.</div>
+<div>
+	Additional permissions that are applicable to the entire Program shall</div>
+<div>
+	be treated as though they were included in this License, to the extent</div>
+<div>
+	that they are valid under applicable law. &nbsp;If additional permissions</div>
+<div>
+	apply only to part of the Program, that part may be used separately</div>
+<div>
+	under those permissions, but the entire Program remains governed by</div>
+<div>
+	this License without regard to the additional permissions.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; When you convey a copy of a covered work, you may at your option</div>
+<div>
+	remove any additional permissions from that copy, or from any part of</div>
+<div>
+	it. &nbsp;(Additional permissions may be written to require their own</div>
+<div>
+	removal in certain cases when you modify the work.) &nbsp;You may place</div>
+<div>
+	additional permissions on material, added by you to a covered work,</div>
+<div>
+	for which you have or can give appropriate copyright permission.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Notwithstanding any other provision of this License, for material you</div>
+<div>
+	add to a covered work, you may (if authorized by the copyright holders of</div>
+<div>
+	that material) supplement the terms of this License with terms:</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; a) Disclaiming warranty or limiting liability differently from the</div>
+<div>
+	&nbsp; &nbsp; terms of sections 15 and 16 of this License; or</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; b) Requiring preservation of specified reasonable legal notices or</div>
+<div>
+	&nbsp; &nbsp; author attributions in that material or in the Appropriate Legal</div>
+<div>
+	&nbsp; &nbsp; Notices displayed by works containing it; or</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; c) Prohibiting misrepresentation of the origin of that material, or</div>
+<div>
+	&nbsp; &nbsp; requiring that modified versions of such material be marked in</div>
+<div>
+	&nbsp; &nbsp; reasonable ways as different from the original version; or</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; d) Limiting the use for publicity purposes of names of licensors or</div>
+<div>
+	&nbsp; &nbsp; authors of the material; or</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; e) Declining to grant rights under trademark law for use of some</div>
+<div>
+	&nbsp; &nbsp; trade names, trademarks, or service marks; or</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; f) Requiring indemnification of licensors and authors of that</div>
+<div>
+	&nbsp; &nbsp; material by anyone who conveys the material (or modified versions of</div>
+<div>
+	&nbsp; &nbsp; it) with contractual assumptions of liability to the recipient, for</div>
+<div>
+	&nbsp; &nbsp; any liability that these contractual assumptions directly impose on</div>
+<div>
+	&nbsp; &nbsp; those licensors and authors.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; All other non-permissive additional terms are considered &quot;further</div>
+<div>
+	restrictions&quot; within the meaning of section 10. &nbsp;If the Program as you</div>
+<div>
+	received it, or any part of it, contains a notice stating that it is</div>
+<div>
+	governed by this License along with a term that is a further</div>
+<div>
+	restriction, you may remove that term. &nbsp;If a license document contains</div>
+<div>
+	a further restriction but permits relicensing or conveying under this</div>
+<div>
+	License, you may add to a covered work material governed by the terms</div>
+<div>
+	of that license document, provided that the further restriction does</div>
+<div>
+	not survive such relicensing or conveying.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If you add terms to a covered work in accord with this section, you</div>
+<div>
+	must place, in the relevant source files, a statement of the</div>
+<div>
+	additional terms that apply to those files, or a notice indicating</div>
+<div>
+	where to find the applicable terms.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Additional terms, permissive or non-permissive, may be stated in the</div>
+<div>
+	form of a separately written license, or stated as exceptions;</div>
+<div>
+	the above requirements apply either way.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 8. Termination.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may not propagate or modify a covered work except as expressly</div>
+<div>
+	provided under this License. &nbsp;Any attempt otherwise to propagate or</div>
+<div>
+	modify it is void, and will automatically terminate your rights under</div>
+<div>
+	this License (including any patent licenses granted under the third</div>
+<div>
+	paragraph of section 11).</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; However, if you cease all violation of this License, then your</div>
+<div>
+	license from a particular copyright holder is reinstated (a)</div>
+<div>
+	provisionally, unless and until the copyright holder explicitly and</div>
+<div>
+	finally terminates your license, and (b) permanently, if the copyright</div>
+<div>
+	holder fails to notify you of the violation by some reasonable means</div>
+<div>
+	prior to 60 days after the cessation.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Moreover, your license from a particular copyright holder is</div>
+<div>
+	reinstated permanently if the copyright holder notifies you of the</div>
+<div>
+	violation by some reasonable means, this is the first time you have</div>
+<div>
+	received notice of violation of this License (for any work) from that</div>
+<div>
+	copyright holder, and you cure the violation prior to 30 days after</div>
+<div>
+	your receipt of the notice.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Termination of your rights under this section does not terminate the</div>
+<div>
+	licenses of parties who have received copies or rights from you under</div>
+<div>
+	this License. &nbsp;If your rights have been terminated and not permanently</div>
+<div>
+	reinstated, you do not qualify to receive new licenses for the same</div>
+<div>
+	material under section 10.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 9. Acceptance Not Required for Having Copies.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You are not required to accept this License in order to receive or</div>
+<div>
+	run a copy of the Program. &nbsp;Ancillary propagation of a covered work</div>
+<div>
+	occurring solely as a consequence of using peer-to-peer transmission</div>
+<div>
+	to receive a copy likewise does not require acceptance. &nbsp;However,</div>
+<div>
+	nothing other than this License grants you permission to propagate or</div>
+<div>
+	modify any covered work. &nbsp;These actions infringe copyright if you do</div>
+<div>
+	not accept this License. &nbsp;Therefore, by modifying or propagating a</div>
+<div>
+	covered work, you indicate your acceptance of this License to do so.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 10. Automatic Licensing of Downstream Recipients.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Each time you convey a covered work, the recipient automatically</div>
+<div>
+	receives a license from the original licensors, to run, modify and</div>
+<div>
+	propagate that work, subject to this License. &nbsp;You are not responsible</div>
+<div>
+	for enforcing compliance by third parties with this License.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; An &quot;entity transaction&quot; is a transaction transferring control of an</div>
+<div>
+	organization, or substantially all assets of one, or subdividing an</div>
+<div>
+	organization, or merging organizations. &nbsp;If propagation of a covered</div>
+<div>
+	work results from an entity transaction, each party to that</div>
+<div>
+	transaction who receives a copy of the work also receives whatever</div>
+<div>
+	licenses to the work the party&#39;s predecessor in interest had or could</div>
+<div>
+	give under the previous paragraph, plus a right to possession of the</div>
+<div>
+	Corresponding Source of the work from the predecessor in interest, if</div>
+<div>
+	the predecessor has it or can get it with reasonable efforts.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You may not impose any further restrictions on the exercise of the</div>
+<div>
+	rights granted or affirmed under this License. &nbsp;For example, you may</div>
+<div>
+	not impose a license fee, royalty, or other charge for exercise of</div>
+<div>
+	rights granted under this License, and you may not initiate litigation</div>
+<div>
+	(including a cross-claim or counterclaim in a lawsuit) alleging that</div>
+<div>
+	any patent claim is infringed by making, using, selling, offering for</div>
+<div>
+	sale, or importing the Program or any portion of it.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 11. Patents.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A &quot;contributor&quot; is a copyright holder who authorizes use under this</div>
+<div>
+	License of the Program or a work on which the Program is based. &nbsp;The</div>
+<div>
+	work thus licensed is called the contributor&#39;s &quot;contributor version&quot;.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A contributor&#39;s &quot;essential patent claims&quot; are all patent claims</div>
+<div>
+	owned or controlled by the contributor, whether already acquired or</div>
+<div>
+	hereafter acquired, that would be infringed by some manner, permitted</div>
+<div>
+	by this License, of making, using, or selling its contributor version,</div>
+<div>
+	but do not include claims that would be infringed only as a</div>
+<div>
+	consequence of further modification of the contributor version. &nbsp;For</div>
+<div>
+	purposes of this definition, &quot;control&quot; includes the right to grant</div>
+<div>
+	patent sublicenses in a manner consistent with the requirements of</div>
+<div>
+	this License.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Each contributor grants you a non-exclusive, worldwide, royalty-free</div>
+<div>
+	patent license under the contributor&#39;s essential patent claims, to</div>
+<div>
+	make, use, sell, offer for sale, import and otherwise run, modify and</div>
+<div>
+	propagate the contents of its contributor version.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; In the following three paragraphs, a &quot;patent license&quot; is any express</div>
+<div>
+	agreement or commitment, however denominated, not to enforce a patent</div>
+<div>
+	(such as an express permission to practice a patent or covenant not to</div>
+<div>
+	sue for patent infringement). &nbsp;To &quot;grant&quot; such a patent license to a</div>
+<div>
+	party means to make such an agreement or commitment not to enforce a</div>
+<div>
+	patent against the party.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If you convey a covered work, knowingly relying on a patent license,</div>
+<div>
+	and the Corresponding Source of the work is not available for anyone</div>
+<div>
+	to copy, free of charge and under the terms of this License, through a</div>
+<div>
+	publicly available network server or other readily accessible means,</div>
+<div>
+	then you must either (1) cause the Corresponding Source to be so</div>
+<div>
+	available, or (2) arrange to deprive yourself of the benefit of the</div>
+<div>
+	patent license for this particular work, or (3) arrange, in a manner</div>
+<div>
+	consistent with the requirements of this License, to extend the patent</div>
+<div>
+	license to downstream recipients. &nbsp;&quot;Knowingly relying&quot; means you have</div>
+<div>
+	actual knowledge that, but for the patent license, your conveying the</div>
+<div>
+	covered work in a country, or your recipient&#39;s use of the covered work</div>
+<div>
+	in a country, would infringe one or more identifiable patents in that</div>
+<div>
+	country that you have reason to believe are valid.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If, pursuant to or in connection with a single transaction or</div>
+<div>
+	arrangement, you convey, or propagate by procuring conveyance of, a</div>
+<div>
+	covered work, and grant a patent license to some of the parties</div>
+<div>
+	receiving the covered work authorizing them to use, propagate, modify</div>
+<div>
+	or convey a specific copy of the covered work, then the patent license</div>
+<div>
+	you grant is automatically extended to all recipients of the covered</div>
+<div>
+	work and works based on it.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; A patent license is &quot;discriminatory&quot; if it does not include within</div>
+<div>
+	the scope of its coverage, prohibits the exercise of, or is</div>
+<div>
+	conditioned on the non-exercise of one or more of the rights that are</div>
+<div>
+	specifically granted under this License. &nbsp;You may not convey a covered</div>
+<div>
+	work if you are a party to an arrangement with a third party that is</div>
+<div>
+	in the business of distributing software, under which you make payment</div>
+<div>
+	to the third party based on the extent of your activity of conveying</div>
+<div>
+	the work, and under which the third party grants, to any of the</div>
+<div>
+	parties who would receive the covered work from you, a discriminatory</div>
+<div>
+	patent license (a) in connection with copies of the covered work</div>
+<div>
+	conveyed by you (or copies made from those copies), or (b) primarily</div>
+<div>
+	for and in connection with specific products or compilations that</div>
+<div>
+	contain the covered work, unless you entered into that arrangement,</div>
+<div>
+	or that patent license was granted, prior to 28 March 2007.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Nothing in this License shall be construed as excluding or limiting</div>
+<div>
+	any implied license or other defenses to infringement that may</div>
+<div>
+	otherwise be available to you under applicable patent law.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 12. No Surrender of Others&#39; Freedom.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If conditions are imposed on you (whether by court order, agreement or</div>
+<div>
+	otherwise) that contradict the conditions of this License, they do not</div>
+<div>
+	excuse you from the conditions of this License. &nbsp;If you cannot convey a</div>
+<div>
+	covered work so as to satisfy simultaneously your obligations under this</div>
+<div>
+	License and any other pertinent obligations, then as a consequence you may</div>
+<div>
+	not convey it at all. &nbsp;For example, if you agree to terms that obligate you</div>
+<div>
+	to collect a royalty for further conveying from those to whom you convey</div>
+<div>
+	the Program, the only way you could satisfy both those terms and this</div>
+<div>
+	License would be to refrain entirely from conveying the Program.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 13. Use with the GNU Affero General Public License.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Notwithstanding any other provision of this License, you have</div>
+<div>
+	permission to link or combine any covered work with a work licensed</div>
+<div>
+	under version 3 of the GNU Affero General Public License into a single</div>
+<div>
+	combined work, and to convey the resulting work. &nbsp;The terms of this</div>
+<div>
+	License will continue to apply to the part which is the covered work,</div>
+<div>
+	but the special requirements of the GNU Affero General Public License,</div>
+<div>
+	section 13, concerning interaction through a network will apply to the</div>
+<div>
+	combination as such.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 14. Revised Versions of this License.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The Free Software Foundation may publish revised and/or new versions of</div>
+<div>
+	the GNU General Public License from time to time. &nbsp;Such new versions will</div>
+<div>
+	be similar in spirit to the present version, but may differ in detail to</div>
+<div>
+	address new problems or concerns.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Each version is given a distinguishing version number. &nbsp;If the</div>
+<div>
+	Program specifies that a certain numbered version of the GNU General</div>
+<div>
+	Public License &quot;or any later version&quot; applies to it, you have the</div>
+<div>
+	option of following the terms and conditions either of that numbered</div>
+<div>
+	version or of any later version published by the Free Software</div>
+<div>
+	Foundation. &nbsp;If the Program does not specify a version number of the</div>
+<div>
+	GNU General Public License, you may choose any version ever published</div>
+<div>
+	by the Free Software Foundation.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If the Program specifies that a proxy can decide which future</div>
+<div>
+	versions of the GNU General Public License can be used, that proxy&#39;s</div>
+<div>
+	public statement of acceptance of a version permanently authorizes you</div>
+<div>
+	to choose that version for the Program.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; Later license versions may give you additional or different</div>
+<div>
+	permissions. &nbsp;However, no additional obligations are imposed on any</div>
+<div>
+	author or copyright holder as a result of your choosing to follow a</div>
+<div>
+	later version.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 15. Disclaimer of Warranty.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY</div>
+<div>
+	APPLICABLE LAW. &nbsp;EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT</div>
+<div>
+	HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM &quot;AS IS&quot; WITHOUT WARRANTY</div>
+<div>
+	OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,</div>
+<div>
+	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR</div>
+<div>
+	PURPOSE. &nbsp;THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM</div>
+<div>
+	IS WITH YOU. &nbsp;SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF</div>
+<div>
+	ALL NECESSARY SERVICING, REPAIR OR CORRECTION.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 16. Limitation of Liability.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING</div>
+<div>
+	WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS</div>
+<div>
+	THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY</div>
+<div>
+	GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE</div>
+<div>
+	USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF</div>
+<div>
+	DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD</div>
+<div>
+	PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),</div>
+<div>
+	EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF</div>
+<div>
+	SUCH DAMAGES.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; 17. Interpretation of Sections 15 and 16.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If the disclaimer of warranty and limitation of liability provided</div>
+<div>
+	above cannot be given local legal effect according to their terms,</div>
+<div>
+	reviewing courts shall apply local law that most closely approximates</div>
+<div>
+	an absolute waiver of all civil liability in connection with the</div>
+<div>
+	Program, unless a warranty or assumption of liability accompanies a</div>
+<div>
+	copy of the Program in return for a fee.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;END OF TERMS AND CONDITIONS</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; How to Apply These Terms to Your New Programs</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If you develop a new program, and you want it to be of the greatest</div>
+<div>
+	possible use to the public, the best way to achieve this is to make it</div>
+<div>
+	free software which everyone can redistribute and change under these terms.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; To do so, attach the following notices to the program. &nbsp;It is safest</div>
+<div>
+	to attach them to the start of each source file to most effectively</div>
+<div>
+	state the exclusion of warranty; and each file should have at least</div>
+<div>
+	the &quot;copyright&quot; line and a pointer to where the full notice is found.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &lt;one line to give the program&#39;s name and a brief idea of what it does.&gt;</div>
+<div>
+	&nbsp; &nbsp; Copyright (C) &lt;year&gt; &nbsp;&lt;name of author&gt;</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; This program is free software: you can redistribute it and/or modify</div>
+<div>
+	&nbsp; &nbsp; it under the terms of the GNU General Public License as published by</div>
+<div>
+	&nbsp; &nbsp; the Free Software Foundation, either version 3 of the License, or</div>
+<div>
+	&nbsp; &nbsp; (at your option) any later version.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; This program is distributed in the hope that it will be useful,</div>
+<div>
+	&nbsp; &nbsp; but WITHOUT ANY WARRANTY; without even the implied warranty of</div>
+<div>
+	&nbsp; &nbsp; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. &nbsp;See the</div>
+<div>
+	&nbsp; &nbsp; GNU General Public License for more details.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; You should have received a copy of the GNU General Public License</div>
+<div>
+	&nbsp; &nbsp; along with this program. &nbsp;If not, see &lt;http://www.gnu.org/licenses/&gt;.</div>
+<div>
+	&nbsp;</div>
+<div>
+	Also add information on how to contact you by electronic and paper mail.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; If the program does terminal interaction, make it output a short</div>
+<div>
+	notice like this when it starts in an interactive mode:</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; &nbsp; &lt;program&gt; &nbsp;Copyright (C) &lt;year&gt; &nbsp;&lt;name of author&gt;</div>
+<div>
+	&nbsp; &nbsp; This program comes with ABSOLUTELY NO WARRANTY; for details type `show w&#39;.</div>
+<div>
+	&nbsp; &nbsp; This is free software, and you are welcome to redistribute it</div>
+<div>
+	&nbsp; &nbsp; under certain conditions; type `show c&#39; for details.</div>
+<div>
+	&nbsp;</div>
+<div>
+	The hypothetical commands `show w&#39; and `show c&#39; should show the appropriate</div>
+<div>
+	parts of the General Public License. &nbsp;Of course, your program&#39;s commands</div>
+<div>
+	might be different; for a GUI interface, you would use an &quot;about box&quot;.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; You should also get your employer (if you work as a programmer) or school,</div>
+<div>
+	if any, to sign a &quot;copyright disclaimer&quot; for the program, if necessary.</div>
+<div>
+	For more information on this, and how to apply and follow the GNU GPL, see</div>
+<div>
+	&lt;http://www.gnu.org/licenses/&gt;.</div>
+<div>
+	&nbsp;</div>
+<div>
+	&nbsp; The GNU General Public License does not permit incorporating your program</div>
+<div>
+	into proprietary programs. &nbsp;If your program is a subroutine library, you</div>
+<div>
+	may consider it more useful to permit linking proprietary applications with</div>
+<div>
+	the library. &nbsp;If this is what you want to do, use the GNU Lesser General</div>
+<div>
+	Public License instead of this License. &nbsp;But first, please read</div>
+<div>
+	&lt;http://www.gnu.org/philosophy/why-not-lgpl.html&gt;.</div>
+</section>
+
+	</div>
+</body>
+</html>

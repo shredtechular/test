@@ -55,6 +55,10 @@ class WPV_Users_Filter {
 	
 	static function admin_enqueue_scripts( $hook ) {
 		wp_register_script( 'views-filter-users-js', ( WPV_URL . "/res/js/redesign/views_filter_users.js" ), array( 'suggest', 'views-filters-js'), WPV_VERSION, true );
+		$filter_users_translations = array(
+			'ajaxurl' => wpv_get_views_ajaxurl()
+		);
+		wp_localize_script( 'views-filter-users-js', 'wpv_filter_users_texts', $filter_users_translations );
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'views-editor' ) {
 			wp_enqueue_script( 'views-filter-users-js' );
 		}
@@ -501,81 +505,3 @@ class WPV_Users_Filter {
 	}
 	
 }
-
-// DEPRECATED
-// New filter in the wpv-sections-query-type.php file
-// Also, too much information here: create specific filters for that
-
-// add_filter('wpv-view-get-content-summary', 'wpv_users_content_summary_filter', 5, 3);
-
-// Commented out in 1.7.0
-/*
-function wpv_users_content_summary_filter($summary, $post_id, $view_settings) {
-    $summary = '';
-    $result = '';
-    $result1 = '';
-    if(!isset($view_settings['query_type']) || (isset($view_settings['query_type']) && $view_settings['query_type'][0] == 'users')) {
-    
-            $user_role = '';
-            $result = wpv_get_filter_users_summary_txt($view_settings , false, $post_id);
-            if ( empty($result) ){
-                if ( isset($view_settings['roles_type'][0]) ){
-                    $user_role = $view_settings['roles_type'][0];
-                }
-                $result = sprintf(__('Select all users with role <strong>%s</strong>', 'wpv-views'),  $user_role);
-            }
-            $result1 = wpv_get_filter_users_summary_txt_addon( $view_settings );
-            $summary = $result . $result1;
-	
-    }
-
-    return $summary;
-}
-
-function wpv_get_filter_users_summary_txt_addon( $view_settings ){
-    
-    $output = '';
-    $summary = '';
-    foreach (array_keys($view_settings) as $key) {
-            if (strpos($key, 'usermeta-field-') === 0 && strpos($key, '_compare') === strlen($key) - strlen('_compare')) {
-                $name = substr($key, 0, strlen($key) - strlen('_compare'));
-                if ($summary != '') {
-                    if ($view_settings['usermeta_fields_relationship'] == 'OR') {
-                        $summary .= __(' OR', 'wpv-views');
-                    } else {
-                        $summary .= __(' AND', 'wpv-views');
-                    }
-                }
-                $summary .= wpv_get_usermeta_field_summary($name, $view_settings);
-            }
-    }
-    if ( !empty($summary) ){
-        $output .= __(' and ', 'wpv-views'). $summary;
-    }
-    if ( isset($view_settings['users_orderby']) ){
-    	$output .=  __(' ordered by ', 'wpv-views'). $view_settings['users_orderby'];
-	}
-    $order = __('descending', 'wpv-views');
-    if ( isset($view_settings['users_order']) && $view_settings['users_order'] == 'ASC') {
-        $order = __('ascending', 'wpv-views');
-    }
-    $output .= ', '.$order;
-    if ( isset($view_settings['users_limit']) && intval($view_settings['users_limit']) != -1 ) {
-            if (intval($view_settings['users_limit']) == 1) {
-                $output .= __(', limit to 1 item', 'wpv-views');
-            } else {
-                $output .= sprintf(__(', limit to %d items', 'wpv-views'),
-                        intval($view_settings['users_limit']));
-            }
-    }
-    if ( isset($view_settings['users_limit']) && intval($view_settings['users_offset']) != 0 ) {
-            if (intval($view_settings['users_limit']) == 1) {
-                $output .= __(', skip first item', 'wpv-views');
-            } else {
-                $output .= sprintf(__(', skip %d items', 'wpv-views'),
-                        intval($view_settings['users_offset']));
-            }
-    }
-    return $output;    
-}
-*/

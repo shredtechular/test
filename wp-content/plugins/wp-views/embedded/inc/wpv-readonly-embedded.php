@@ -589,58 +589,74 @@ function wpv_embedded_query_filter( $view_settings ) {
 		</div>
 		<div class="wpv-setting wpv-settings-content-filter">
 			<?php
+			$query_type = 'posts';
+			if ( isset( $view_settings['query_type'] ) ) {
+				$query_type = $view_settings['query_type'][0];
+			}
 			$filters_summary = '';
-			$status_filter = wpv_get_filter_status_summary_txt( $view_settings );
-			if ( !empty( $status_filter ) ) {
-				$filters_summary .= '<li>' . $status_filter . '</li>';
-			}
-			$author_filter = wpv_get_filter_post_author_summary_txt( $view_settings );
-			if ( !empty( $author_filter ) ) {
-				$filters_summary .= '<li>' . $author_filter . '</li>';
-			}
-			$id_filter = wpv_get_filter_post_id_summary_txt( $view_settings );
-			if ( !empty( $id_filter ) ) {
-				$filters_summary .= '<li>' . $id_filter . '</li>';
-			}
-			$search_filter = wpv_get_filter_post_search_summary_txt( $view_settings );
-			if ( !empty( $search_filter ) ) {
-				$filters_summary .= '<li>' . $search_filter . '</li>';
-			}
-			$taxonomy_search_filter = wpv_get_filter_taxonomy_search_summary_txt( $view_settings );
-			if ( !empty( $taxonomy_search_filter ) ) {
-				$filters_summary .= '<li>' . $taxonomy_search_filter . '</li>';
-			}
-			$custom_field_filter = wpv_get_filter_custom_field_summary_txt( $view_settings );
-			if ( ! empty( $custom_field_filter ) ) {
-				$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select posts with custom field:', 'wpv-views' ) . $custom_field_filter . '</li>';
-			}
-			$taxonomy_filter = wpv_get_filter_taxonomy_summary_txt( $view_settings );
-			if ( ! empty( $taxonomy_filter ) ) {
-				$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select posts with taxonomy:', 'wpv-views' ) . $taxonomy_filter . '</li>';
-			}
-			$post_relationship_filter = wpv_get_filter_post_relationship_summary_txt( $view_settings );
-			if ( !empty( $post_relationship_filter ) ) {
-				$filters_summary .= '<li>' . $post_relationship_filter . '</li>';
-			}
-			$parent_filter = wpv_get_filter_post_parent_summary_txt( $view_settings );
-			if ( !empty( $parent_filter ) ) {
-				$filters_summary .= '<li>' . $parent_filter . '</li>';
-			}
-			$taxonomy_parent_filter = wpv_get_filter_taxonomy_parent_summary_txt( $view_settings );
-			if ( !empty( $taxonomy_parent_filter ) ) {
-				$filters_summary .= '<li>' . $taxonomy_parent_filter . '</li>';
-			}
-			$taxonomy_terms_filter = wpv_get_filter_taxonomy_term_summary_txt( $view_settings );
-			if ( !empty( $taxonomy_terms_filter ) ) {
-				$filters_summary .= '<li>' . $taxonomy_terms_filter . '</li>';
-			}
-			$users_filter = wpv_get_filter_users_summary_txt( $view_settings );
-			if ( !empty( $users_filter ) ) {
-				$filters_summary .= '<li>' . $users_filter . '</li>';
-			}
-			$usermeta_field_filter = wpv_get_filter_usermeta_field_summary_txt( $view_settings );
-			if ( !empty( $usermeta_field_filter ) ) {
-				$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select users with usermeta field:', 'wpv-views' ) . $usermeta_field_filter . '</li>';
+			switch ( $query_type ) {
+				case 'posts':
+					$status_filter = wpv_get_filter_status_summary_txt( $view_settings );
+					if ( !empty( $status_filter ) ) {
+						$filters_summary .= '<li>' . $status_filter . '</li>';
+					}
+					$author_filter = wpv_get_filter_post_author_summary_txt( $view_settings );
+					if ( !empty( $author_filter ) ) {
+						$filters_summary .= '<li>' . $author_filter . '</li>';
+					}
+					$id_filter = wpv_get_filter_post_id_summary_txt( $view_settings );
+					if ( !empty( $id_filter ) ) {
+						$filters_summary .= '<li>' . $id_filter . '</li>';
+					}
+					$search_filter = wpv_get_filter_post_search_summary_txt( $view_settings );
+					if ( !empty( $search_filter ) ) {
+						$filters_summary .= '<li>' . $search_filter . '</li>';
+					}
+					$custom_field_filter = wpv_get_filter_meta_field_summary_txt( $view_settings, 'custom' );
+					if ( ! empty( $custom_field_filter ) ) {
+						$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select posts with custom field:', 'wpv-views' ) . $custom_field_filter . '</li>';
+					}
+					$taxonomy_filter = wpv_get_filter_taxonomy_summary_txt( $view_settings );
+					if ( ! empty( $taxonomy_filter ) ) {
+						$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select posts with taxonomy:', 'wpv-views' ) . $taxonomy_filter . '</li>';
+					}
+					$post_relationship_filter = wpv_get_filter_post_relationship_summary_txt( $view_settings );
+					if ( !empty( $post_relationship_filter ) ) {
+						$filters_summary .= '<li>' . $post_relationship_filter . '</li>';
+					}
+					$parent_filter = wpv_get_filter_post_parent_summary_txt( $view_settings );
+					if ( !empty( $parent_filter ) ) {
+						$filters_summary .= '<li>' . $parent_filter . '</li>';
+					}
+					break;
+				case 'taxonomy':
+					$taxonomy_search_filter = wpv_get_filter_taxonomy_search_summary_txt( $view_settings );
+					if ( !empty( $taxonomy_search_filter ) ) {
+						$filters_summary .= '<li>' . $taxonomy_search_filter . '</li>';
+					}
+					$taxonomy_parent_filter = wpv_get_filter_taxonomy_parent_summary_txt( $view_settings );
+					if ( !empty( $taxonomy_parent_filter ) ) {
+						$filters_summary .= '<li>' . $taxonomy_parent_filter . '</li>';
+					}
+					$taxonomy_terms_filter = wpv_get_filter_taxonomy_term_summary_txt( $view_settings );
+					if ( !empty( $taxonomy_terms_filter ) ) {
+						$filters_summary .= '<li>' . $taxonomy_terms_filter . '</li>';
+					}
+					$termmeta_field_filter = wpv_get_filter_meta_field_summary_txt( $view_settings, 'termmeta' );
+					if ( !empty( $termmeta_field_filter ) ) {
+						$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select terms with termmeta field:', 'wpv-views' ) . $termmeta_field_filter . '</li>';
+					}
+					break;
+				case 'users':
+					$users_filter = wpv_get_filter_users_summary_txt( $view_settings );
+					if ( !empty( $users_filter ) ) {
+						$filters_summary .= '<li>' . $users_filter . '</li>';
+					}
+					$usermeta_field_filter = wpv_get_filter_meta_field_summary_txt( $view_settings, 'usermeta' );
+					if ( !empty( $usermeta_field_filter ) ) {
+						$filters_summary .= '<li class="filter-row-multiple">' . __( 'Select users with usermeta field:', 'wpv-views' ) . $usermeta_field_filter . '</li>';
+					}
+					break;
 			}
 			if ( '' != $filters_summary ) {
 			?>

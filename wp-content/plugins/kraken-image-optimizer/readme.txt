@@ -1,19 +1,19 @@
 === Kraken Image Optimizer ===
 Contributors: karim79
-Tags: Image Optimizer, Image Optimiser, Optimize, Optimise, Images, Media, Performance, SEO, faster loading times, smushit, smush.it, compress, kraken-image-optimizer, tinypng, tinyjpeg, pngquant, jpegmini, ewww, pagespeed, pagespeed insights, sitespeed, optimize gif, optimize jpeg, optimize png, optimize animated gif, svg, improve pagerank, gtmetrix speed test
+Tags: Image Optimizer, Image Optimiser, Optimize, Optimise, Images, Media, Performance, SEO, faster loading times, smushit, smush.it, compress, kraken-image-optimizer, tinypng, tinyjpeg, pngquant, jpegmini, ewww, pagespeed, pagespeed insights, sitespeed, optimize gif, optimize jpeg, optimize png, optimize animated gif, svg, improve pagerank, gtmetrix speed test, EXIF, image resize
 Requires at least: 3.0.1
-Tested up to: 4.2
+Tested up to: 4.4.2
 Donate link: https://kraken.io
-Stable tag: 2.0.0
+Stable tag: 2.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 
-This plugin allows you to optimize your WordPress images through the Kraken API, the world's most advanced image optimization solution.
+This plugin allows you to optimize your WordPress images through the Kraken API, the world's most advanced image optimization and resizing API.
 
 == Description ==
 
-This plugin allows you to optimize new and existing Wordpress image uploads through [Kraken Image Optimizer's](https://kraken.io "Kraken Image Optimizer") API. Both lossless and intelligent lossy optimization modes are supported. Supported filetypes are JPEG, PNG and GIF. Maximum filesize limit is 16 MB. For more details, including detailed documentation and plans and pricing, please visit [Kraken.io](https://kraken.io "Kraken Image Optimizer").
+This plugin allows you to optimize and resize new and existing Wordpress image uploads through [Kraken Image Optimizer's](https://kraken.io "Kraken Image Optimizer") API. Both lossless and intelligent lossy optimization modes are supported. Supported filetypes are JPEG, PNG and GIF (including animated). Maximum filesize limit is 32 MB. For more details, including detailed documentation and plans and pricing, please visit [Kraken.io](https://kraken.io "Kraken Image Optimizer"). Even when using Kraken.io's lossy optimization, our system goes the extra mile to ensure that the results are of high quality, every time. You can just install the plugin and stop worrying.
 
 > **Get your FREE account with us**
 
@@ -30,6 +30,10 @@ This plugin allows you to optimize new and existing Wordpress image uploads thro
 = About the plugin =
 * You can use your Kraken API key and secret on as many sites/blogs as you like. We have no per-site license.
 * All images uploaded throught the media uploader are optimized on-the-fly. All generated thumbnails are optimized too.
+* The main image upload can be optionally resized - this is useful for preventing user uploads with unnecessarily large dimensions. You can specify the maximum width and/or height in Kraken.io->Settings.
+* When restricting the maximum dimensions of the main image using the resizing feature, the resulting image is **enhanced** using various advanced techniques, to help prevent downsample artifacts and "haloing" and produce a sharper result.
+* You can optionally preserve one or more of the Date, Copyright, Geotag, Orientation, Profile EXIF metadata tags.
+* Images can be automatically oriented according to their EXIF Orientation value - no need to manually rotate images.
 * All images already present in the media library can be optimized individually, or using the Bulk Action menu "Krak 'em all" feature.
 * This plugin does not require any root or command-line access. No compilation and installation of any binaries is necessary.
 * All optimization is carried out by sending images to Kraken.io's infrastructure, and pulling the optimized files to your Wordpress installation.
@@ -52,12 +56,6 @@ Once you have obtained your credentials, from your Wordpress admin, go to the Kr
 
 For advanced users, there is a third party WordPress Command Line Interface (CLI) tool to allow image optimization from the command line, or by using cron. For details, visit: https://github.com/tillkruss/wp-cli-kraken
 
-= Features on the way =
-* Optimize images directly to Amazon S3.
-* Optimize entire media library in one click.
-* Optimize your currently active theme.
-* WordPress Multisite support.
-
 Please send bug reports, problems, feature requests and so on to support (at) Kraken dot io, or directly to the author of this plugin.
 
 = Connect with Kraken.io =
@@ -65,6 +63,7 @@ Please send bug reports, problems, feature requests and so on to support (at) Kr
 * [Twitter](https://twitter.com/KrakenIO "@KrakenIO")
 * [Google+](https://plus.google.com/107209047753760492207/ "Google+")
 * [Facebook](https://www.facebook.com/krakenio "Kraken Image Optimizer")
+* [Github](https://github.com/kraken-io "Kraken.io on Github")
 
 == Installation ==
 
@@ -102,8 +101,19 @@ Yes, of course they will. Our plugin simply replaces the image files on your blo
 
 You will need to switch the Media Library from the Thumbnail view to the List view. In the "Kraked Size" column, you will then see the "Optimize This Image" button for unoptimized images, or the results of the optimization where the image has already been optimized by our plugin.
 
-
 == Changelog ==
+
+= 2.5.1 =
+* Fix fatal error on older PHP versions resulting from recent PHP array syntax
+
+= 2.5.0 = 
+* Ability to disable optimization of main image, allowing faster uploads from Media Library. You can optimize the main image later from within your Media Library.
+* Ability to restrict the maximum dimensions of image uploads (resizing), by width and/or height.
+* When using resize feature, resized images are enhanced for sharper results using various advanced techniques.
+* Ability to force JPEG quality to a discrete "quality" value, for greater savings if you know what you're doing.
+* Ability to preserve certain EXIF metadata tags, including Date, Copyright, Orientation, Geotag and Profile.
+* Ability to automatically orient images according to their Orientation EXIF metadata.
+* Improvements and simplifications to interface elements and Kraken.io Settings page.
 
 = 2.0.0 =
 * Please read! Kraken.io settings have now moved to an own section (Settings->Kraken.io), in order to reduce clutter in Media Settings, and to accomodate new features on the way.

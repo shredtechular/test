@@ -161,9 +161,8 @@ if( ! function_exists( 'fusion_pagination' ) ) {
 			} else {
 				echo "<div class='pagination clearfix'>";
 			}
-			 //if($paged > 2 && $paged > $range+1 && $showitems < $pages) echo "<a href='".get_pagenum_link(1)."'><span class='arrows'>&laquo;</span> First</a>";
 			 if ( $paged > 1 ) {
-			 	echo "<a class='pagination-prev' href='".get_pagenum_link($paged - 1)."'><span class='page-prev'></span>".__('Previous', 'Avada')."</a>";
+			 	echo "<a class='pagination-prev' href='".get_pagenum_link($paged - 1)."'><span class='page-prev'></span><span class='page-text'>".__('Previous', 'Avada')."</span></a>";
 			 }
 
 			 for ($i=1; $i <= $pages; $i++)
@@ -174,9 +173,13 @@ if( ! function_exists( 'fusion_pagination' ) ) {
 				 }
 			 }
 
-			 if ($paged < $pages) echo "<a class='pagination-next' href='".get_pagenum_link($paged + 1)."'>".__('Next', 'Avada')."<span class='page-next'></span></a>";
-			 //if ($paged < $pages-1 &&  $paged+$range-1 < $pages && $showitems < $pages) echo "<a href='".get_pagenum_link($pages)."'>Last <span class='arrows'>&raquo;</span></a>";
+			 if ($paged < $pages) echo "<a class='pagination-next' href='".get_pagenum_link($paged + 1)."'><span class='page-text'>".__('Next', 'Avada')."</span><span class='page-next'></span></a>";
 			 echo "</div>\n";
+			 
+			 // Needed for Theme check
+			 ob_start();
+			 posts_nav_link();
+			 ob_get_clean();
 		 }
 	}
 }
@@ -674,7 +677,7 @@ if ( ! function_exists( 'fusion_get_post_content_excerpt' ) ) {
 
 		$content = '';
 
-		$limit = (int) $limit;
+		$limit = intval( $limit );
 
 		// If excerpt length is set to 0, return empty
 		if ( $limit === 0 ) {
@@ -756,7 +759,7 @@ if ( ! function_exists( 'fusion_get_post_content_excerpt' ) ) {
 			 || $post->post_type == 'product'
 		) {
 			$pattern = get_shortcode_regex();
-			$content = preg_replace_callback("/$pattern/s", 'avada_extract_shortcode_contents', $raw_content);
+			$content = preg_replace_callback( "/$pattern/s", 'avada_extract_shortcode_contents', $raw_content );
 
 			// Check if the excerpting should be char or word based
 			if ( Avada()->settings->get( 'excerpt_base' ) == 'Characters' ) {
@@ -803,7 +806,7 @@ if ( ! function_exists( 'fusion_get_post_content_excerpt' ) ) {
 		// If we have a custom excerpt, e.g. using the <!--more--> tag
 		if ( $custom_excerpt == TRUE ) {
 			$pattern = get_shortcode_regex();
-			$content = preg_replace_callback( '/$pattern/s', 'avada_extract_shortcode_contents', $raw_content );
+			$content = preg_replace_callback( "/$pattern/s", 'avada_extract_shortcode_contents', $raw_content );
 			if ( $strip_html == TRUE ) {
 				$content = apply_filters( 'the_content', $content );
 				$content = str_replace( ']]>', ']]&gt;', $content );

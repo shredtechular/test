@@ -110,6 +110,7 @@ if ( ! function_exists( 'avada_render_blog_post_format' ) ) {
 		<div class="fusion-format-box">
 			<i class="fusion-icon-<?php echo $format_class; ?>"></i>
 		</div>
+		<div class="fusion-clearfix"></div>
 		<?php
 	}
 }
@@ -1074,16 +1075,36 @@ if ( ! function_exists( 'avada_page_title_bar' ) ) {
 		 * Render the page title bar
 		 */
 		?>
-		<?php if ( !is_404() ) : ?>
+		<?php 
+		$url = 'http://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+
+		if ( !is_404() && (!(strpos($url,'faq'))) ) : ?>
 		<div class="fusion-page-title-bar fusion-page-title-bar-<?php echo $content_type; ?> fusion-page-title-bar-<?php echo $alignment; ?>">
 			<div class="fusion-page-title-row">
 					<div class="fusion-three-fourth fusion-layout-column fusion-spacing-yes fusion-page-title-captions">
 						<?php if ( $title ) : ?>
 							<?php // Add entry-title for rich snippets ?>
-							<?php $entry_title_class = ( ! Avada()->settings->get( 'disable_date_rich_snippet_pages' ) ) ? ' class="entry-title"' : ''; ?>
-							<?php Fusion_Breadcrumbs(); ?>
+							<?php $entry_title_class = ( ! Avada()->settings->get( 'disable_date_rich_snippet_pages' ) ) ? ' class="entry-title"' : ''; 
 
-<!--							<h1<?php echo $entry_title_class; ?>><?php echo $title; ?></h1> -->
+
+if (get_post_type( $post_id ) == 'post') {
+	echo '<div class="fusion-breadcrumbs"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/"><span itemprop="title">Home</span></a></span><span class="fusion-breadcrumb-sep">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><span itemprop="title"><a itemprop="url" href="/all-stories/"><span itemprop="title">Stories</a></span></span><span class="fusion-breadcrumb-sep">/</span>';
+	echo $title.'<span class="fusion-breadcrumb-sep">/</span></div>';
+} elseif  (get_post_type( $post_id ) == 'theme') {
+	echo '<div class="fusion-breadcrumbs"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/"><span itemprop="title">Home</span></a></span><span class="fusion-breadcrumb-sep">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><span itemprop="title"><a itemprop="url" href="/middle-school-program/"><span itemprop="title">Middle School Program</a></span></span><span class="fusion-breadcrumb-sep">/</span>';
+	echo $title.'<span class="fusion-breadcrumb-sep">/</span></div>';
+} elseif  (get_post_type( $post_id ) == 'subject') {
+	echo '<div class="fusion-breadcrumbs"><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><a itemprop="url" href="/"><span itemprop="title">Home</span></a></span><span class="fusion-breadcrumb-sep">/</span><span itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb"><span itemprop="title"><a itemprop="url" href="/middle-school-program/"><span itemprop="title">Middle School Program</a></span></span><span class="fusion-breadcrumb-sep">/</span>';
+	echo $title.'<span class="fusion-breadcrumb-sep">/</span></div>';
+} else {
+	Fusion_Breadcrumbs();
+}
+
+							?>
+					
+
+
+<!--							<h1<?php echo $entry_title_class; ?>><?php echo $title; ?></h1>-->
 
 							<?php if ( $subtitle ) : ?>
 								<h3><?php echo $subtitle; ?></h3>

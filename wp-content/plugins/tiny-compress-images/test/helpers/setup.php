@@ -2,6 +2,13 @@
 
 require 'vendor/autoload.php';
 
+use Facebook\WebDriver;
+use Facebook\WebDriver\WebDriverDimension;
+use Facebook\WebDriver\WebDriverBy;
+use Facebook\WebDriver\Remote;
+use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\Remote\DesiredCapabilities;
+
 function wordpress($url = null) {
     return getenv('WORDPRESS_URL') . $url;
 }
@@ -26,14 +33,12 @@ function configure_wordpress_for_testing($driver) {
         activate_plugin($driver);
         backup_wordpress_site();
     }
-    set_test_webservice_url();
 }
 
 function restore_wordpress() {
     if (is_wordpress_setup()) {
         set_siteurl('http://' . getenv('HOST_IP') . ':' . getenv('HOST_PORT'));
     }
-    restore_webservice_url();
 }
 
 function mysql_dump_file() {
@@ -46,17 +51,6 @@ function restore_wordpress_site() {
 
 function backup_wordpress_site() {
     shell_exec('mysqldump -h ' . getenv('HOST_IP') . ' -u root -p' . getenv('MYSQL_ROOT_PASSWORD') . ' ' . getenv('WORDPRESS_DATABASE') . ' | gzip -c > ' . mysql_dump_file());
-}
-
-function set_test_webservice_url() {
-    $config_dir = dirname(__FILE__) . '/../../src/config';
-    shell_exec('mv ' . $config_dir . '/tiny-config.php ' . $config_dir . '/tiny-config.php.bak');
-    shell_exec('cp ' . dirname(__FILE__) . '/../fixtures/tiny-config.php ' . $config_dir . '/tiny-config.php');
-}
-
-function restore_webservice_url() {
-    $config_dir = dirname(__FILE__) . '/../../src/config';
-    shell_exec('test -f ' . $config_dir . '/tiny-config.php.bak && mv ' . $config_dir . '/tiny-config.php.bak ' . $config_dir . '/tiny-config.php');
 }
 
 function set_siteurl($site_url) {
@@ -122,17 +116,23 @@ function setup_wordpress_site($driver) {
 }
 
 function login($driver) {
-    print "Logging in to Wordpress... ";
+    print "Logging in to WordPress... ";
     $driver->get(wordpress('/wp-login.php'));
     $driver->findElement(WebDriverBy::tagName('body'))->click();
     $driver->findElement(WebDriverBy::name('log'))->clear()->click()->sendKeys('admin');
     $driver->findElement(WebDriverBy::name('pwd'))->clear()->click()->sendKeys('admin');
     $driver->findElement(WebDriverBy::tagName('form'))->submit();
 
-    $dashboardHeading = $driver->findElement(WebDriverBy::xpath("//html/body//div[@class='wrap']/*[self::h1 or self::h2]"));
-    if ($dashboardHeading->getText() == 'Dashboard') {
-        print "success!\n";
-    } else {
+    try {
+        $dashboardHeading = $driver->findElement(WebDriverBy::xpath("//html/body//div[@class='wrap']/*[self::h1 or self::h2]"));
+        if ($dashboardHeading->getText() == 'Dashboard') {
+            print "success!\n";
+        } else {
+            var_dump($driver->getPageSource());
+            throw new UnexpectedValueException('Login failed.');
+        }
+    } catch (Exception $e) {
+        // Fixme: sometimes we get a login error randomly. Perhaps it's caused by one of the tests.
         var_dump($driver->getPageSource());
         throw new UnexpectedValueException('Login failed.');
     }
@@ -168,9 +168,13 @@ function reset_webservice() {
     curl_close($request);
 }
 
-$global_webdriver_host = 'http://127.0.0.1:4444/wd/hub';
-$global_driver = RemoteWebDriver::create($global_webdriver_host, DesiredCapabilities::firefox());
+// $global_webdriver_host = 'http://127.0.0.1:4444/wd/hub';
+// $global_driver = RemoteWebDriver::create($global_webdriver_host, DesiredCapabilities::firefox());
+$global_webdriver_host = 'http://127.0.0.1:8910';
+$global_driver = RemoteWebDriver::create($global_webdriver_host, DesiredCapabilities::phantomjs());
 $global_session_id = $global_driver->getSessionID();
+$window = new WebDriverDimension(1280, 1024);
+$global_driver->manage()->window()->setSize($window);
 
 register_shutdown_function('close_webdriver');
 register_shutdown_function('restore_wordpress');

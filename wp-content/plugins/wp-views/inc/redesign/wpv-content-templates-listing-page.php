@@ -182,25 +182,18 @@ function wpv_admin_content_template_listing_name( $search_term ) {
     $other_post_status_args['post_status'] = $the_other_post_status;
     $other_post_status_args['fields'] = 'ids';
 
-    // All querying must be done between those two switch_lang() calls otherwise CT translations
-    // will be also (wrongly) included.
-    global $sitepress;
+    // All querying must be done between those two wpml_switch_language actions,
+	// otherwise CT translations will be also (wrongly) included.
 
-    $default_language = '';
-    if( isset( $sitepress ) ) {
-        //changes to the default language
-        $default_language = $sitepress->get_default_language();
-        $sitepress->switch_lang( $default_language );
-    }
+    $default_language = apply_filters( 'wpml_default_language', '' );
+	$current_language = apply_filters( 'wpml_current_language', '' );
+	do_action( 'wpml_switch_language', $default_language );
 
 	$query = new WP_Query( $wpv_args );
 
     $other_post_status_query = new WP_Query( $other_post_status_args );
 
-    if( isset( $sitepress ) ) {
-        //changes to the current language
-        $sitepress->switch_lang( ICL_LANGUAGE_CODE );
-    }
+	do_action( 'wpml_switch_language', $current_language );
 
     // Number of posts that are being displayed.
     $wpv_count_posts = $query->post_count;
@@ -241,7 +234,7 @@ function wpv_admin_content_template_listing_name( $search_term ) {
 	<?php
 		if ( $some_posts_exist || $is_search ) {
 			?>
-			<ul class="subsubsub" style="clear:both"><!-- links to lists WPA in different statuses -->
+			<ul class="subsubsub" style="clear:both"><!-- links to lists CTs in different statuses -->
 				<li>
 					<?php
 						$is_plain_publish_current_status = ( $wpv_args['post_status'] == 'publish' && !isset( $_GET["s"] ) );
@@ -272,18 +265,6 @@ function wpv_admin_content_template_listing_name( $search_term ) {
 			</ul>
 
 			<?php
-		} else {
-			// No post exist at all
-			?>
-			<p class="wpv-view-not-exist">
-			<?php _e('Content Templates let you design single pages.','wpv-views'); ?>
-			</p>
-			<p class="add-new-view">
-				<button class="button js-add-new-content-template"
-				data-target="<?php echo esc_url( add_query_arg( array( 'action' => 'wpv_ct_create_new' ), admin_url( 'admin-ajax.php' ) ) ); ?>">
-					<i class="icon-plus fa fa-plus"></i><?php _e('Add new Content Template','wpv-views') ?>
-				</button>
-			</p><?php
 		}
 
         // A nonce for CT action - used for individual as well as for bulk actions.
@@ -402,7 +383,7 @@ function wpv_admin_content_template_listing_name( $search_term ) {
 					<p class="add-new-view">
 						<button class="button js-add-new-content-template"
 								data-target="<?php echo esc_url( add_query_arg( array( 'action' => 'wpv_ct_create_new' ), admin_url( 'admin-ajax.php' ) ) ); ?>">
-							<i class="icon-plus fa fa-plus"></i><?php _e( 'Add new Content Template', 'wpv-views') ?>
+							<i class="icon-plus fa fa-plus"></i><?php _e( 'Create your first Content Template', 'wpv-views') ?>
 						</button>
 					</p>
 					<?php
@@ -646,7 +627,7 @@ function wpv_admin_content_template_listing_name( $search_term ) {
 												</span>',
 												$language_info['code'],
 												$translation_icon,
-												__( 'WPML Translation Management must be active for this link to work.', 'wpv-view' )
+												__( 'WPML Translation Management must be active for this link to work.', 'wpv-views' )
 											);
 										}
                                     }
@@ -817,13 +798,13 @@ function wpv_content_template_used_for_list( $ct_id ) {
 			$list = sprintf(
                 __( 'This Content Template is used as the loop block for the %s <a href="%s" target="_blank">%s</a>', 'wpv-views' ),
                 $owner_view->query_mode_display_name,
-                add_query_arg(
-                    array(
-                        'page' => $edit_page,
-                        'view_id' => $owner_view->id
-                    ),
-                    admin_url( 'admin.php' )
-                ),
+                esc_url( add_query_arg(
+						array(
+							'page' => $edit_page,
+							'view_id' => $owner_view->id
+						),
+						admin_url( 'admin.php' )
+				) ),
                 $owner_view->title
             );
 
@@ -841,7 +822,6 @@ function wpv_content_template_used_for_list( $ct_id ) {
 }
 
 
-// TODO consider using WP_Views_archive_loops::get_archive_loops instead of this function
 /*
  * array(
  *     'single_post' => array( 'post_type_name', 'post_type_label' ),
@@ -849,7 +829,11 @@ function wpv_content_template_used_for_list( $ct_id ) {
  *     'taxonomy_post' => ...
  * )
  */
-
+/**
+ * @deprecated Use WP_Views_archive_loops::get_archive_loops instead of this function.
+ * @return mixed
+ * @since unknown
+ */
 function wpv_get_pt_tax_array(){
    static $post_types_array;
    static $taxonomies_array;

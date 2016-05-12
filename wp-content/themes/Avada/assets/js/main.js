@@ -109,9 +109,14 @@
 
 		this.clear();
 
+	// ThemeFusion edit for Avada theme: added the full url anchors to the selector to make sure highlighting works correctly
+	var $current_href = window.location.href.split( '#' ),
+		$current_path = ( $current_href[0].charAt( $current_href[0].length - 1 ) == '/' ) ? $current_href[0] : $current_href[0] + '/';
+
 	var selector = this.selector +
 		'[data-target="' + target + '"],' +
-		this.selector + '[href="' + target + '"]';
+		this.selector + '[href="' + target + '"],' +
+		this.selector + '[href="' + $current_path + target + '"]';
 
 	var active = $(selector)
 		.parents('li')
@@ -178,51 +183,61 @@
 }(jQuery);
 
 /* ========================================================================
- * Bootstrap: transition.js v3.1.1
+ * Bootstrap: transition.js v3.3.6
  * http://getbootstrap.com/javascript/#transitions
  * ========================================================================
- * Copyright 2011-2014 Twitter, Inc.
+ * Copyright 2011-2015 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  * ======================================================================== */
 
-
 +function ($) {
-	'use strict';
+  'use strict';
 
-	// CSS TRANSITION SUPPORT (Shoutout: http://www.modernizr.com/)
-	// ============================================================
+  // CSS TRANSITION SUPPORT (Shoutout: http://www.modernizr.com/)
+  // ============================================================
 
-	function transitionEnd() {
-	var el = document.createElement('bootstrap');
+  function transitionEnd() {
+    var el = document.createElement('bootstrap');
 
-	var transEndEventNames = {
-		'WebkitTransition' : 'webkitTransitionEnd',
-		'MozTransition'	: 'transitionend',
-		'OTransition'	  : 'oTransitionEnd otransitionend',
-		'transition'	   : 'transitionend'
-	};
+    var transEndEventNames = {
+      WebkitTransition : 'webkitTransitionEnd',
+      MozTransition    : 'transitionend',
+      OTransition      : 'oTransitionEnd otransitionend',
+      transition       : 'transitionend'
+    };
 
-	for (var name in transEndEventNames) {
-		if (el.style[name] !== undefined) {
-		return { end: transEndEventNames[name] }
-		}
-	}
+    for (var name in transEndEventNames) {
+      if (el.style[name] !== undefined) {
+        return { end: transEndEventNames[name] };
+      }
+    }
 
-	return false; // explicit for ie8 (  ._.)
-	}
+    return false; // explicit for ie8 (  ._.)
+  }
 
-	// http://blog.alexmaccaw.com/css-transitions
-	$.fn.emulateTransitionEnd = function (duration) {
-	var called = false, $el = this;
-	$(this).one($.support.transition.end, function () { called = true });
-	var callback = function () { if (!called) $($el).trigger($.support.transition.end) };
-	setTimeout(callback, duration);
-	return this;
-	};
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false;
+    var $el = this;
+    $(this).one('bsTransitionEnd', function () { called = true });
+    var callback = function () { if (!called) $($el).trigger($.support.transition.end) };
+    setTimeout(callback, duration);
+    return this;
+  };
 
-	$(function () {
-	$.support.transition = transitionEnd();
-	})
+  $(function () {
+    $.support.transition = transitionEnd();
+
+    if (!$.support.transition) return;
+
+    $.event.special.bsTransitionEnd = {
+      bindType: $.support.transition.end,
+      delegateType: $.support.transition.end,
+      handle: function (e) {
+        if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments);
+      }
+    };
+  });
 
 }(jQuery);
 
@@ -696,6 +711,7 @@
 	var $target = $(selector);
 
 	this.activate($this.parent('li'), $ul);
+
 	this.activate($target, $target.parent(), function () {
 		$this.trigger({
 		type: 'shown.bs.tab',
@@ -705,40 +721,45 @@
 	};
 
 	Tab.prototype.activate = function (element, container, callback) {
-	var $active	= container.find('> .active');
-	var transition = callback
-		&& $.support.transition
-		&& $active.hasClass('fade');
+		var $active	= container.find('> .active');
+		var transition = callback
+			&& $.support.transition
+			&& $active.hasClass('fade');
 
-	function next() {
-		$active
-		.removeClass('active')
-		.find('> .dropdown-menu > .active')
-		.removeClass('active');
+		function next() {
+			$active
+			.removeClass('active')
+			.find('> .dropdown-menu > .active')
+			.removeClass('active');
 
-		element.addClass('active');
+			element.addClass('active');
 
-		if (transition) {
-		element[0].offsetWidth; // reflow for transition
-		element.addClass('in');
-		} else {
-		element.removeClass('fade');
+			// ThemeFusion edit for Avada theme: needed for mobile tabs setup
+			if ( element.parent( '.nav-tabs' ).length ) {
+				element.parents( '.fusion-tabs' ).find( '.nav' ).find( 'a[href=' + element.find( 'a' ).attr( 'href' ) + ']' ).parent().addClass( 'active' );
+			}
+
+			if (transition) {
+				element[0].offsetWidth; // reflow for transition
+				element.addClass('in');
+			} else {
+				element.removeClass('fade');
+			}
+
+			if (element.parent('.dropdown-menu')) {
+				element.closest('li.dropdown').addClass('active');
+			}
+
+			callback && callback();
 		}
 
-		if (element.parent('.dropdown-menu')) {
-		element.closest('li.dropdown').addClass('active');
-		}
+		transition ?
+			$active
+			.one($.support.transition.end, next)
+			.emulateTransitionEnd(150) :
+			next();
 
-		callback && callback();
-	}
-
-	transition ?
-		$active
-		.one($.support.transition.end, next)
-		.emulateTransitionEnd(150) :
-		next();
-
-	$active.removeClass('in');
+		$active.removeClass('in');
 	};
 
 
@@ -984,7 +1005,8 @@
 				.detach()
 				.css({ top: 0, left: 0, display: 'block' })
 				.addClass(placement)
-				.data('bs.' + this.type, this);
+				.data('bs.' + this.type, this)
+				.addClass(this.$element.data('class')); // ThemeFusion edit for Avada theme
 
 			this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element);
 			this.$element.trigger('inserted.bs.' + this.type);
@@ -1260,6 +1282,7 @@
 	Tooltip.prototype.destroy = function () {
 		var that = this;
 		clearTimeout(this.timeout);
+
 		this.hide(function () {
 			that.$element.off('.' + that.type).removeData('bs.' + that.type);
 			if (that.$tip) {
@@ -1753,363 +1776,7 @@ function(html, userAgent, sa) {
 
 	return cssua;
 
-})(document.documentElement, navigator.userAgent, navigator.standalone);;/**!
- * easyPieChart
- * Lightweight plugin to render simple, animated and retina optimized pie charts
- *
- * @license
- * @author Robert Fleischmann <rendro87@gmail.com> (http://robert-fleischmann.de)
- * @version 2.1.3
- **/
-
-(function(root, factory) {
-	if(typeof exports === 'object') {
-		module.exports = factory(require('jquery'));
-	}
-	else if(typeof define === 'function' && define.amd) {
-		define(['jquery'], factory);
-	}
-	else {
-		factory(root.jQuery);
-	}
-}(this, function($) {
-/**
- * Renderer to render the chart on a canvas object
- * @param {DOMElement} el	  DOM element to host the canvas (root of the plugin)
- * @param {object}	 options options object of the plugin
- */
-var CanvasRenderer = function(el, options) {
-	var cachedBackground;
-	var canvas = document.createElement('canvas');
-
-	el.appendChild(canvas);
-
-	if (typeof(G_vmlCanvasManager) !== 'undefined') {
-		G_vmlCanvasManager.initElement(canvas);
-	}
-
-	var ctx = canvas.getContext('2d');
-
-	canvas.width = canvas.height = options.size;
-
-	// canvas on retina devices
-	var scaleBy = 1;
-	if (window.devicePixelRatio > 1) {
-		scaleBy = window.devicePixelRatio;
-		canvas.style.width = canvas.style.height = [options.size, 'px'].join('');
-		canvas.width = canvas.height = options.size * scaleBy;
-		ctx.scale(scaleBy, scaleBy);
-	}
-
-	// move 0,0 coordinates to the center
-	ctx.translate(options.size / 2, options.size / 2);
-
-	// rotate canvas -90deg
-	ctx.rotate((-1 / 2 + options.rotate / 180) * Math.PI);
-
-	var radius = (options.size - options.lineWidth) / 2;
-	if (options.scaleColor && options.scaleLength) {
-		radius -= options.scaleLength + 2; // 2 is the distance between scale and bar
-	}
-
-	// IE polyfill for Date
-	Date.now = Date.now || function() {
-		return +(new Date());
-	};
-
-	/**
-	 * Draw a circle around the center of the canvas
-	 * @param {strong} color	 Valid CSS color string
-	 * @param {number} lineWidth Width of the line in px
-	 * @param {number} percent   Percentage to draw (float between -1 and 1)
-	 */
-	var drawCircle = function(color, lineWidth, percent) {
-		percent = Math.min(Math.max(-1, percent || 0), 1);
-		var isNegative = percent <= 0 ? true : false;
-
-		ctx.beginPath();
-		ctx.arc(0, 0, radius, 0, Math.PI * 2 * percent, isNegative);
-
-		ctx.strokeStyle = color;
-		ctx.lineWidth = lineWidth;
-
-		ctx.stroke();
-	};
-
-	/**
-	 * Draw the scale of the chart
-	 */
-	var drawScale = function() {
-		var offset;
-		var length;
-
-		ctx.lineWidth = 1;
-		ctx.fillStyle = options.scaleColor;
-
-		ctx.save();
-		for (var i = 24; i > 0; --i) {
-			if (i % 6 === 0) {
-				length = options.scaleLength;
-				offset = 0;
-			} else {
-				length = options.scaleLength * 0.6;
-				offset = options.scaleLength - length;
-			}
-			ctx.fillRect(-options.size/2 + offset, 0, length, 1);
-			ctx.rotate(Math.PI / 12);
-		}
-		ctx.restore();
-	};
-
-	/**
-	 * Request animation frame wrapper with polyfill
-	 * @return {function} Request animation frame method or timeout fallback
-	 */
-	var reqAnimationFrame = (function() {
-		return  window.requestAnimationFrame ||
-				window.webkitRequestAnimationFrame ||
-				window.mozRequestAnimationFrame ||
-				function(callback) {
-					window.setTimeout(callback, 1000 / 60);
-				};
-	}());
-
-	/**
-	 * Draw the background of the plugin including the scale and the track
-	 */
-	var drawBackground = function() {
-		if(options.scaleColor) drawScale();
-		if(options.trackColor) drawCircle(options.trackColor, options.lineWidth, 1);
-	};
-
-  /**
-	* Canvas accessor
-   */
-  this.getCanvas = function() {
-	return canvas;
-  };
-
-  /**
-	* Canvas 2D context 'ctx' accessor
-   */
-  this.getCtx = function() {
-	return ctx;
-  };
-
-	/**
-	 * Clear the complete canvas
-	 */
-	this.clear = function() {
-		ctx.clearRect(options.size / -2, options.size / -2, options.size, options.size);
-	};
-
-	/**
-	 * Draw the complete chart
-	 * @param {number} percent Percent shown by the chart between -100 and 100
-	 */
-	this.draw = function(percent) {
-		// do we need to render a background
-		if (!!options.scaleColor || !!options.trackColor) {
-			// getImageData and putImageData are supported
-			if (ctx.getImageData && ctx.putImageData) {
-				if (!cachedBackground) {
-					drawBackground();
-					cachedBackground = ctx.getImageData(0, 0, options.size * scaleBy, options.size * scaleBy);
-				} else {
-					ctx.putImageData(cachedBackground, 0, 0);
-				}
-			} else {
-				this.clear();
-				drawBackground();
-			}
-		} else {
-			this.clear();
-		}
-
-		ctx.lineCap = options.lineCap;
-
-		// if barcolor is a function execute it and pass the percent as a value
-		var color;
-		if (typeof(options.barColor) === 'function') {
-			color = options.barColor(percent);
-		} else {
-			color = options.barColor;
-		}
-
-		// draw bar
-		drawCircle(color, options.lineWidth, percent / 100);
-	}.bind(this);
-
-	/**
-	 * Animate from some percent to some other percentage
-	 * @param {number} from Starting percentage
-	 * @param {number} to   Final percentage
-	 */
-	this.animate = function(from, to) {
-		var startTime = Date.now();
-		options.onStart(from, to);
-		var animation = function() {
-			var process = Math.min(Date.now() - startTime, options.animate.duration);
-			var currentValue = options.easing(this, process, from, to - from, options.animate.duration);
-			this.draw(currentValue);
-			options.onStep(from, to, currentValue);
-			if (process >= options.animate.duration) {
-				options.onStop(from, to);
-			} else {
-				reqAnimationFrame(animation);
-			}
-		}.bind(this);
-
-		reqAnimationFrame(animation);
-	}.bind(this);
-};
-
-var EasyPieChart = function(el, opts) {
-	var defaultOptions = {
-		barColor: '#ef1e25',
-		trackColor: '#f9f9f9',
-		scaleColor: '#dfe0e0',
-		scaleLength: 5,
-		lineCap: 'round',
-		lineWidth: 3,
-		size: 110,
-		rotate: 0,
-		animate: {
-			duration: 1000,
-			enabled: true
-		},
-		easing: function (x, t, b, c, d) { // more can be found here: http://gsgd.co.uk/sandbox/jquery/easing/
-			t = t / (d/2);
-			if (t < 1) {
-				return c / 2 * t * t + b;
-			}
-			return -c/2 * ((--t)*(t-2) - 1) + b;
-		},
-		onStart: function(from, to) {
-			return;
-		},
-		onStep: function(from, to, currentValue) {
-			return;
-		},
-		onStop: function(from, to) {
-			return;
-		}
-	};
-
-	// detect present renderer
-	if (typeof(CanvasRenderer) !== 'undefined') {
-		defaultOptions.renderer = CanvasRenderer;
-	} else if (typeof(SVGRenderer) !== 'undefined') {
-		defaultOptions.renderer = SVGRenderer;
-	} else {
-		throw new Error('Please load either the SVG- or the CanvasRenderer');
-	}
-
-	var options = {};
-	var currentValue = 0;
-
-	/**
-	 * Initialize the plugin by creating the options object and initialize rendering
-	 */
-	var init = function() {
-		this.el = el;
-		this.options = options;
-
-		// merge user options into default options
-		for (var i in defaultOptions) {
-			if (defaultOptions.hasOwnProperty(i)) {
-				options[i] = opts && typeof(opts[i]) !== 'undefined' ? opts[i] : defaultOptions[i];
-				if (typeof(options[i]) === 'function') {
-					options[i] = options[i].bind(this);
-				}
-			}
-		}
-
-		// check for jQuery easing
-		if (typeof(options.easing) === 'string' && typeof(jQuery) !== 'undefined' && jQuery.isFunction(jQuery.easing[options.easing])) {
-			options.easing = jQuery.easing[options.easing];
-		} else {
-			options.easing = defaultOptions.easing;
-		}
-
-		// process earlier animate option to avoid bc breaks
-		if (typeof(options.animate) === 'number') {
-			options.animate = {
-				duration: options.animate,
-				enabled: true
-			};
-		}
-
-		if (typeof(options.animate) === 'boolean' && !options.animate) {
-			options.animate = {
-				duration: 1000,
-				enabled: options.animate
-			};
-		}
-
-		// create renderer
-		this.renderer = new options.renderer(el, options);
-
-		// initial draw
-		this.renderer.draw(currentValue);
-
-		// initial update
-		if (el.dataset && el.dataset.percent) {
-			this.update(parseFloat(el.dataset.percent));
-		} else if (el.getAttribute && el.getAttribute('data-percent')) {
-			this.update(parseFloat(el.getAttribute('data-percent')));
-		}
-	}.bind(this);
-
-	/**
-	 * Update the value of the chart
-	 * @param  {number} newValue Number between 0 and 100
-	 * @return {object}		  Instance of the plugin for method chaining
-	 */
-	this.update = function(newValue) {
-		newValue = parseFloat(newValue);
-		if (options.animate.enabled) {
-			this.renderer.animate(currentValue, newValue);
-		} else {
-			this.renderer.draw(newValue);
-		}
-		currentValue = newValue;
-		return this;
-	}.bind(this);
-
-	/**
-	 * Disable animation
-	 * @return {object} Instance of the plugin for method chaining
-	 */
-	this.disableAnimation = function() {
-		options.animate.enabled = false;
-		return this;
-	};
-
-	/**
-	 * Enable animation
-	 * @return {object} Instance of the plugin for method chaining
-	 */
-	this.enableAnimation = function() {
-		options.animate.enabled = true;
-		return this;
-	};
-
-	init();
-};
-
-$.fn.easyPieChart = function(options) {
-	return this.each(function() {
-		var instanceOptions;
-
-		if (!$.data(this, 'easyPieChart')) {
-			instanceOptions = $.extend({}, options, $(this).data());
-			$.data(this, 'easyPieChart', new EasyPieChart(this, instanceOptions));
-		}
-	});
-};
-
-}));;// Copyright 2006 Google Inc.
+})(document.documentElement, navigator.userAgent, navigator.standalone);;// Copyright 2006 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14814,6 +14481,15 @@ if ( typeof define === 'function' && define.amd ) {
 
 		var nowTime = new Date();
 
+		// ThemeFusion edit for Avada theme:
+		// Calculate start time according to site time offset
+		if ( options.gmtOffset ) {
+			var site_offset = options.gmtOffset*60*60000,
+				user_offset = nowTime.getTimezoneOffset()*60000;
+			nowTime = new Date( nowTime.getTime() + site_offset + user_offset );
+
+		}
+
 		diffSecs = Math.floor((targetTime.valueOf()-nowTime.valueOf())/1000);
 
 		$.data(this[0], 'diffSecs', diffSecs);
@@ -16632,7 +16308,371 @@ jQuery.extend( jQuery.easing,
 		if (t < d/2) return jQuery.easing.easeInBounce (x, t*2, 0, c, d) * .5 + b;
 		return jQuery.easing.easeOutBounce (x, t*2-d, 0, c, d) * .5 + c*.5 + b;
 	}
-});;(function( window, $, undefined ) {
+});;/**!
+ * easy-pie-chart
+ * Lightweight plugin to render simple, animated and retina optimized pie charts
+ *
+ * @license
+ * @author Robert Fleischmann <rendro87@gmail.com> (http://robert-fleischmann.de)
+ * @version 2.1.7
+ **/
+
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module unless amdModuleId is set
+    define(["jquery"], function (a0) {
+      return (factory(a0));
+    });
+  } else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory(require("jquery"));
+  } else {
+    factory(jQuery);
+  }
+}(this, function ($) {
+
+/**
+ * Renderer to render the chart on a canvas object
+ * @param {DOMElement} el      DOM element to host the canvas (root of the plugin)
+ * @param {object}     options options object of the plugin
+ */
+var CanvasRenderer = function(el, options) {
+	var cachedBackground;
+	var canvas = document.createElement('canvas');
+
+	el.appendChild(canvas);
+
+	if (typeof(G_vmlCanvasManager) === 'object') {
+		G_vmlCanvasManager.initElement(canvas);
+	}
+
+	var ctx = canvas.getContext('2d');
+
+	canvas.width = canvas.height = options.size;
+
+	// canvas on retina devices
+	var scaleBy = 1;
+	if (window.devicePixelRatio > 1) {
+		scaleBy = window.devicePixelRatio;
+		canvas.style.width = canvas.style.height = [options.size, 'px'].join('');
+		canvas.width = canvas.height = options.size * scaleBy;
+		ctx.scale(scaleBy, scaleBy);
+	}
+
+	// move 0,0 coordinates to the center
+	ctx.translate(options.size / 2, options.size / 2);
+
+	// rotate canvas -90deg
+	ctx.rotate((-1 / 2 + options.rotate / 180) * Math.PI);
+
+	var radius = (options.size - options.lineWidth) / 2;
+	if (options.scaleColor && options.scaleLength) {
+		radius -= options.scaleLength + 2; // 2 is the distance between scale and bar
+	}
+
+	// IE polyfill for Date
+	Date.now = Date.now || function() {
+		return +(new Date());
+	};
+
+	/**
+	 * Draw a circle around the center of the canvas
+	 * @param {strong} color     Valid CSS color string
+	 * @param {number} lineWidth Width of the line in px
+	 * @param {number} percent   Percentage to draw (float between -1 and 1)
+	 */
+	var drawCircle = function(color, lineWidth, percent) {
+		percent = Math.min(Math.max(-1, percent || 0), 1);
+		var isNegative = percent <= 0 ? true : false;
+
+		ctx.beginPath();
+		ctx.arc(0, 0, radius, 0, Math.PI * 2 * percent, isNegative);
+
+		ctx.strokeStyle = color;
+		ctx.lineWidth = lineWidth;
+
+		ctx.stroke();
+	};
+
+	/**
+	 * Draw the scale of the chart
+	 */
+	var drawScale = function() {
+		var offset;
+		var length;
+
+		ctx.lineWidth = 1;
+		ctx.fillStyle = options.scaleColor;
+
+		ctx.save();
+		for (var i = 24; i > 0; --i) {
+			if (i % 6 === 0) {
+				length = options.scaleLength;
+				offset = 0;
+			} else {
+				length = options.scaleLength * 0.6;
+				offset = options.scaleLength - length;
+			}
+			ctx.fillRect(-options.size/2 + offset, 0, length, 1);
+			ctx.rotate(Math.PI / 12);
+		}
+		ctx.restore();
+	};
+
+	/**
+	 * Request animation frame wrapper with polyfill
+	 * @return {function} Request animation frame method or timeout fallback
+	 */
+	var reqAnimationFrame = (function() {
+		return  window.requestAnimationFrame ||
+				window.webkitRequestAnimationFrame ||
+				window.mozRequestAnimationFrame ||
+				function(callback) {
+					window.setTimeout(callback, 1000 / 60);
+				};
+	}());
+
+	/**
+	 * Draw the background of the plugin including the scale and the track
+	 */
+	var drawBackground = function() {
+		if(options.scaleColor) drawScale();
+		if(options.trackColor) drawCircle(options.trackColor, options.trackWidth || options.lineWidth, 1);
+	};
+
+  /**
+    * Canvas accessor
+   */
+  this.getCanvas = function() {
+    return canvas;
+  };
+
+  /**
+    * Canvas 2D context 'ctx' accessor
+   */
+  this.getCtx = function() {
+    return ctx;
+  };
+
+	/**
+	 * Clear the complete canvas
+	 */
+	this.clear = function() {
+		ctx.clearRect(options.size / -2, options.size / -2, options.size, options.size);
+	};
+
+	/**
+	 * Draw the complete chart
+	 * @param {number} percent Percent shown by the chart between -100 and 100
+	 */
+	this.draw = function(percent) {
+		// do we need to render a background
+		if (!!options.scaleColor || !!options.trackColor) {
+			// getImageData and putImageData are supported
+			if (ctx.getImageData && ctx.putImageData) {
+				if (!cachedBackground) {
+					drawBackground();
+					cachedBackground = ctx.getImageData(0, 0, options.size * scaleBy, options.size * scaleBy);
+				} else {
+					ctx.putImageData(cachedBackground, 0, 0);
+				}
+			} else {
+				this.clear();
+				drawBackground();
+			}
+		} else {
+			this.clear();
+		}
+
+		ctx.lineCap = options.lineCap;
+
+		// if barcolor is a function execute it and pass the percent as a value
+		var color;
+		if (typeof(options.barColor) === 'function') {
+			color = options.barColor(percent);
+		} else {
+			color = options.barColor;
+		}
+
+		// draw bar
+		drawCircle(color, options.lineWidth, percent / 100);
+	}.bind(this);
+
+	/**
+	 * Animate from some percent to some other percentage
+	 * @param {number} from Starting percentage
+	 * @param {number} to   Final percentage
+	 */
+	this.animate = function(from, to) {
+		var startTime = Date.now();
+		options.onStart(from, to);
+		var animation = function() {
+			var process = Math.min(Date.now() - startTime, options.animate.duration);
+			var currentValue = options.easing(this, process, from, to - from, options.animate.duration);
+			this.draw(currentValue);
+			options.onStep(from, to, currentValue);
+			if (process >= options.animate.duration) {
+				options.onStop(from, to);
+			} else {
+				reqAnimationFrame(animation);
+			}
+		}.bind(this);
+
+		reqAnimationFrame(animation);
+	}.bind(this);
+};
+
+var EasyPieChart = function(el, opts) {
+	var defaultOptions = {
+		barColor: '#ef1e25',
+		trackColor: '#f9f9f9',
+		scaleColor: '#dfe0e0',
+		scaleLength: 5,
+		lineCap: 'round',
+		lineWidth: 3,
+		trackWidth: undefined,
+		size: 110,
+		rotate: 0,
+		animate: {
+			duration: 1000,
+			enabled: true
+		},
+		easing: function (x, t, b, c, d) { // more can be found here: http://gsgd.co.uk/sandbox/jquery/easing/
+			t = t / (d/2);
+			if (t < 1) {
+				return c / 2 * t * t + b;
+			}
+			return -c/2 * ((--t)*(t-2) - 1) + b;
+		},
+		onStart: function(from, to) {
+			return;
+		},
+		onStep: function(from, to, currentValue) {
+			return;
+		},
+		onStop: function(from, to) {
+			return;
+		}
+	};
+
+	// detect present renderer
+	if (typeof(CanvasRenderer) !== 'undefined') {
+		defaultOptions.renderer = CanvasRenderer;
+	} else if (typeof(SVGRenderer) !== 'undefined') {
+		defaultOptions.renderer = SVGRenderer;
+	} else {
+		throw new Error('Please load either the SVG- or the CanvasRenderer');
+	}
+
+	var options = {};
+	var currentValue = 0;
+
+	/**
+	 * Initialize the plugin by creating the options object and initialize rendering
+	 */
+	var init = function() {
+		this.el = el;
+		this.options = options;
+
+		// merge user options into default options
+		for (var i in defaultOptions) {
+			if (defaultOptions.hasOwnProperty(i)) {
+				options[i] = opts && typeof(opts[i]) !== 'undefined' ? opts[i] : defaultOptions[i];
+				if (typeof(options[i]) === 'function') {
+					options[i] = options[i].bind(this);
+				}
+			}
+		}
+
+		// check for jQuery easing
+		if (typeof(options.easing) === 'string' && typeof(jQuery) !== 'undefined' && jQuery.isFunction(jQuery.easing[options.easing])) {
+			options.easing = jQuery.easing[options.easing];
+		} else {
+			options.easing = defaultOptions.easing;
+		}
+
+		// process earlier animate option to avoid bc breaks
+		if (typeof(options.animate) === 'number') {
+			options.animate = {
+				duration: options.animate,
+				enabled: true
+			};
+		}
+
+		if (typeof(options.animate) === 'boolean' && !options.animate) {
+			options.animate = {
+				duration: 1000,
+				enabled: options.animate
+			};
+		}
+
+		// create renderer
+		this.renderer = new options.renderer(el, options);
+
+		// initial draw
+		this.renderer.draw(currentValue);
+
+		// initial update
+		if (el.dataset && el.dataset.percent) {
+			this.update(parseFloat(el.dataset.percent));
+		} else if (el.getAttribute && el.getAttribute('data-percent')) {
+			this.update(parseFloat(el.getAttribute('data-percent')));
+		}
+	}.bind(this);
+
+	/**
+	 * Update the value of the chart
+	 * @param  {number} newValue Number between 0 and 100
+	 * @return {object}          Instance of the plugin for method chaining
+	 */
+	this.update = function(newValue) {
+		newValue = parseFloat(newValue);
+		if (options.animate.enabled) {
+			this.renderer.animate(currentValue, newValue);
+		} else {
+			this.renderer.draw(newValue);
+		}
+		currentValue = newValue;
+		return this;
+	}.bind(this);
+
+	/**
+	 * Disable animation
+	 * @return {object} Instance of the plugin for method chaining
+	 */
+	this.disableAnimation = function() {
+		options.animate.enabled = false;
+		return this;
+	};
+
+	/**
+	 * Enable animation
+	 * @return {object} Instance of the plugin for method chaining
+	 */
+	this.enableAnimation = function() {
+		options.animate.enabled = true;
+		return this;
+	};
+
+	init();
+};
+
+$.fn.easyPieChart = function(options) {
+	return this.each(function() {
+		var instanceOptions;
+
+		if (!$.data(this, 'easyPieChart')) {
+			instanceOptions = $.extend({}, options, $(this).data());
+			$.data(this, 'easyPieChart', new EasyPieChart(this, instanceOptions));
+		}
+	});
+};
+
+
+}));
+;(function( window, $, undefined ) {
 
 	/*
 	* smartresize: debounced resize event for jQuery
@@ -24466,7 +24506,9 @@ function handler(event) {
 		supportTouch = !!('ontouchstart' in window) && (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)),
 
 		// Events
-		clickEvent = supportTouch ? "itap.iLightBox" : "click.iLightBox",
+		// ThemeFusion edit for Avada theme: remove the .iLightBox namespace from click event to avoid different button errors
+		clickEvent = supportTouch ? "itap" : "click",
+		globalClickEvent = supportTouch ? "itap" : "click",
 		touchStartEvent = supportTouch ? "touchstart.iLightBox" : "mousedown.iLightBox",
 		touchStopEvent = supportTouch ? "touchend.iLightBox" : "mouseup.iLightBox",
 		touchMoveEvent = supportTouch ? "touchmove.iLightBox" : "mousemove.iLightBox",
@@ -25690,12 +25732,11 @@ function handler(event) {
 			}).on('mouseenter.iLightBox mouseleave.iLightBox', '.ilightbox-wrapper', function(e) {
 				if (e.type == 'mouseenter') { vars.lockWheel = true; }
 				else { vars.lockWheel = false; }
-			// ThemeFusion edit for Avada theme: added "click" to the event to make it always work
-			}).on(clickEvent, '.ilightbox-toolbar a.ilightbox-close, .ilightbox-toolbar a.ilightbox-fullscreen, .ilightbox-toolbar a.ilightbox-play, .ilightbox-toolbar a.ilightbox-pause', function() {
+			}).on(clickEvent, '.ilightbox-toolbar a.ilightbox-close, .ilightbox-toolbar a.ilightbox-fullscreen, .ilightbox-toolbar a.ilightbox-play, .ilightbox-toolbar a.ilightbox-pause', function(event) {
 				var t = $(this);
-
 				if (t.hasClass('ilightbox-fullscreen')) { iL.fullScreenAction(); }
 				else if (t.hasClass('ilightbox-play')) {
+
 					iL.resume();
 					t.addClass('ilightbox-pause').removeClass('ilightbox-play');
 				} else if (t.hasClass('ilightbox-pause')) {
@@ -26665,7 +26706,7 @@ function handler(event) {
 				testEl = document.createElement("video");
 
 			iL.plugins = {
-				flash: (parseInt(PluginDetect.getVersion("Shockwave")) >= 0 || parseInt(PluginDetect.getVersion("Flash")) >= 0) ? true : false,
+				flash: false, // fix for issue #1750 by Avada
 				quicktime: (parseInt(PluginDetect.getVersion("QuickTime")) >= 0) ? true : false,
 				html5H264: !!(testEl.canPlayType && testEl.canPlayType('video/mp4').replace(/no/, '')),
 				html5WebM: !!(testEl.canPlayType && testEl.canPlayType('video/webm').replace(/no/, '')),
@@ -27761,7 +27802,8 @@ function handler(event) {
 			return -1;
 		};
 	}
-})(jQuery, this);;/*******************************************
+})(jQuery, this);
+;/*******************************************
  Avada Lightbox
  *
  * @package		Avada
@@ -27806,9 +27848,14 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 			$image_formats_mask = 0,
 			$href = jQuery( this ).attr( 'href' );
 
+		// Fix for #1738
+		if( typeof $href == 'undefined' ) {
+			$href = '';
+		}
+
 		// Loop through the image extensions array to see if we have an image link
 		for ( var $i = 0; $i < $image_formats.length; $i++ ) {
-			$image_formats_mask += String( $href ).indexOf( '.' + $image_formats[$i] );
+			$image_formats_mask += String( $href ).toLowerCase().indexOf( '.' + $image_formats[$i] );
 		}
 
 		// Check for Vimeo URL
@@ -27889,7 +27936,7 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 
 	//activate lightbox for images within the post content
 	if( Boolean( Number( js_local_vars.lightbox_post_images ) ) ) {
-		$wrapper.find( '.single-post .post-content a, #posts-container .post .post-content a, .fusion-blog-shortcode .post .post-content a' ).has( 'img' ).each(
+		$wrapper.find( '.type-post .post-content a, #posts-container .post .post-content a, .fusion-blog-shortcode .post .post-content a' ).has( 'img' ).each(
 			function() {
 				// Make sure the lightbox is only used for image links and not for links to external pages
 				var $image_formats = ['bmp', 'gif', 'jpeg', 'jpg', 'png', 'tiff', 'tif', 'jfif', 'jpe', 'svg', 'mp4', 'ogg', 'webm' ],
@@ -27897,7 +27944,7 @@ $avada_lightbox.activate_lightbox = function( $wrapper ) {
 
 				// Loop through the image extensions array to see if we have an image link
 				for ( var $i = 0; $i < $image_formats.length; $i++ ) {
-					$image_formats_mask += String( jQuery( this ).attr( 'href' ) ).indexOf( '.' + $image_formats[$i] );
+                    $image_formats_mask += String( jQuery( this ).attr( 'href' ) ).toLowerCase().indexOf( '.' + $image_formats[$i] );
 				}
 
 				// If no image extension was found add the no lightbox class
@@ -28023,7 +28070,7 @@ jQuery( document ).ajaxComplete( function() {
 	$avada_lightbox.refresh_lightbox();
 });
 
-jQuery(document).ready(function() {
+jQuery(window).load(function() {
 	//initialize lightbox
 	$avada_lightbox.initialize_lightbox();
 });
@@ -28200,7 +28247,7 @@ function wrap_gravity_selects() {
 
 // Wrap gravity forms select and add arrow
 function calc_select_arrow_dimensions() {
-	jQuery( '.avada-select-parent .select-arrow, .gravity-select-parent .select-arrow, .wpcf7-select-parent .select-arrow' ).each( function() {
+	jQuery( '.avada-select-parent .select-arrow, .gravity-select-parent .select-arrow, .wpcf7-select-parent .select-arrow' ).filter( ':visible' ).each( function() {
 		if( jQuery( this ).prev().innerHeight() > 0 ) {
 			jQuery( this ).css( {
 				height: jQuery( this ).prev().innerHeight(),
@@ -28357,7 +28404,7 @@ jQuery( window ).load(function() {
 	});
 });
 
-jQuery( document ).ajaxComplete( function() {
+jQuery( document ).ajaxComplete( function( event, request, settings ) {
 	jQuery( '.fusion-tribe-has-featured-image' ).each(function() {
 		var height = jQuery(this).parent().height();
 		jQuery(this).find('.tribe-events-event-image').css('height', height);
@@ -28368,8 +28415,26 @@ jQuery( document ).ajaxComplete( function() {
 		jQuery( this ).find( '.full-video, .video-shortcode, .wooslider .slide-content' ).fitVids();
 	});
 
-	jQuery( '#tribe-events .fusion-blog-layout-grid' ).isotope();
-	jQuery( window ).trigger( 'resize' );
+	// Fade in new posts when all images are loaded, then relayout isotope
+	$posts_container = jQuery( '#tribe-events .fusion-blog-layout-grid' );
+	$posts = $posts_container.find( '.post' );
+	$posts_container.css( 'height', $posts_container.height() );
+	$posts.hide();
+	imagesLoaded( $posts, function() {
+
+		$posts_container.css( 'height', '' );
+		$posts.fadeIn();
+
+		// Relayout isotope
+		$posts_container.isotope();
+		jQuery( window ).trigger( 'resize' );
+
+		// Refresh the scrollspy script for one page layouts
+		jQuery( '[data-spy="scroll"]' ).each( function () {
+			  var $spy = jQuery( this ).scrollspy( 'refresh' );
+		});
+	});
+
 });
 ;/**
  * WooCommerce Quanity buttons add-back
@@ -28468,9 +28533,25 @@ function fusion_resize_crossfade_images_container( $container ) {
 	$container.css( 'height', $biggest_height );
 }
 
+function fusion_calc_woocommerce_tabs_layout( $tab_selector ) {
+	jQuery( $tab_selector ).each( function() {
+		var $menu_width = jQuery( this ).parent().width();
+		var $menu_items = jQuery( this ).find( 'li' ).length;
+		var $mod = $menu_width % $menu_items;
+		var $item_width = ( $menu_width - $mod ) / $menu_items;
+		var $last_item_width = $menu_width - $item_width * ( $menu_items - 1 );
+
+		jQuery( this ).css( 'width', $menu_width + 'px' );
+		jQuery( this ).find( 'li' ).css( 'width', $item_width + 'px' );
+		jQuery( this ).find( 'li:last' ).css( 'width', $last_item_width + 'px' ).addClass( 'no-border-right' );
+	});
+};
+
 // Resize crossfade images and square to be the largest image and also vertically centered
 jQuery( window ).load(
     function() {
+		jQuery( '.variations_form' ).find( '.variations .single_variation_wrap .woocommerce-variation-description' ).remove();
+
         jQuery( window ).resize(
             function() {
 				jQuery( '.crossfade-images' ).each(
@@ -28514,41 +28595,54 @@ jQuery( window ).load(
 				}
 
 				$slider_first_image.parent().attr( 'href', $slider_first_image_src );
-
+				$slider_first_image.removeAttr( 'sizes' );
+				$slider_first_image.removeAttr( 'srcset' );
 
 				// Refresh the lightbox
 				$avada_lightbox.refresh_lightbox();
 
 				$thumbs_first_image.attr( 'src', $slider_first_image_src );
-
+				$thumbs_first_image.removeAttr( 'sizes' );
+				$thumbs_first_image.removeAttr( 'srcset' );
 
 				var $slider = jQuery( '.images #slider' ).data( 'flexslider' );
-				$slider.resize();
+				if ( $slider ) {
+					$slider.resize();
+				}
 
 				$variations_form.find( '.variations .single_variation_wrap .woocommerce-variation-description' ).remove();
 
 			}, 1 );
 
 			setTimeout( function() {
+				$avada_lightbox.refresh_lightbox();
+
 				var $slider = jQuery( '.images #slider' ).data( 'flexslider' );
-				$slider.resize();
+				if ( $slider ) {
+					$slider.resize();
+				}
 			}, 500 );
+
+			setTimeout( function() {
+				$avada_lightbox.refresh_lightbox();
+			}, 1500 );
 		});
     }
 );
 
 jQuery( document ).ready( function() {
-	jQuery( '.add_to_cart_button' ).click(function(e) {
+	jQuery( 'body' ).on( 'click', '.add_to_cart_button', function(e) {
 		var $add_to_cart_button = jQuery( this );
 
-		$add_to_cart_button.closest( '.product' ).find( '.cart-loading' ).find( 'i' ).removeClass( 'fusion-icon-check-square-o' ).addClass( 'fusion-icon-spinner' );
-		$add_to_cart_button.closest( '.product' ).find( '.cart-loading' ).fadeIn();
+		$add_to_cart_button.closest( '.product, li' ).find( '.cart-loading' ).find( 'i' ).removeClass( 'fusion-icon-check-square-o' ).addClass( 'fusion-icon-spinner' );
+		$add_to_cart_button.closest( '.product, li' ).find( '.cart-loading' ).fadeIn();
 		setTimeout( function(){
-			$add_to_cart_button.closest( '.product' ).find( '.cart-loading' ).find( 'i' ).hide().removeClass( 'fusion-icon-spinner' ).addClass( 'fusion-icon-check-square-o' ).fadeIn();
+			$add_to_cart_button.closest( '.product, li' ).find( '.cart-loading' ).find( 'i' ).hide().removeClass( 'fusion-icon-spinner' ).addClass( 'fusion-icon-check-square-o' ).fadeIn();
+			jQuery( $add_to_cart_button ).parents( '.fusion-clean-product-image-wrapper, li' ).addClass( 'fusion-item-in-cart' );
 		}, 2000 );
 	});
 
-	jQuery('li.product').mouseenter(function() {
+	jQuery('li').mouseenter(function() {
 		if(jQuery(this).find('.cart-loading').find('i').hasClass('fusion-icon-check-square-o')) {
 			jQuery(this).find('.cart-loading').fadeIn();
 		}
@@ -28558,7 +28652,214 @@ jQuery( document ).ready( function() {
 		}
 	});
 
+	jQuery('.catalog-ordering .orderby .current-li a').html(jQuery('.catalog-ordering .orderby ul li.current a').html());
+	jQuery('.catalog-ordering .sort-count .current-li a').html(jQuery('.catalog-ordering .sort-count ul li.current a').html());
+	jQuery('.woocommerce .shop_table .variation dd').after('<br />');
+	jQuery('.woocommerce .avada-myaccount-data th.order-actions').text(js_local_vars.order_actions);
 
+	jQuery( 'body.rtl .woocommerce .wc-forward' ).each( function() {
+		var checkout_button = jQuery( this );
+		checkout_button.val( '\u2190 ' + checkout_button.val().replace( '\u2192', '' ) );
+	});
+
+	// My account page error check
+	if ( jQuery( '.avada_myaccount_user' ).length && jQuery( '.woocommerce-error' ).length && ! jQuery( '.avada-myaccount-nav' ).find( '.active' ).children().hasClass( 'address' ) ) {
+		jQuery( '.avada-myaccount-nav' ).find( '.active' ).removeClass( 'active' );
+		jQuery( '.avada-myaccount-nav' ).find( '.account' ).parent().addClass( 'active' );
+	}
+
+	var avada_myaccount_active = jQuery('.avada-myaccount-nav').find('.active a');
+
+	if(avada_myaccount_active.hasClass('address') ) {
+		jQuery('.avada-myaccount-data .edit_address_heading').fadeIn();
+	} else {
+		jQuery('.avada-myaccount-data h2:nth-of-type(1)').fadeIn();
+	}
+
+	if(avada_myaccount_active.hasClass('downloads') ) {
+		jQuery('.avada-myaccount-data .digital-downloads').fadeIn();
+	} else if(avada_myaccount_active.hasClass('orders') ) {
+		jQuery('.avada-myaccount-data .my_account_orders').fadeIn();
+	} else if(avada_myaccount_active.hasClass('address') ) {
+		jQuery('.avada-myaccount-data .myaccount_address, .avada-myaccount-data .address').fadeIn();
+	} else if(avada_myaccount_active ) {
+		jQuery('.avada-myaccount-data .edit-account-form, .avada-myaccount-data .edit-account-heading').fadeIn();
+		jQuery('.avada-myaccount-data h2:nth-of-type(1)').hide();
+	}
+
+	jQuery('body.rtl .avada-myaccount-data .my_account_orders .order-status').each( function() {
+		jQuery( this ).css( 'text-align', 'right' );
+	});
+
+	jQuery('.woocommerce input').each(function() {
+		if(!jQuery(this).has('#coupon_code')) {
+			var name = jQuery(this).attr('id');
+			jQuery(this).attr('placeholder', jQuery(this).parent().find('label[for='+name+']').text());
+		}
+	});
+
+
+
+
+	if(jQuery('.woocommerce #reviews #comments .comment_container .comment-text').length ) {
+		jQuery('.woocommerce #reviews #comments .comment_container').append('<div class="clear"></div>');
+	}
+
+	var $title_sep = js_local_vars.title_style_type.split( ' ' ),
+		$title_sep_class_string = '',
+		$title_main_sep_class_string = '',
+		$headinging_orientation = 'title-heading-left';
+
+	for ( var i = 0; i < $title_sep.length; i++ ) {
+		$title_sep_class_string += ' sep-' + $title_sep[i];
+	}
+
+	if ( $title_sep_class_string.indexOf( 'underline' ) > -1 ) {
+		$title_main_sep_class_string = $title_sep_class_string;
+	}
+
+	if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
+		$headinging_orientation = 'title-heading-right';
+	}
+
+	jQuery('.woocommerce.single-product .related.products > h2' ).each( function() {
+		var $related_heading = jQuery( this ).replaceWith( function () {
+		    return '<div class="fusion-title title' + $title_sep_class_string + '"><h3 class="' + $headinging_orientation + '">' + jQuery( this ).html() + '</h3><div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div></div>';
+		});
+	});
+
+	jQuery('.woocommerce.single-product .upsells.products > h2').each( function() {
+		var $related_heading = jQuery( this ).replaceWith( function () {
+		    return '<div class="fusion-title title' + $title_sep_class_string + '"><h3 class="' + $headinging_orientation + '">' + jQuery( this ).html() + '</h3><div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div></div>';
+		});
+	});
+
+	if ( jQuery( 'body .sidebar' ).css( 'display' ) == 'block' ) {
+		fusion_calc_woocommerce_tabs_layout( '.woocommerce-tabs .tabs-horizontal' );
+	}
+
+	jQuery('.sidebar .products,.fusion-footer-widget-area .products,#slidingbar-area .products').each(function() {
+		jQuery(this).removeClass('products-4');
+		jQuery(this).removeClass('products-3');
+		jQuery(this).removeClass('products-2');
+		jQuery(this).addClass('products-1');
+	});
+
+	jQuery('.products-6 li, .products-5 li, .products-4 li, .products-3 li, .products-3 li').removeClass('last');
+
+	// Woocommerce nested products plugin support
+	jQuery( '.subcategory-products' ).each( function() {
+		jQuery( this ).addClass( 'products-' + js_local_vars.woocommerce_shop_page_columns );
+	});
+
+	jQuery('.woocommerce-tabs ul.tabs li a').unbind( 'click' );
+	jQuery('body').on( 'click', '.woocommerce-tabs > ul.tabs li a', function(){
+
+		var tab = jQuery( this );
+		var tabs_wrapper = tab.closest( '.woocommerce-tabs' );
+
+		jQuery( 'ul.tabs li', tabs_wrapper ).removeClass( 'active' );
+		jQuery( '> div.panel', tabs_wrapper ).hide();
+		jQuery( 'div' + tab.attr( 'href' ), tabs_wrapper ).show();
+		tab.parent().addClass( 'active' );
+
+		return false;
+	});
+
+
+
+
+
+
+
+	jQuery( 'body' ).on( 'click', '.woocommerce-checkout-nav a,.continue-checkout', function(e) {
+		var $admin_bar_height = ( jQuery( '#wpadminbar' ).length ) ? jQuery( '#wpadminbar' ).height() : 0,
+			$header_div_children = jQuery( '.fusion-header-wrapper').find( 'div' ),
+			$sticky_header_height = 0;
+
+		$header_div_children.each( function() {
+			if ( jQuery( this ).css( 'position' ) == 'fixed' ) {
+				$sticky_header_height = jQuery( this ).height();
+			}
+		});
+
+		e.preventDefault();
+
+		if ( ! jQuery( '.woocommerce .avada-checkout' ).find( '.woocommerce-invalid' ).is( ':visible' ) ) {
+			var $data_name = jQuery( this ).attr( 'data-name' ),
+				$name = $data_name;
+
+			if ( $data_name != '#order_review' ) {
+				$name = '.' + $data_name;
+			}
+
+			jQuery( 'form.checkout .col-1, form.checkout .col-2, form.checkout #order_review_heading, form.checkout #order_review' ).hide();
+
+			jQuery( 'form.checkout' ).find( $name ).fadeIn();
+			if( $name == '#order_review' ) {
+				jQuery( 'form.checkout' ).find( '#order_review_heading ').fadeIn();
+			}
+
+			jQuery( '.woocommerce-checkout-nav li' ).removeClass( 'active' );
+			jQuery( '.woocommerce-checkout-nav' ).find( '[data-name=' + $data_name + ']' ).parent().addClass( 'active' );
+
+			if ( jQuery( this ).hasClass( 'continue-checkout' ) && jQuery( window ).scrollTop() > 0 ) {
+				jQuery( 'html, body' ).animate( {scrollTop: jQuery( '.woocommerce-content-box.avada-checkout' ).offset().top - $admin_bar_height - $sticky_header_height }, 500 );
+			}
+		}
+
+		// set heights of select arrows correctly
+		calc_select_arrow_dimensions();
+	});
+
+	// Ship to a different address toggle
+	jQuery( 'body' ).on( 'click', 'input[name=ship_to_different_address]',
+		function() {
+			if ( jQuery ( this ).is( ':checked' ) ) {
+				setTimeout( function() {
+					// set heights of select arrows correctly
+					calc_select_arrow_dimensions();
+				}, 1 );
+			}
+		}
+	);
+
+	jQuery( 'body' ).on( 'click', '.avada-myaccount-nav a', function(e) {
+		e.preventDefault();
+
+		jQuery('.avada-myaccount-data h2, .avada-myaccount-data .digital-downloads, .avada-myaccount-data .my_account_orders, .avada-myaccount-data .myaccount_address, .avada-myaccount-data .address, .avada-myaccount-data .edit-account-heading, .avada-myaccount-data .edit-account-form').hide();
+
+		if(jQuery(this).hasClass('downloads') ) {
+			jQuery('.avada-myaccount-data h2:nth-of-type(1), .avada-myaccount-data .digital-downloads').fadeIn();
+		} else if(jQuery(this).hasClass('orders') ) {
+
+			if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length ) {
+				heading = jQuery('.avada-myaccount-data h2:nth-of-type(2)');
+			} else {
+				heading = jQuery('.avada-myaccount-data h2:nth-of-type(1)');
+			}
+
+			heading.fadeIn();
+			jQuery('.avada-myaccount-data .my_account_orders').fadeIn();
+		} else if(jQuery(this).hasClass('address') ) {
+
+			if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length && jQuery(this).parents('.avada-myaccount-nav').find('.orders').length ) {
+				heading = jQuery('.avada-myaccount-data h2:nth-of-type(3)');
+			} else if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length || jQuery(this).parents('.avada-myaccount-nav').find('.orders').length ) {
+				heading = jQuery('.avada-myaccount-data h2:nth-of-type(2)');
+			} else {
+				heading = jQuery('.avada-myaccount-data h2:nth-of-type(1)');
+			}
+
+			heading.fadeIn();
+			jQuery('.avada-myaccount-data .myaccount_address, .avada-myaccount-data .address').fadeIn();
+		} else if(jQuery(this).hasClass('account') ) {
+			jQuery('.avada-myaccount-data .edit-account-heading, .avada-myaccount-data .edit-account-form').fadeIn();
+		}
+
+		jQuery('.avada-myaccount-nav li').removeClass('active');
+		jQuery(this).parent().addClass('active');
+	});
 });;/**
  * requestAnimationFrame polyfill
  *
@@ -28743,8 +29044,19 @@ if ( typeof _fusionImageParallaxImages === 'undefined' ) {
 				}
 */
 
+                var $target = this.settings.target.find( '.parallax-inner' );
+
                 // if it's a mobile device and not told to activate on mobile, stop.
                 if ( this.settings.mobiledevice && !this.settings.mobileenabled ) {
+
+                    $target.css( {
+						'width': '100%',
+						'left': '0',
+						'right': '0',
+						'height': 'auto',
+						'min-height': $target.parent().outerHeight() + 'px'
+					});
+
                     return;
                 }
 
@@ -28752,9 +29064,6 @@ if ( typeof _fusionImageParallaxImages === 'undefined' ) {
                 if ( !this.isInView() ) {
                     return;
                 }
-
-                // Continue moving the background
-                var $target = this.settings.target.find( '.parallax-inner' );
 
                 // Assert a minimum of 150 pixels of height globally. Prevents the illusion of parallaxes not rendering at all in empty fields.
                 $target.css(
@@ -29303,7 +29612,7 @@ jQuery( window ).load( function() {
 // @codekit-prepend "fusion-parallax.js"
 // @codekit-append "fusion-video-bg.js"
 
-jQuery(document).ready(function($) {
+jQuery( document ).ready( function( $ ) {
     "use strict";
 
     /*
@@ -29315,8 +29624,9 @@ jQuery(document).ready(function($) {
         return ( Modernizr.touch && jQuery(window).width() <= 1000 ) || // touch device estimate
             ( window.screen.width <= 1281 && window.devicePixelRatio > 1 ); // device size estimate
     }
+
     if ( _isMobile() ) {
-        $('.fusion-bg-parallax.video > div').remove();
+        $( '.fusion-bg-parallax.video > div' ).remove();
     }
 
     // Hide the placeholder
@@ -29374,15 +29684,15 @@ var $youtubeBGVideos = {};
 
 
 function _fbRowGetAllElementsWithAttribute( attribute ) {
-    var matchingElements = [];
-    var allElements = document.getElementsByTagName( '*' );
-    for ( var i = 0, n = allElements.length; i < n; i++ ) {
-        if ( allElements[i].getAttribute( attribute ) ) {
-            // Element exists with attribute. Add to array.
-            matchingElements.push( allElements[i] );
-        }
-    }
-    return matchingElements;
+	var matchingElements = [];
+	var allElements = document.getElementsByTagName( '*' );
+	for ( var i = 0, n = allElements.length; i < n; i++ ) {
+		if ( allElements[i].getAttribute( attribute ) && ! jQuery( allElements[i] ).parents( '.tfs-slider' ).length ) {
+			// Element exists with attribute. Add to array.
+			matchingElements.push( allElements[i] );
+		}
+	}
+	return matchingElements;
 }
 
 //
@@ -29511,229 +29821,235 @@ function _fbRowGetAllElementsWithAttribute( attribute ) {
 
 
 function _fbRowOnPlayerReady( event ) {
-    var player = event.target;
-    player.playVideo();
-    if ( player.isMute ) {
-        player.mute();
-    }
+	var player = event.target;
+	player.playVideo();
+	if ( player.isMute ) {
+		player.mute();
+	}
 
-    var prevCurrTime = player.getCurrentTime();
-    var timeLastCall = +new Date() / 1000;
-    var currTime = 0;
-    var firstRun = true;
+	var prevCurrTime = player.getCurrentTime();
+	var timeLastCall = +new Date() / 1000;
+	var currTime = 0;
+	var firstRun = true;
 
-    player.loopInterval = setInterval(
-        function() {
-            if ( typeof player.loopTimeout !== 'undefined' ) {
-                clearTimeout( player.loopTimeout );
-            }
+	player.loopInterval = setInterval(
+		function() {
+			if ( typeof player.loopTimeout !== 'undefined' ) {
+				clearTimeout( player.loopTimeout );
+			}
 
-            if ( prevCurrTime == player.getCurrentTime() ) {
-                currTime = prevCurrTime + ( +new Date() / 1000 - timeLastCall );
-            } else {
-                currTime = player.getCurrentTime();
-                timeLastCall = +new Date() / 1000;
-            }
-            prevCurrTime = player.getCurrentTime();
+			if ( prevCurrTime == player.getCurrentTime() ) {
+				currTime = prevCurrTime + ( +new Date() / 1000 - timeLastCall );
+			} else {
+				currTime = player.getCurrentTime();
+				timeLastCall = +new Date() / 1000;
+			}
+			prevCurrTime = player.getCurrentTime();
 
-            if ( currTime + ( firstRun ? 0.45 : 0.21 ) >= player.getDuration() ) {
-                player.pauseVideo();
-                player.seekTo( 0 );
-                player.playVideo();
-                firstRun = false;
-            }
-        }, 150
-    );
+			if ( currTime + ( firstRun ? 0.45 : 0.21 ) >= player.getDuration() ) {
+				player.pauseVideo();
+				player.seekTo( 0 );
+				player.playVideo();
+				firstRun = false;
+			}
+		}, 150
+	);
 }
 
 function _fbRowOnPlayerStateChange( event ) {
-    if ( event.data === YT.PlayerState.ENDED ) {
-        if ( typeof event.target.loopTimeout !== 'undefined' ) {
-            clearTimeout( event.target.loopTimeout );
-        }
-        event.target.seekTo( 0 );
+	if ( event.data === YT.PlayerState.ENDED ) {
+		if ( typeof event.target.loopTimeout !== 'undefined' ) {
+			clearTimeout( event.target.loopTimeout );
+		}
+		event.target.seekTo( 0 );
 
-        // Make the video visible when we start playing
-    } else if ( event.data === YT.PlayerState.PLAYING ) {
-        jQuery( event.target.getIframe() ).parent().css( 'visibility', 'visible' );
-    }
+		// Make the video visible when we start playing
+	} else if ( event.data === YT.PlayerState.PLAYING ) {
+		jQuery( event.target.getIframe() ).parent().css( 'visibility', 'visible' );
+	}
 }
 
 
 function resizeVideo( $wrapper ) {
-    var $videoContainer = $wrapper.parent();
+	var $videoContainer = $wrapper.parent();
 
-    if ( $videoContainer.find( 'iframe' ).width() === null ) {
-        setTimeout(
-            function() {
-                resizeVideo( $wrapper );
-            }, 500
-        );
-        return;
-    }
+	if ( $videoContainer.find( 'iframe' ).width() === null ) {
+		setTimeout(
+			function() {
+				resizeVideo( $wrapper );
+			}, 500
+		);
+		return;
+	}
 
-    var $videoWrapper = $wrapper;
+	var $videoWrapper = $wrapper;
 
-    $videoWrapper.css(
-        {
-            width: 'auto',
-            height: 'auto',
-            left: 'auto',
-            top: 'auto'
-        }
-    );
+	$videoWrapper.css(
+		{
+			width: 'auto',
+			height: 'auto',
+			left: 'auto',
+			top: 'auto'
+		}
+	);
 
-    $videoWrapper.css( 'position', 'absolute' );
+	$videoWrapper.css( 'position', 'absolute' );
 
-    var vidWidth = $videoContainer.find( 'iframe' ).width();
-    var vidHeight = $videoContainer.find( 'iframe' ).height();
-    var containerWidth = $videoContainer.width();
-    var containerHeight = $videoContainer.height();
-    var containerPaddingLeft = parseInt( $videoContainer.css( 'padding-left' ) );
-    var containerPaddingRight = parseInt( $videoContainer.css( 'padding-right' ) );
+	var vidWidth = $videoContainer.find( 'iframe' ).width();
+	var vidHeight = $videoContainer.find( 'iframe' ).height();
+	var containerWidth = $videoContainer.width();
+	var containerHeight = $videoContainer.height();
+	var containerPaddingLeft = parseInt( $videoContainer.css( 'padding-left' ) );
+	var containerPaddingRight = parseInt( $videoContainer.css( 'padding-right' ) );
 
-    if( jQuery( '.width-100' ).length >= 1 ) {
-        if( containerPaddingRight > 0 ) {
-            containerWidth += containerPaddingRight;
-        }
+	if( jQuery( '.width-100' ).length >= 1 ) {
+		if( containerPaddingRight > 0 ) {
+			containerWidth += containerPaddingRight;
+		}
 
-        if( containerPaddingLeft > 0 ) {
-            containerWidth += containerPaddingLeft;
-        }
-    }
+		if( containerPaddingLeft > 0 ) {
+			containerWidth += containerPaddingLeft;
+		}
+	}
 
-    var finalWidth;
-    var finalHeight;
-    var deltaWidth;
-    var deltaHeight;
+	var finalWidth;
+	var finalHeight;
+	var deltaWidth;
+	var deltaHeight;
 
-    var aspectRatio = '16:9';
-    if ( typeof $wrapper.attr( 'data-video-aspect-ratio' ) !== 'undefined' ) {
-        if ( $wrapper.attr( 'data-video-aspect-ratio' ).indexOf( ':' ) !== -1 ) {
-            aspectRatio = $wrapper.attr( 'data-video-aspect-ratio' ).split( ':' );
-            aspectRatio[0] = parseFloat( aspectRatio[0] );
-            aspectRatio[1] = parseFloat( aspectRatio[1] );
-        }
-    }
+	var aspectRatio = '16:9';
+	if ( typeof $wrapper.attr( 'data-video-aspect-ratio' ) !== 'undefined' ) {
+		if ( $wrapper.attr( 'data-video-aspect-ratio' ).indexOf( ':' ) !== -1 ) {
+			aspectRatio = $wrapper.attr( 'data-video-aspect-ratio' ).split( ':' );
+			aspectRatio[0] = parseFloat( aspectRatio[0] );
+			aspectRatio[1] = parseFloat( aspectRatio[1] );
+		}
+	}
 
 
-    finalHeight = containerHeight;
-    finalWidth = aspectRatio[0] / aspectRatio[1] * containerHeight;
+	finalHeight = containerHeight;
+	finalWidth = aspectRatio[0] / aspectRatio[1] * containerHeight;
 
-    deltaWidth = ( aspectRatio[0] / aspectRatio[1] * containerHeight ) - containerWidth;
-    deltaHeight = ( containerWidth * aspectRatio[1] ) / aspectRatio[0] - containerHeight;
+	deltaWidth = ( aspectRatio[0] / aspectRatio[1] * containerHeight ) - containerWidth;
+	deltaHeight = ( containerWidth * aspectRatio[1] ) / aspectRatio[0] - containerHeight;
 
-    if ( finalWidth >= containerWidth && finalHeight >= containerHeight ) {
-        height = containerHeight;
-        width = aspectRatio[0] / aspectRatio[1] * containerHeight
-    } else {
-        width = containerWidth;
-        height = ( containerWidth * aspectRatio[1] ) / aspectRatio[0];
-    }
+	if ( finalWidth >= containerWidth && finalHeight >= containerHeight ) {
+		height = containerHeight;
+		width = aspectRatio[0] / aspectRatio[1] * containerHeight
+	} else {
+		width = containerWidth;
+		height = ( containerWidth * aspectRatio[1] ) / aspectRatio[0];
+	}
 
-    if( jQuery( '.width-100' ).length >= 1 ) {
-        if( containerPaddingRight > 0 ) {
-            width += containerPaddingRight;
-        }
+	if( jQuery( '.width-100' ).length >= 1 ) {
+		if( containerPaddingRight > 0 ) {
+			width += containerPaddingRight;
+		}
 
-        if( containerPaddingLeft > 0 ) {
-            width += containerPaddingLeft;
-        }
+		if( containerPaddingLeft > 0 ) {
+			width += containerPaddingLeft;
+		}
 
-        height = ( width * aspectRatio[1] ) / aspectRatio[0];
-    }
+		height = ( width * aspectRatio[1] ) / aspectRatio[0];
+	}
 
-    marginTop = -( height - containerHeight ) / 2;
-    marginLeft = -( width - containerWidth ) / 2;
+	marginTop = -( height - containerHeight ) / 2;
+	marginLeft = -( width - containerWidth ) / 2;
 
-    if ( $videoContainer.find( '.fusion-video-cover' ).length < 1 ) {
-        var $parent = $videoContainer.find( 'iframe' ).parent();
-        $parent.prepend( '<div class="fusion-video-cover">&nbsp;</div>' );
-    }
-    // No YouTube right click stuff!
-    $videoContainer.find( '.fusion-video-cover' ).css(
-        {
-            'z-index': 0,
-            'width': width,
-            'height': height,
-            'position': 'absolute'
-        }
-    );
-    $videoContainer.find( 'iframe' ).parent().css(
-        {
-            'marginLeft': marginLeft,
-            'marginTop': marginTop
-        }
-    );
+	if ( $videoContainer.find( '.fusion-video-cover' ).length < 1 ) {
+		var $parent = $videoContainer.find( 'iframe' ).parent();
+		$parent.prepend( '<div class="fusion-video-cover">&nbsp;</div>' );
+	}
+	// No YouTube right click stuff!
+	$videoContainer.find( '.fusion-video-cover' ).css(
+		{
+			'z-index': 0,
+			'width': width,
+			'height': height,
+			'position': 'absolute'
+		}
+	);
+	$videoContainer.find( 'iframe' ).parent().css(
+		{
+			'marginLeft': marginLeft,
+			'marginTop': marginTop
+		}
+	);
 
-    $videoContainer.find( 'iframe' ).css(
-        {
-            'width': width,
-            'height': height,
-            'z-index': -1
-        }
-    );
+	$videoContainer.find( 'iframe' ).css(
+		{
+			'width': width,
+			'height': height,
+			'z-index': -1
+		}
+	);
 
 }
 
 function onYouTubeIframeAPIReady() {
-    var videos = _fbRowGetAllElementsWithAttribute( 'data-youtube-video-id' );
+	var videos = _fbRowGetAllElementsWithAttribute( 'data-youtube-video-id' );
 
-    for ( var i = 0; i < videos.length; i++ ) {
-        var videoID = videos[i].getAttribute( 'data-youtube-video-id' );
+	for ( var i = 0; i < videos.length; i++ ) {
+		var videoID = videos[i].getAttribute( 'data-youtube-video-id' );
 
-        // Get the elementID for the placeholder where we'll put in the video
-        var elemID = '';
-        for ( var k = 0; k < videos[i].childNodes.length; k++ ) {
-            if ( /div/i.test( videos[i].childNodes[k].tagName ) ) {
-                elemID = videos[i].childNodes[k].getAttribute( 'id' );
-                break;
-            }
-        }
-        if ( elemID === '' ) {
-            continue;
-        }
+		// Get the elementID for the placeholder where we'll put in the video
+		var elemID = '';
+		for ( var k = 0; k < videos[i].childNodes.length; k++ ) {
+			if ( /div/i.test( videos[i].childNodes[k].tagName ) ) {
+				elemID = videos[i].childNodes[k].getAttribute( 'id' );
+				break;
+			}
+		}
+		if ( elemID === '' ) {
+			continue;
+		}
 
-        var player = new YT.Player(
-            elemID, {
-                height: 'auto',
-                width: 'auto',
-                videoId: videoID,
-                playerVars: {
-                    autohide: 1,
-                    autoplay: 1,
-                    fs: 0,
-                    showinfo: 0,
-                    modestBranding: 1,
-                    start: 0,
-                    controls: 0,
-                    //listType:'playlist',
-                    //list: videoID,
-                    rel: 0,
-                    disablekb: 1,
-                    iv_load_policy: 3,
-                    wmode: 'transparent'
-                },
-                events: {
-                    'onReady': _fbRowOnPlayerReady,
-                    'onStateChange': _fbRowOnPlayerStateChange
-                }
-            }
-        );
-        player.isMute = videos[i].getAttribute( 'data-mute' );
-        // Force YT video to load in HD
-        if ( videos[i].getAttribute( 'data-youtube-video-id' ) === 'true' ) {
-            player.setPlaybackQuality( 'hd720' );
-        }
+		var player = new YT.Player(
+			elemID, {
+				height: 'auto',
+				width: 'auto',
+				videoId: videoID,
+				playerVars: {
+					autohide: 1,
+					autoplay: 1,
+					fs: 0,
+					showinfo: 0,
+					modestBranding: 1,
+					start: 0,
+					controls: 0,
+					//listType:'playlist',
+					//list: videoID,
+					rel: 0,
+					disablekb: 1,
+					iv_load_policy: 3,
+					wmode: 'transparent'
+				},
+				events: {
+					'onReady': _fbRowOnPlayerReady,
+					'onStateChange': _fbRowOnPlayerStateChange
+				}
+			}
+		);
 
-        // Videos in Windows 7 IE do not fire onStateChange events so the videos do not play.
-        // This is a fallback to make those work
-        setTimeout(
-            function() {
-                jQuery( '#' + elemID ).css( 'visibility', 'visible' );
-            }, 500
-        );
-    }
+		if( videos[i].getAttribute( 'data-mute' ) === 'yes' ) {
+			player.isMute = true;
+		} else {
+			player.isMute = false;
+		}
+
+		// Force YT video to load in HD
+		if ( videos[i].getAttribute( 'data-youtube-video-id' ) === 'true' ) {
+			player.setPlaybackQuality( 'hd720' );
+		}
+
+		// Videos in Windows 7 IE do not fire onStateChange events so the videos do not play.
+		// This is a fallback to make those work
+		setTimeout(
+			function() {
+				jQuery( '#' + elemID ).css( 'visibility', 'visible' );
+			}, 500
+		);
+	}
 }
 
 
@@ -29743,166 +30059,170 @@ function onYouTubeIframeAPIReady() {
 
 
 jQuery( document ).ready(
-    function( $ ) {
+	function( $ ) {
 
-        /*
-         * Disable showing/rendering the parallax in the VC's frontend editor
-         */
-        if ( $( 'body' ).hasClass( 'vc_editor' ) ) {
-            return;
-        }
-        $( '.bg-parallax.video, .fusion-bg-parallax.video' ).each(
-            function() {
-                $( this ).prependTo( $( this ).next().addClass( 'video' ) );
-                $( this ).css(
-                    {
-                        opacity: Math.abs( parseFloat( $( this ).attr( 'data-opacity' ) ) / 100 )
-                    }
-                );
-            }
-        );
+		/*
+		 * Disable showing/rendering the parallax in the VC's frontend editor
+		 */
+		if ( $( 'body' ).hasClass( 'vc_editor' ) ) {
+			return;
+		}
+		$( '.bg-parallax.video, .fusion-bg-parallax.video' ).each(
+			function() {
+				$( this ).prependTo( $( this ).next().addClass( 'video' ) );
+				$( this ).css(
+					{
+						opacity: Math.abs( parseFloat( $( this ).attr( 'data-opacity' ) ) / 100 )
+					}
+				);
+			}
+		);
 
-        var $videoContainer = $( '[data-youtube-video-id], [data-vimeo-video-id]' ).parent();
-        $videoContainer.css( 'overflow', 'hidden' );
+		var $videoContainer = $( '[data-youtube-video-id], [data-vimeo-video-id]' ).parent();
+		$videoContainer.css( 'overflow', 'hidden' );
 
-        $( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
-            function() {
-                var $this = $( this );
-                setTimeout(
-                    function() {
-                        resizeVideo( $this );
-                    }, 100
-                );
-            }
-        );
+		$( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+			function() {
+				var $this = $( this );
+				setTimeout(
+					function() {
+						resizeVideo( $this );
+					}, 100
+				);
+			}
+		);
 
-        $( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
-            function() {
-                var $this = $( this );
-                setTimeout(
-                    function() {
-                        resizeVideo( $this );
-                    }, 1000
-                );
-            }
-        );
+		$( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+			function() {
+				var $this = $( this );
+				setTimeout(
+					function() {
+						resizeVideo( $this );
+					}, 1000
+				);
+			}
+		);
 
-        $( window ).resize(
-            function() {
-                $( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
-                    function() {
-                        var $this = $( this );
-                        setTimeout(
-                            function() {
-                                resizeVideo( $this );
-                            }, 2
-                        );
-                    }
-                );
-            }
-        );
+		$( window ).resize(
+			function() {
+				$( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+					function() {
+						var $this = $( this );
+						setTimeout(
+							function() {
+								resizeVideo( $this );
+							}, 2
+						);
+					}
+				);
+			}
+		);
 
-        /**
-         * Called once a vimeo player is loaded and ready to receive
-         * commands. You can add events and make api calls only after this
-         * function has been called.
-         */
-        function vimeoReady( player_id ) {
+		/**
+		 * Called once a vimeo player is loaded and ready to receive
+		 * commands. You can add events and make api calls only after this
+		 * function has been called.
+		 */
+		function vimeoReady( player_id ) {
 
-            // Keep a reference to Froogaloop for this player
-            var container = document.getElementById( player_id ).parentElement,
-                froogaloop = $f( player_id );
+			// Keep a reference to Froogaloop for this player
+			var container = document.getElementById( player_id ).parentElement,
+				froogaloop = $f( player_id );
 
-            if ( jQuery( container ).data( 'mute' ) != "" ) {
-                froogaloop.api( 'setVolume', '0' );
-            }
+			if ( jQuery( container ).data( 'mute' ) == 'yes' ) {
+				froogaloop.api( 'setVolume', '0' );
+			}
 
-            froogaloop.addEvent(
-                'playProgress', function onPlayProgress( data, id ) {
-                    jQuery( container ).css( 'visibility', 'visible' );
-                }
-            );
+			if ( jQuery( container ).data( 'mute' ) == 'no' ) {
+				froogaloop.api( 'setVolume', '1' );
+			}
 
-        }
+			froogaloop.addEvent(
+				'playProgress', function onPlayProgress( data, id ) {
+					jQuery( container ).css( 'visibility', 'visible' );
+				}
+			);
 
-        var $vimeos = $( '[data-vimeo-video-id]' );
-        if ( $vimeos.length > 0 ) {
+		}
+
+		var $vimeos = $( '[data-vimeo-video-id]' );
+		if ( $vimeos.length > 0 ) {
 			var $protocol = 'http:';
 			if ( js_local_vars.is_ssl== 'true' ) {
 				$protocol = 'https:';
 			}
 
-            $.getScript( $protocol + "//a.vimeocdn.com/js/froogaloop2.min.js?97273-1352487961" ).done(
-                function( script, textStatus ) {
-                    var vimeoPlayers = document.querySelectorAll( 'iframe' ),
-                        player;
+			$.getScript( $protocol + "//a.vimeocdn.com/js/froogaloop2.min.js?97273-1352487961" ).done(
+				function( script, textStatus ) {
+					var vimeoPlayers = document.querySelectorAll( 'iframe' ),
+						player;
 
-                    for ( var i = 0, length = vimeoPlayers.length; i < length; i++ ) {
-                        player = vimeoPlayers[i];
-                        if ( jQuery( 'html' ).hasClass( 'ua-ie-11' ) ) {
-                        	jQuery( player ).parent().css( 'visibility', 'visible' );
+					for ( var i = 0, length = vimeoPlayers.length; i < length; i++ ) {
+						player = vimeoPlayers[i];
+						if ( jQuery( 'html' ).hasClass( 'ua-ie-11' ) ) {
+							jQuery( player ).parent().css( 'visibility', 'visible' );
 						}
-                        $f( player ).addEvent( 'ready', vimeoReady );
-                    }
-                }
-            );
-        }
+						$f( player ).addEvent( 'ready', vimeoReady );
+					}
+				}
+			);
+		}
 
 
-        /**
-         * Utility function for adding an event. Handles the inconsistencies
-         * between the W3C method for adding events (addEventListener) and
-         * IE's (attachEvent).
-         */
-        function addEvent( element, eventName, callback ) {
-            if ( element.addEventListener ) {
-                element.addEventListener( eventName, callback, false );
-            }
-            else {
-                element.attachEvent( 'on' + eventName, callback );
-            }
-        }
+		/**
+		 * Utility function for adding an event. Handles the inconsistencies
+		 * between the W3C method for adding events (addEventListener) and
+		 * IE's (attachEvent).
+		 */
+		function addEvent( element, eventName, callback ) {
+			if ( element.addEventListener ) {
+				element.addEventListener( eventName, callback, false );
+			}
+			else {
+				element.attachEvent( 'on' + eventName, callback );
+			}
+		}
 
-        //
-        //player.addEvent('ready', function() {
-        //    // mute
-        //    if ( $this.attr( 'data-mute' ) === 'true' ) {
-        //        player.api( 'setVolume', 0 );
-        //    }
-        //});
+		//
+		//player.addEvent('ready', function() {
+		//    // mute
+		//    if ( $this.attr( 'data-mute' ) === 'true' ) {
+		//        player.api( 'setVolume', 0 );
+		//    }
+		//});
 
-        /*
-         player.addEvent('ready', function() {
-         console.log('here');
-         // mute
-         if ( $this.attr('data-mute') === 'true' ) {
-         player.api( 'setVolume', 0 );
-         }
+		/*
+		 player.addEvent('ready', function() {
+		 console.log('here');
+		 // mute
+		 if ( $this.attr('data-mute') === 'true' ) {
+		 player.api( 'setVolume', 0 );
+		 }
 
-         // show the video after the player is loaded
-         player.addEvent('playProgress', function onPlayProgress(data, id) {
-         jQuery('#' + id).parent().css('visibility', 'visible');
-         });
-         });
-         */
+		 // show the video after the player is loaded
+		 player.addEvent('playProgress', function onPlayProgress(data, id) {
+		 jQuery('#' + id).parent().css('visibility', 'visible');
+		 });
+		 });
+		 */
 
-        // When the player is ready, add listeners for pause, finish, and playProgress
-    }
+		// When the player is ready, add listeners for pause, finish, and playProgress
+	}
 );
 
 jQuery( window ).load(
 	function() {
-        jQuery( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
-            function() {
-                var $this = jQuery( this );
-                setTimeout(
-                    function() {
-                        resizeVideo( $this );
-                    }, 500
-                );
-            }
-        );
-    }
+		jQuery( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+			function() {
+				var $this = jQuery( this );
+				setTimeout(
+					function() {
+						resizeVideo( $this );
+					}, 500
+				);
+			}
+		);
+	}
 );
 
 ;jQuery( document ).ready(function() {
@@ -30418,9 +30738,10 @@ jQuery( window ).load(
 	});
 
 	// Search icon show/hide
-	jQuery( document ).click(function() {
+	jQuery( document ).click( function() {
 		jQuery( '.fusion-main-menu-search .fusion-custom-menu-item-contents' ).hide();
 		jQuery( '.fusion-main-menu-search' ).removeClass( 'fusion-main-menu-search-open' );
+		jQuery( '.fusion-main-menu-search' ).find( 'style' ).remove();
 	});
 
 	jQuery( '.fusion-main-menu-search' ).click(function(e) {
@@ -30433,10 +30754,14 @@ jQuery( window ).load(
 		if( jQuery( this ).parent().find( '.fusion-custom-menu-item-contents' ).css( 'display' ) == 'block' ) {
 			jQuery( this ).parent().find( '.fusion-custom-menu-item-contents' ).hide();
 			jQuery( this ).parent().removeClass( 'fusion-main-menu-search-open' );
+
+			jQuery( this ).parent().find( 'style' ).remove();
 		} else {
 			jQuery( this ).parent().find( '.fusion-custom-menu-item-contents' ).removeAttr( 'style' );
 			jQuery( this ).parent().find( '.fusion-custom-menu-item-contents' ).show();
 			jQuery( this ).parent().addClass( 'fusion-main-menu-search-open' );
+
+			jQuery( this ).parent().append( '<style>.fusion-main-menu{overflow:visible!important;</style>' );
 
 			// position main menu search box on click positioning
 			if( js_local_vars.header_position == 'Top' ) {
@@ -30621,50 +30946,52 @@ jQuery( window ).load(
 		var $mobile_nav = '';
 		var $menu = jQuery( this ).parent().find( '.fusion-main-menu, .fusion-secondary-menu' ).not( '.fusion-sticky-menu' );
 
-		if ( js_local_vars.mobile_menu_design == 'classic' ) {
-			$mobile_nav_holder.append( '<div class="fusion-mobile-selector"><span>' + js_local_vars.dropdown_goto + '</span></div>' );
-			jQuery( this ).find( '.fusion-mobile-selector' ).append( '<div class="fusion-selector-down"></div>' );
-		}
-
-		jQuery( $mobile_nav_holder ).append( jQuery( $menu ).find( '> ul' ).clone() );
-
-		$mobile_nav = jQuery( $mobile_nav_holder ).find( '> ul' );
-
-		$mobile_nav.find( '.fusion-caret, .fusion-menu-login-box .fusion-custom-menu-item-contents, .fusion-menu-cart .fusion-custom-menu-item-contents, .fusion-main-menu-search, li> a > span > .button-icon-divider-left, li > a > span > .button-icon-divider-right' ).remove();
-
-		if ( js_local_vars.mobile_menu_design == 'classic' ) {
-			$mobile_nav.find( '.fusion-menu-cart > a' ).html( js_local_vars.mobile_nav_cart );
-		} else {
-			$mobile_nav.find( '.fusion-main-menu-cart' ).remove();
-		}
-
-		$mobile_nav.find( 'li' ).each(function () {
-			jQuery( this ).find( '> a > .menu-text' ).removeAttr( 'class' ).addClass( 'menu-text' );
-
-			var classes = 'fusion-mobile-nav-item';
-
-			if( jQuery( this ).hasClass( 'current-menu-item' ) || jQuery( this ).hasClass( 'current-menu-parent' ) || jQuery( this ).hasClass( 'current-menu-ancestor' ) ) {
-				classes += ' fusion-mobile-current-nav-item';
+		if ( $menu.length ) {
+			if ( js_local_vars.mobile_menu_design == 'classic' ) {
+				$mobile_nav_holder.append( '<div class="fusion-mobile-selector"><span>' + js_local_vars.dropdown_goto + '</span></div>' );
+				jQuery( this ).find( '.fusion-mobile-selector' ).append( '<div class="fusion-selector-down"></div>' );
 			}
 
-			jQuery( this ).attr( 'class', classes );
+			jQuery( $mobile_nav_holder ).append( jQuery( $menu ).find( '> ul' ).clone() );
 
-			if( jQuery( this ).attr( 'id' ) ) {
-				jQuery( this ).attr( 'id', jQuery( this ).attr( 'id' ).replace( 'menu-item', 'mobile-menu-item' ) );
-			}
+			$mobile_nav = jQuery( $mobile_nav_holder ).find( '> ul' );
 
-			jQuery( this ).attr( 'style', '' );
-		});
+			$mobile_nav.find( '.fusion-caret, .fusion-menu-login-box .fusion-custom-menu-item-contents, .fusion-menu-cart .fusion-custom-menu-item-contents, .fusion-main-menu-search, li> a > span > .button-icon-divider-left, li > a > span > .button-icon-divider-right' ).remove();
 
-		jQuery( this ).find( '.fusion-mobile-selector' ).click(function() {
-			if( $mobile_nav.hasClass( 'mobile-menu-expanded' ) ) {
-				$mobile_nav.removeClass( 'mobile-menu-expanded' );
+			if ( js_local_vars.mobile_menu_design == 'classic' ) {
+				$mobile_nav.find( '.fusion-menu-cart > a' ).html( js_local_vars.mobile_nav_cart );
 			} else {
-				$mobile_nav.addClass( 'mobile-menu-expanded' );
+				$mobile_nav.find( '.fusion-main-menu-cart' ).remove();
 			}
 
-			$mobile_nav.slideToggle( 200, 'easeOutQuad' );
-		});
+			$mobile_nav.find( 'li' ).each(function () {
+				jQuery( this ).find( '> a > .menu-text' ).removeAttr( 'class' ).addClass( 'menu-text' );
+
+				var classes = 'fusion-mobile-nav-item';
+
+				if( jQuery( this ).hasClass( 'current-menu-item' ) || jQuery( this ).hasClass( 'current-menu-parent' ) || jQuery( this ).hasClass( 'current-menu-ancestor' ) ) {
+					classes += ' fusion-mobile-current-nav-item';
+				}
+
+				jQuery( this ).attr( 'class', classes );
+
+				if( jQuery( this ).attr( 'id' ) ) {
+					jQuery( this ).attr( 'id', jQuery( this ).attr( 'id' ).replace( 'menu-item', 'mobile-menu-item' ) );
+				}
+
+				jQuery( this ).attr( 'style', '' );
+			});
+
+			jQuery( this ).find( '.fusion-mobile-selector' ).click(function() {
+				if( $mobile_nav.hasClass( 'mobile-menu-expanded' ) ) {
+					$mobile_nav.removeClass( 'mobile-menu-expanded' );
+				} else {
+					$mobile_nav.addClass( 'mobile-menu-expanded' );
+				}
+
+				$mobile_nav.slideToggle( 200, 'easeOutQuad' );
+			});
+		}
 	});
 
 	jQuery( '.fusion-mobile-sticky-nav-holder' ).each(function() {
@@ -30769,7 +31096,6 @@ jQuery( window ).load(
 			$wrapper = '.fusion-header';
 		}
 
-
 		if( jQuery( '.fusion-is-sticky' ).length >= 1 && jQuery( '.fusion-mobile-sticky-nav-holder' ).length >= 1 ) {
 			jQuery( $wrapper ).find( '.fusion-mobile-sticky-nav-holder' ).slideToggle( 200, 'easeOutQuad' );
 		} else {
@@ -30781,6 +31107,20 @@ jQuery( window ).load(
 		e.preventDefault();
 
 		jQuery( '.fusion-secondary-main-menu .fusion-secondary-menu-search, .side-header-wrapper .fusion-secondary-menu-search' ).slideToggle( 200, 'easeOutQuad' );
+	});
+
+	// Collapse mobile menus when on page anchors are clicked
+	jQuery( '.fusion-mobile-nav-holder .fusion-mobile-nav-item a:not([href=#])' ).click( function() {
+		var $target = jQuery( this.hash );
+		if ( $target.length && this.hash.slice( 1 ) !== '' ) {
+			if ( jQuery( this ).parents( '.fusion-mobile-menu-design-classic' ).length ) {
+				jQuery( this ).parents( '.fusion-menu, .menu' )
+					.hide()
+					.removeClass( 'mobile-menu-expanded' );
+			} else {
+				jQuery( this ).parents( '.fusion-mobile-nav-holder' ).hide();
+			}
+		}
 	});
 
 	// Make mobile menu sub-menu toggles
@@ -30832,12 +31172,13 @@ jQuery( window ).load(function() {
 		window.$slider_offset = 0;
 		window.$site_width = jQuery( '#wrapper' ).outerWidth();
 		window.$media_query_test_1 = Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait)' ) ||  Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape)' );
-		window.$media_query_test_2 = Modernizr.mq( 'screen and (max-width: 782px)' );
+		window.$media_query_test_2 = Modernizr.mq( 'screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 		window.$media_query_test_3 = Modernizr.mq( 'screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 		window.$media_query_test_4 = Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 
 		var $standard_logo_height = jQuery( '.fusion-standard-logo' ).height() + parseInt( jQuery( '.fusion-logo' ).data( 'margin-top' ) ) + parseInt( jQuery( '.fusion-logo' ).data( 'margin-bottom' ) );
 		window.$initial_desktop_header_height = Math.max( window.$header_height, Math.max( $menu_height + $menu_border_height, $standard_logo_height ) + parseInt( jQuery( '.fusion-header' ).find( '.fusion-row' ).css( 'padding-top' ) ) + parseInt( jQuery( '.fusion-header' ).find( '.fusion-row' ).css( 'padding-bottom' ) ) );
+		window.$initial_sticky_header_shrinkage = js_local_vars.sticky_header_shrinkage;
 		window.$sticky_can_be_shrinked = true;
 
 		if( js_local_vars.sticky_header_shrinkage == '0' ) {
@@ -30912,7 +31253,7 @@ jQuery( window ).load(function() {
 
 		jQuery( window ).resize(function() {
 			window.$media_query_test_1 = Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait)' ) ||  Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape)' );
-			window.$media_query_test_2 = Modernizr.mq( 'screen and (max-width: 782px)' );
+			window.$media_query_test_2 = Modernizr.mq( 'screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 			window.$media_query_test_3 = Modernizr.mq( 'screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 			window.$media_query_test_4 = Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' );
 
@@ -30934,7 +31275,7 @@ jQuery( window ).load(function() {
 				var $menu_height = parseInt( js_local_vars.nav_height );
 				var $menu_border_height = parseInt( js_local_vars.nav_highlight_border );
 
-				if( jQuery( '#wpadminbar' ).length >= 1 && Modernizr.mq( 'only screen and (min-width: 600px)' ) ) {
+				if( jQuery( '#wpadminbar' ).length ) {
 					window.$wp_adminbar_height = jQuery( '#wpadminbar' ).height();
 				} else {
 					window.$wp_adminbar_height = 0;
@@ -30959,6 +31300,8 @@ jQuery( window ).load(function() {
 
 				// Refresh header v1, v2 and v3
 				if ( window.$sticky_header_type == 1 ) {
+					js_local_vars.sticky_header_shrinkage = window.$initial_sticky_header_shrinkage;
+
 					if ( jQuery( '.fusion-secondary-header' ).length ) {
 						window.$sticky_trigger_position = Math.round( jQuery( '.fusion-secondary-header' ).offset().top )  - window.$wp_adminbar_height + jQuery( '.fusion-secondary-header' ).outerHeight();
 					// If there is no secondary header, trigger position is 0
@@ -30969,12 +31312,50 @@ jQuery( window ).load(function() {
 					// Desktop mode
 					if ( ! Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' ) ) {
 						var $logo_height_with_margin = jQuery( '.fusion-logo img:visible' ).outerHeight() + parseInt( js_local_vars.logo_margin_top ) + parseInt( js_local_vars.logo_margin_bottom );
+							$main_menu_width = 0;
 
-						if ( jQuery( '.fusion-is-sticky' ).length && window.original_logo_height > $menu_height + $menu_border_height ) {
-							window.$header_height = window.original_logo_height;
-						} else {
-							if( jQuery( '.fusion-main-menu' ).outerWidth() > ( jQuery( '.fusion-header .fusion-row' ).width() - jQuery( '.fusion-logo img:visible' ).outerWidth() ) ) {
+						// Calculate actual menu width
+						jQuery( '.fusion-main-menu > ul > li' ).each( function() {
+							$main_menu_width += jQuery( this ).outerWidth();
+						});
+
+						// Sticky desktop header
+						if ( jQuery( '.fusion-is-sticky' ).length ) {
+							if ( $main_menu_width > ( jQuery( '.fusion-header .fusion-row' ).width() - jQuery( '.fusion-logo img:visible' ).outerWidth() ) ) {
 								window.$header_height = jQuery( '.fusion-main-menu' ).outerHeight() + $logo_height_with_margin;
+
+								// Headers v2 and v3 have a 1px bottom border
+								if ( jQuery( '.fusion-header-v2' ).length || jQuery( '.fusion-header-v3' ).length ) {
+									window.$header_height += 1;
+								}
+							} else {
+								if ( js_local_vars.sticky_header_shrinkage == '0' ) {
+									if ( window.original_logo_height > $menu_height + $menu_border_height ) {
+										window.$header_height = window.original_logo_height;
+									} else {
+										window.$header_heightt = $menu_height + $menu_border_height;
+									}
+
+									window.$header_height += parseInt( js_local_vars.header_padding_top ) + parseInt( js_local_vars.header_padding_bottom );
+
+									// Headers v2 and v3 have a 1px bottom border
+									if ( jQuery( '.fusion-header-v2' ).length || jQuery( '.fusion-header-v3' ).length ) {
+										window.$header_height += 1;
+									}
+								} else {
+									window.$header_height = 65;
+								}
+							}
+
+							window.$scrolled_header_height = window.$header_height;
+
+							jQuery( '.fusion-header-sticky-height' ).css( 'height', window.$header_height );
+							jQuery( '.fusion-header' ).css( 'height', window.$header_height );
+						// Non sticky desktop header
+						} else {
+							if ( $main_menu_width > ( jQuery( '.fusion-header .fusion-row' ).width() - jQuery( '.fusion-logo img:visible' ).outerWidth() ) ) {
+								window.$header_height = jQuery( '.fusion-main-menu' ).outerHeight() + $logo_height_with_margin;
+								js_local_vars.sticky_header_shrinkage = '0';
 							} else {
 								if ( window.original_logo_height > $menu_height + $menu_border_height ) {
 									window.$header_height = window.original_logo_height;
@@ -30982,18 +31363,23 @@ jQuery( window ).load(function() {
 									window.$header_height = $menu_height + $menu_border_height;
 								}
 							}
+
+							window.$header_height += parseInt( js_local_vars.header_padding_top ) + parseInt( js_local_vars.header_padding_bottom );
+
+							// Headers v2 and v3 have a 1px bottom border
+							if ( jQuery( '.fusion-header-v2' ).length || jQuery( '.fusion-header-v3' ).length ) {
+								window.$header_height += 1;
+							}
+
+							window.$scrolled_header_height = 65;
+
+							if( js_local_vars.sticky_header_shrinkage == '0' ) {
+								window.$scrolled_header_height = window.$header_height;
+							}
+
+							jQuery( '.fusion-header-sticky-height' ).css( 'height', window.$header_height );
+							jQuery( '.fusion-header' ).css( 'height', window.$header_height );
 						}
-
-						window.$header_height += parseInt( js_local_vars.header_padding_top ) + parseInt( js_local_vars.header_padding_bottom );
-
-						window.$scrolled_header_height = 65;
-
-						if( js_local_vars.sticky_header_shrinkage == '0' ) {
-							window.$scrolled_header_height = window.$header_height;
-						}
-
-						jQuery( '.fusion-header-sticky-height' ).css( 'height', window.$header_height );
-						jQuery( '.fusion-header' ).css( 'height', window.$header_height );
 					}
 
 					// Mobile mode
@@ -31049,7 +31435,6 @@ jQuery( window ).load(function() {
 						window.$header_parent_height = jQuery( '.fusion-header' ).outerHeight() + jQuery( '.fusion-secondary-main-menu' ).outerHeight();
 						window.$sticky_trigger_position = Math.round( jQuery( '.fusion-header' ).offset().top ) - window.$wp_adminbar_height + jQuery( '.fusion-header' ).outerHeight();
 
-
 						jQuery( $header_parent ).height( window.$header_parent_height );
 					}
 				}
@@ -31091,10 +31476,8 @@ jQuery( window ).load(function() {
 					});
 
 					jQuery( '.fusion-logo img' ).css( 'height', '' );
-
 				} else {
 					window.$sticky_can_be_shrinked = true;
-
 
 					// Resizing sticky header
 					if( jQuery( '.fusion-is-sticky' ).length >= 1 ) {
@@ -31163,6 +31546,7 @@ jQuery( window ).load(function() {
 
 
 		jQuery( window ).scroll(function() {
+
 			if ( window.$sticky_can_be_shrinked ) {
 				if( js_local_vars.header_sticky_tablet != '1' && ( window.$media_query_test_1 ) ) {
 					return;
@@ -31216,7 +31600,7 @@ jQuery( window ).load(function() {
 					if( $sticky_header_scrolled == false ) {
 						var $wp_adminbar_height = 0;
 
-						if ( jQuery( '#wpadminbar' ).length >= 1 && Modernizr.mq( 'only screen and (min-width: 600px)' ) ) {
+						if ( jQuery( '#wpadminbar' ).length ) {
 							$wp_adminbar_height = jQuery( '#wpadminbar' ).height();
 						}
 
@@ -31358,6 +31742,11 @@ jQuery( window ).load(function() {
 					if( window.$sticky_header_type == 1 ) {
 						// Animate Header Height to Original Size
 						if( ! Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' ) ) {
+							// Done to make sure that resize event while sticky is active doesn't lead to no animation on scroll up
+							if ( window.$sticky_header_type == 1 && $header_height == 65 ) {
+								$header_height = window.$initial_desktop_header_height;
+							}
+
 							if ( $header_height == window.$initial_desktop_header_height ) {
 								jQuery( window.$sticky_trigger ).stop( true, true ).animate({
 									height: window.$header_height
@@ -31380,7 +31769,7 @@ jQuery( window ).load(function() {
 							jQuery( '.fusion-header-sticky-height' ).hide().css( 'height', window.$header_height + $menu_border_height );
 						}
 
-						if( js_local_vars.sticky_header_shrinkage == '1' &&  $header_height == window.$initial_desktop_header_height ) {
+						if( js_local_vars.sticky_header_shrinkage == '1' && $header_height == window.$initial_desktop_header_height ) {
 							// Animate header padding to Original Size
 							jQuery( window.$sticky_trigger ).find( '.fusion-row' ).stop( true, true ).animate({
 								'padding-top': js_local_vars.header_padding_top,
@@ -31488,18 +31877,6 @@ jQuery( window ).load(function() {
 	jQuery( window ).on( 'resize', function() {
 		adjust_mobile_menu_settings();
 	});
-
-	/* WPML */
-
-	// Main menu flag in center
-	var $wpml_flag = jQuery( '.fusion-main-menu > ul > li > a > .iclflag' );
-	var $wpml_h = $wpml_flag.height();
-	$wpml_flag.css( 'margin-top', + $wpml_h / - 2 + 'px' );
-
-	// Secondary menu flag in center
-	var $wpml_flag = jQuery( '.fusion-secondary-menu > ul > li > a > .iclflag' );
-	var $wpml_h = $wpml_flag.height();
-	$wpml_flag.css( 'margin-top', + $wpml_h / - 2 + 'px' );
 });
 
 // Reintalize scripts after ajax
@@ -31632,20 +32009,6 @@ jQuery( document ).ajaxComplete( function() {
 	}
 };
 
-var calcTabsLayout = function(tab_selector) {
-	jQuery(tab_selector).each(function() {
-		var menuWidth = jQuery(this).parent().width();
-		var menuItems = jQuery(this).find('li').length;
-		var mod = menuWidth % menuItems;
-		var itemWidth = (menuWidth - mod)/menuItems;
-		var lastItemWidth = menuWidth - itemWidth*(menuItems - 1);
-
-		jQuery(this).css({'width': menuWidth +'px'});
-		jQuery(this).find('li').css({'width': itemWidth +'px'});
-		jQuery(this).find('li:last').css({'width': lastItemWidth +'px'}).addClass('no-border-right');
-	});
-};
-
 var fusion_reanimate_slider = function( content_container ) {
 	var slide_content = content_container.find( '.slide-content' );
 
@@ -31742,95 +32105,78 @@ var fusion_calculate_responsive_type_values = function( $custom_sensitivity, $cu
 	jQuery( window ).on( 'resize orientationchange', calculate_values );
 };
 
-function onPlayerStateChange(frame, slider) {
-	return function(event) {
-		if(event.data == YT.PlayerState.PLAYING) {
-			jQuery(slider).flexslider("pause");
-		}
-		if(event.data == YT.PlayerState.PAUSED) {
-			jQuery(slider).flexslider("play");
-		}
-		if(event.data == YT.PlayerState.BUFFERING) {
-			jQuery(slider).flexslider("pause");
-		}
-	};
-}
-function onPlayerReady(slide) {
-	return function(event) {
-		if( jQuery(slide).attr('data-mute') == 'yes' ) {
-			event.target.mute();
-		}
-	};
-}
-
 $top = $bottom = false;
 $last_window_position = 0;
 $last_window_height = jQuery( window ).height();
 
 function fusion_side_header_scroll() {
-	var $document_height = jQuery( document ).height(),
-		$window_position = jQuery( window ).scrollTop(),
-		$window_height = jQuery( window ).height(),
-		$body_height = jQuery( 'body' ).height(),
-		$adminbar_height = jQuery( '#wpadminbar' ).height(),
-		$side_header = jQuery( '#side-header' ),
-		$side_header_wrapper = jQuery( '.side-header-wrapper' ),
-		$side_header_height = $side_header_wrapper.outerHeight(),
-		$boxed_wrapper_offset = 0;
+	var $media_query_ipad = Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait)' ) ||  Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape)' );
 
-	if ( jQuery( 'body' ).hasClass( 'layout-boxed-mode' ) && jQuery( 'body' ).hasClass( 'side-header-right' ) ) {
-		$side_header = jQuery( '.side-header-wrapper' );
-		$boxed_wrapper_offset = jQuery( '#boxed-wrapper' ).offset().top;
-	}
+	if ( ! $media_query_ipad ) {
+		var $document_height = jQuery( document ).height(),
+			$window_position = jQuery( window ).scrollTop(),
+			$window_height = jQuery( window ).height(),
+			$body_height = jQuery( 'body' ).height(),
+			$adminbar_height = jQuery( '#wpadminbar' ).height(),
+			$side_header = jQuery( '#side-header' ),
+			$side_header_wrapper = jQuery( '.side-header-wrapper' ),
+			$side_header_height = $side_header_wrapper.outerHeight(),
+			$boxed_wrapper_offset = 0;
 
-	if ( Modernizr.mq( 'only screen and (max-width:' + js_local_vars.side_header_break_point + 'px)' ) ) {
-
-		if ( ! $side_header.hasClass( 'fusion-is-sticky' ) ) {
-			$side_header.css({
-				'bottom': '',
-				'position': ''
-			});
+		if ( jQuery( 'body' ).hasClass( 'layout-boxed-mode' ) && jQuery( 'body' ).hasClass( 'side-header-right' ) ) {
+			$side_header = jQuery( '.side-header-wrapper' );
+			$boxed_wrapper_offset = jQuery( '#boxed-wrapper' ).offset().top;
 		}
 
-		return;
-	}
+		if ( Modernizr.mq( 'only screen and (max-width:' + js_local_vars.side_header_break_point + 'px)' ) ) {
 
-	if ( $side_header_height + $adminbar_height > $window_height ) {
-		$side_header.css( 'height', 'auto' );
-		if ( $window_position > $last_window_position ) {
-			if ( $top ) {
-				$top = false;
-				$top_offset = ( $side_header_wrapper.offset().top > 0 ) ? $side_header_wrapper.offset().top - $boxed_wrapper_offset : $adminbar_height;
-				$side_header.attr( 'style', 'top: ' + $top_offset + 'px; height: auto;' );
-			} else if ( ! $bottom && $window_position + $window_height > $side_header_height + $side_header_wrapper.offset().top && $side_header_height + $adminbar_height < $body_height ) {
-				$bottom = true;
-				$side_header.attr( 'style', 'position: fixed; bottom: 0; top: auto; height: auto;' );
+			if ( ! $side_header.hasClass( 'fusion-is-sticky' ) ) {
+				$side_header.css({
+					'bottom': '',
+					'position': ''
+				});
 			}
-		} else if ( $window_position < $last_window_position ) {
-			if ( $bottom ) {
-				$bottom = false;
+
+			return;
+		}
+
+		if ( $side_header_height + $adminbar_height > $window_height ) {
+			$side_header.css( 'height', 'auto' );
+			if ( $window_position > $last_window_position ) {
+				if ( $top ) {
+					$top = false;
+					$top_offset = ( $side_header_wrapper.offset().top > 0 ) ? $side_header_wrapper.offset().top - $boxed_wrapper_offset : $adminbar_height;
+					$side_header.attr( 'style', 'top: ' + $top_offset + 'px; height: auto;' );
+				} else if ( ! $bottom && $window_position + $window_height > $side_header_height + $side_header_wrapper.offset().top && $side_header_height + $adminbar_height < $body_height ) {
+					$bottom = true;
+					$side_header.attr( 'style', 'position: fixed; bottom: 0; top: auto; height: auto;' );
+				}
+			} else if ( $window_position < $last_window_position ) {
+				if ( $bottom ) {
+					$bottom = false;
+					$top_offset = ( $side_header_wrapper.offset().top > 0 ) ? $side_header_wrapper.offset().top - $boxed_wrapper_offset : $adminbar_height;
+					$side_header.attr( 'style', 'top: ' + $top_offset + 'px; height: auto;' );
+				} else if ( ! $top && $window_position + $adminbar_height < $side_header_wrapper.offset().top ) {
+					$top = true;
+					$side_header.attr( 'style', 'position: fixed; height: auto;' );
+				}
+			} else {
+				$top = $bottom = false;
+
 				$top_offset = ( $side_header_wrapper.offset().top > 0 ) ? $side_header_wrapper.offset().top - $boxed_wrapper_offset : $adminbar_height;
-				$side_header.attr( 'style', 'top: ' + $top_offset + 'px; height: auto;' );
-			} else if ( ! $top && $window_position + $adminbar_height < $side_header_wrapper.offset().top ) {
-				$top = true;
-				$side_header.attr( 'style', 'position: fixed; height: auto;' );
+				if ( $window_height > $last_window_height && $body_height > $side_header_wrapper.offset().top  + $boxed_wrapper_offset + $side_header_height && $window_position + $window_height > $side_header_wrapper.offset().top + $side_header_height ) {
+					$top_offset += $window_height - $last_window_height;
+				}
+				$side_header.attr( 'style', 'top:' + $top_offset + 'px; height: auto;' );
 			}
 		} else {
-			$top = $bottom = false;
-
-			$top_offset = ( $side_header_wrapper.offset().top > 0 ) ? $side_header_wrapper.offset().top - $boxed_wrapper_offset : $adminbar_height;
-			if ( $window_height > $last_window_height && $body_height > $side_header_wrapper.offset().top  + $boxed_wrapper_offset + $side_header_height && $window_position + $window_height > $side_header_wrapper.offset().top + $side_header_height ) {
-				$top_offset += $window_height - $last_window_height;
-			}
-			$side_header.attr( 'style', 'top:' + $top_offset + 'px; height: auto;' );
+			$top = true;
+			$side_header.attr( 'style', 'position: fixed;' );
 		}
-	} else {
-		$top = true;
-		$side_header.attr( 'style', 'position: fixed;' );
-	}
 
-	$last_window_position = $window_position;
-	$last_window_height = $window_height;
+		$last_window_position = $window_position;
+		$last_window_height = $window_height;
+	}
 }
 
 function add_styles_for_old_ie_versions() {
@@ -31844,6 +32190,139 @@ function add_styles_for_old_ie_versions() {
 	if ( cssua.ua.ie == '11.0' ) {
 		jQuery( 'head' ).append('<style type="text/css">.layout-boxed-mode .fusion-footer-parallax { left: auto; right: auto; }</style>');
 	}
+}
+
+// Get WP admin bar height
+function get_adminbar_height() {
+	var $adminbar_height = 0;
+
+
+	if ( jQuery( '#wpadminbar' ).length ) {
+		$adminbar_height = parseInt( jQuery( '#wpadminbar' ).outerHeight() );
+	}
+
+	return $adminbar_height;
+}
+
+// Get current height of sticky header
+function get_sticky_header_height() {
+	var $sticky_header_type = 1,
+		$sticky_header_height = 0,
+		$media_query_ipad = Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait)' ) ||  Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape)' );
+
+	// Set header type to 2 for headers v4, v5
+	if ( jQuery( '.fusion-header-v4' ).length || jQuery( '.fusion-header-v5' ).length ) {
+		$sticky_header_type = 2;
+	}
+
+	// Sticky header is enabled
+	if ( js_local_vars.header_sticky == '1' && jQuery( '.fusion-header-wrapper' ).length ) {
+		// Desktop mode - headers v1, v2, v3
+		if ( $sticky_header_type == 1 ) {
+			$sticky_header_height = jQuery( '.fusion-header' ).outerHeight() - 1;
+
+			// For headers v1 - v3 the sticky header min height is always 65px
+			if ( $sticky_header_height < 64 ) {
+				$sticky_header_height = 64;
+			}
+
+		// Desktop mode - headers v4, v5
+		} else {
+			$sticky_header_height = jQuery( '.fusion-secondary-main-menu' ).outerHeight();
+
+			if ( js_local_vars.header_sticky_type2_layout == 'menu_and_logo' ) {
+				$sticky_header_height += jQuery( '.fusion-header' ).outerHeight();
+			}
+		}
+
+		// Mobile mode
+		if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' ) ) {
+
+			// Sticky header is enabled on mobile
+			if ( js_local_vars.header_sticky_mobile == '1' ) {
+				// Classic mobile menu
+				if ( jQuery( '.fusion-mobile-menu-design-classic' ).length ) {
+					$sticky_header_height = jQuery( '.fusion-secondary-main-menu' ).outerHeight();
+				}
+
+				// Modern mobile menu
+				if ( jQuery( '.fusion-mobile-menu-design-modern' ).length ) {
+					$sticky_header_height = jQuery( '.fusion-header' ).outerHeight();
+				}
+			// Sticky header is disabled on mobile
+			} else {
+				$sticky_header_height = 0;
+			}
+		}
+
+		// Tablet mode
+		if ( js_local_vars.header_sticky_tablet != '1' && $media_query_ipad ) {
+			$sticky_header_height = 0;
+		}
+	}
+
+	return $sticky_header_height;
+}
+
+// Calculate height of sticky header on page load
+function get_waypoint_top_offset() {
+	var $sticky_header_height = 0,
+		$media_query_ipad = Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait)' ) ||  Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape)' );
+
+	// Sticky header is enabled
+	if ( js_local_vars.header_sticky == '1' && jQuery( '.fusion-header-wrapper' ).length ) {
+
+		// Desktop mode - headers v1, v2, v3
+		if ( $sticky_header_type == 1 ) {
+			$sticky_header_height = jQuery( '.fusion-header' ).outerHeight() - 1;
+
+		// Desktop mode - headers v4, v5
+		} else {
+			// Menu only
+			$sticky_header_height = jQuery( '.fusion-secondary-main-menu' ).outerHeight();
+
+			// Menu and logo
+			if ( js_local_vars.header_sticky_type2_layout == 'menu_and_logo' ) {
+				$sticky_header_height += jQuery( '.fusion-header' ).outerHeight() - 1;
+			}
+		}
+
+		// Mobile mode
+		if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)' ) ) {
+
+			// Sticky header is enabled on mobile
+			if ( js_local_vars.header_sticky_mobile == '1' ) {
+				$sticky_header_height = jQuery( '.fusion-header' ).outerHeight() - 1;
+			// Sticky header is disabled on mobile
+			} else {
+				$sticky_header_height = 0;
+			}
+		}
+
+		// Tablet mode
+		if ( js_local_vars.header_sticky_tablet != '1' && $media_query_ipad ) {
+			$sticky_header_height = 0;
+		}
+	}
+
+	return $sticky_header_height;
+}
+
+function get_waypoint_offset( $object ) {
+	var $offset = $object.data( 'animationoffset' );
+
+	if ( $offset === undefined ) {
+		$offset = 'bottom-in-view';
+	}
+
+	if ( $offset == 'top-out-of-view' ) {
+		var $adminbar_height = get_adminbar_height(),
+			$sticky_header_height = get_waypoint_top_offset();
+
+		$offset = $adminbar_height + get_waypoint_top_offset();
+	}
+
+	return $offset;
 }
 
 (function( jQuery ) {
@@ -31872,109 +32351,148 @@ function add_styles_for_old_ie_versions() {
 		if( jQuery().waypoint ) {
 
 			// Counters Box
-			jQuery('.fusion-counter-box').not('.fusion-modal .fusion-counter-box').waypoint(function() {
-				jQuery(this).find('.display-counter').each(function() {
-					jQuery(this).fusion_box_counting();
+			jQuery('.fusion-counter-box').not('.fusion-modal .fusion-counter-box').each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
+
+				jQuery( this ).waypoint(function() {
+					jQuery(this).find('.display-counter').each(function() {
+						jQuery(this).fusion_box_counting();
+					});
+				}, {
+					triggerOnce: true,
+					offset: $offset
 				});
-			}, {
-				triggerOnce: true,
-				offset: 'bottom-in-view'
 			});
 
 			// Counter Circles
-			jQuery('.counter-circle-wrapper').not('.fusion-accordian .counter-circle-wrapper, .fusion-tabs .counter-circle-wrapper, .fusion-modal .counter-circle-wrapper').waypoint(function() {
-				jQuery(this).fusion_draw_circles();
-			}, {
-				triggerOnce: true,
-				offset: 'bottom-in-view'
+			jQuery('.counter-circle-wrapper').not('.fusion-accordian .counter-circle-wrapper, .fusion-tabs .counter-circle-wrapper, .fusion-modal .counter-circle-wrapper').each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
+
+				jQuery( this ).waypoint(function() {
+					jQuery(this).fusion_draw_circles();
+				}, {
+					triggerOnce: true,
+					offset: $offset
+				});
 			});
 
 			// Counter Circles Responsive Resizing
-			jQuery('.counter-circle-wrapper').not('.fusion-modal .counter-circle-wrapper').waypoint(function() {
-				var counter_circles = jQuery( this );
+			jQuery('.counter-circle-wrapper').not('.fusion-modal .counter-circle-wrapper').each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
 
-				jQuery(window).on('resize', function() {
-					counter_circles.fusion_redraw_circles();
+				if ( $offset == 'top-out-of-view' ) {
+					var $adminbar_height = get_adminbar_height(),
+						$sticky_header_height = get_waypoint_top_offset();
+
+					$offset = $adminbar_height + get_waypoint_top_offset();
+				}
+
+				jQuery( this ).waypoint(function() {
+					var counter_circles = jQuery( this );
+
+					jQuery(window).on('resize', function() {
+						counter_circles.fusion_redraw_circles();
+					});
+				}, {
+					triggerOnce: true,
+					offset: $offset
 				});
-			}, {
-				triggerOnce: true,
-				offset: 'bottom-in-view'
 			});
 
 			// Progressbar
-			jQuery( '.fusion-progressbar' ).not('.fusion-modal .fusion-progressbar').waypoint( function() {
-				jQuery(this).fusion_draw_progress();
-			}, {
-				triggerOnce: true,
-				offset: 'bottom-in-view'
+			jQuery( '.fusion-progressbar' ).not('.fusion-modal .fusion-progressbar').each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
+
+				jQuery( this ).waypoint( function() {
+					jQuery(this).fusion_draw_progress();
+				}, {
+					triggerOnce: true,
+					offset: $offset
+				});
 			});
 
 			// Content Boxes Timeline Design
-			jQuery( '.fusion-content-boxes' ).waypoint( function() {
-				var delay = 0;
+			jQuery( '.fusion-content-boxes' ).each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
 
-				jQuery( this ).find( '.content-box-column' ).each(function() {
-					var $element = this;
+				jQuery( this ).waypoint( function() {
+					var $delay = 0;
 
-					setTimeout( function() {
-						jQuery( $element ).find( '.fusion-animated' ).css( 'visibility', 'visible' );
+					jQuery( this ).find( '.content-box-column' ).each( function() {
+						var $element = this;
 
-						// this code is executed for each appeared element
-						var $animation_type = jQuery( $element ).find( '.fusion-animated' ).data( 'animationtype' ),
-							$animation_duration = jQuery( $element ).find( '.fusion-animated' ).data( 'animationduration' );
+						setTimeout( function() {
+							jQuery( $element ).find( '.fusion-animated' ).css( 'visibility', 'visible' );
 
-						jQuery( $element ).find( '.fusion-animated' ).addClass( $animation_type );
+							// this code is executed for each appeared element
+							var $animation_type = jQuery( $element ).find( '.fusion-animated' ).data( 'animationtype' ),
+								$animation_duration = jQuery( $element ).find( '.fusion-animated' ).data( 'animationduration' );
 
-						if ( $animation_duration ) {
-							jQuery( $element ).find( '.fusion-animated' ).css( '-moz-animation-duration', $animation_duration + 's' );
-							jQuery( $element ).find( '.fusion-animated' ).css( '-webkit-animation-duration', $animation_duration + 's' );
-							jQuery( $element ).find( '.fusion-animated' ).css( '-ms-animation-duration', $animation_duration + 's' );
-							jQuery( $element ).find( '.fusion-animated' ).css( '-o-animation-duration', $animation_duration + 's' );
-							jQuery( $element ).find( '.fusion-animated' ).css( 'animation-duration', $animation_duration + 's' );
-						}
+							jQuery( $element ).find( '.fusion-animated' ).addClass( $animation_type );
 
-						if( jQuery( $element ).parents( '.fusion-content-boxes' ).hasClass( 'content-boxes-timeline-horizontal' ) ||
-							jQuery( $element ).parents( '.fusion-content-boxes' ).hasClass( 'content-boxes-timeline-vertical' ) ) {
-							jQuery( $element ).addClass( 'fusion-appear' );
-						}
-					}, delay );
+							if ( $animation_duration ) {
+								jQuery( $element ).find( '.fusion-animated' ).css( '-moz-animation-duration', $animation_duration + 's' );
+								jQuery( $element ).find( '.fusion-animated' ).css( '-webkit-animation-duration', $animation_duration + 's' );
+								jQuery( $element ).find( '.fusion-animated' ).css( '-ms-animation-duration', $animation_duration + 's' );
+								jQuery( $element ).find( '.fusion-animated' ).css( '-o-animation-duration', $animation_duration + 's' );
+								jQuery( $element ).find( '.fusion-animated' ).css( 'animation-duration', $animation_duration + 's' );
+							}
 
-					delay += parseInt( jQuery( this ).parents('.fusion-content-boxes').attr( 'data-animation-delay' ) );
+							if( jQuery( $element ).parents( '.fusion-content-boxes' ).hasClass( 'content-boxes-timeline-horizontal' ) ||
+								jQuery( $element ).parents( '.fusion-content-boxes' ).hasClass( 'content-boxes-timeline-vertical' ) ) {
+								jQuery( $element ).addClass( 'fusion-appear' );
+							}
+						}, $delay );
+
+						$delay += parseInt( jQuery( this ).parents( '.fusion-content-boxes' ).attr( 'data-animation-delay' ) );
+					});
+				}, {
+					triggerOnce: true,
+					offset: $offset
 				});
-			}, {
-				triggerOnce: true,
-				offset: 'bottom-in-view'
 			});
 
 			// CSS Animations
-			jQuery( '.fusion-animated' ).waypoint( function() {
-				if( ! jQuery( this ).parents( '.fusion-delayed-animation' ).length ) {
-					jQuery( this ).css( 'visibility', 'visible' );
+			jQuery( '.fusion-animated' ).each( function() {
+				var $offset = get_waypoint_offset( jQuery( this ) );
 
-					// this code is executed for each appeared element
-					var $animation_type = jQuery( this ).data( 'animationtype' ),
-						$animation_duration = jQuery( this ).data( 'animationduration' );
+				if ( $offset == 'top-out-of-view' ) {
+					var $adminbar_height = get_adminbar_height(),
+						$sticky_header_height = get_sticky_header_height();
 
-					jQuery( this ).addClass( $animation_type );
-
-					if ( $animation_duration ) {
-						jQuery( this ).css( '-moz-animation-duration', $animation_duration + 's' );
-						jQuery( this ).css( '-webkit-animation-duration', $animation_duration + 's' );
-						jQuery( this ).css( '-ms-animation-duration', $animation_duration + 's' );
-						jQuery( this ).css( '-o-animation-duration', $animation_duration + 's' );
-						jQuery( this ).css( 'animation-duration', $animation_duration + 's' );
-
-						// Remove the animation class, when the animation is finished; this is done
-						// to prevent conflicts with image hover effects
-						var $current_element = jQuery( this );
-						setTimeout(
-							function() {
-								$current_element.removeClass( $animation_type );
-							}, $animation_duration * 1000
-						);
-					}
+					$offset = $adminbar_height + $sticky_header_height;
 				}
-			}, { triggerOnce: true, offset: 'bottom-in-view' } );
+
+				jQuery( this ).waypoint( function() {
+					if( ! jQuery( this ).parents( '.fusion-delayed-animation' ).length ) {
+						jQuery( this ).css( 'visibility', 'visible' );
+
+						// this code is executed for each appeared element
+						var $animation_type = jQuery( this ).data( 'animationtype' ),
+							$animation_duration = jQuery( this ).data( 'animationduration' );
+
+						jQuery( this ).addClass( $animation_type );
+
+						if ( $animation_duration ) {
+							jQuery( this ).css( '-moz-animation-duration', $animation_duration + 's' );
+							jQuery( this ).css( '-webkit-animation-duration', $animation_duration + 's' );
+							jQuery( this ).css( '-ms-animation-duration', $animation_duration + 's' );
+							jQuery( this ).css( '-o-animation-duration', $animation_duration + 's' );
+							jQuery( this ).css( 'animation-duration', $animation_duration + 's' );
+
+							// Remove the animation class, when the animation is finished; this is done
+							// to prevent conflicts with image hover effects
+							var $current_element = jQuery( this );
+							setTimeout(
+								function() {
+									$current_element.removeClass( $animation_type );
+								}, $animation_duration * 1000
+							);
+						}
+					}
+
+				}, { triggerOnce: true, offset: $offset } );
+			});
 		}
 	};
 
@@ -32060,19 +32578,6 @@ function add_styles_for_old_ie_versions() {
 		var strokesize = circle.children( '.counter-circle' ).attr( 'data-strokesize' );
 		var percentage = circle.children( '.counter-circle' ).attr( 'data-percent' );
 
-		// Check if set values fit the container
-		if( circle.parent().width() < circle.width() ) {
-			size = circle.parent().width();
-			strokesize =  size / 220 * 11;
-
-			circle.css({ 'width': size, 'height': size, 'line-height': size + 'px' });
-			circle.find( '.fusion-counter-circle' ).each( function() {
-				jQuery( this ).css({ 'width': size, 'height': size, 'line-height': size + 'px' });
-				jQuery( this ).data( 'size', size );
-				jQuery( this ).data( 'strokesize', strokesize );
-			});
-		}
-
 		if( scale ) {
 			scale = jQuery( 'body' ).css( 'color' );
 		}
@@ -32113,41 +32618,69 @@ function add_styles_for_old_ie_versions() {
 	};
 
 	jQuery.fn.fusion_redraw_circles = function() {
-		var counter_circles_wrapper = jQuery( this );
-		counter_circles_wrapper.attr( 'data-originalsize', counter_circles_wrapper.width() );
-		var fusion_counters_circle_width = counter_circles_wrapper.parent().width();
+		var $counter_circles_wrapper = jQuery( this );
 
-		if( fusion_counters_circle_width < counter_circles_wrapper.data( 'originalsize' ) ) {
+		// Make sure that only currently visible circles are redrawn; important e.g. for tabs
+		if ( $counter_circles_wrapper.is( ':hidden' ) ) {
+			return;
+		}
 
-			counter_circles_wrapper.css({ 'width': fusion_counters_circle_width, 'height': fusion_counters_circle_width, 'line-height': fusion_counters_circle_width + 'px' });
-			counter_circles_wrapper.find( '.fusion-counter-circle' ).each( function() {
-				jQuery( this ).css({ 'width': fusion_counters_circle_width, 'height': fusion_counters_circle_width, 'line-height': fusion_counters_circle_width + 'px' });
-				jQuery( this ).data( 'size', fusion_counters_circle_width );
-				jQuery( this ).data( 'strokesize', fusion_counters_circle_width / 220 * 11 );
+		$counter_circles_wrapper.attr( 'data-currentsize', $counter_circles_wrapper.width() );
+		$counter_circles_wrapper.removeAttr( 'style' );
+		$counter_circles_wrapper.children().removeAttr( 'style' );
+		var $current_size = $counter_circles_wrapper.data( 'currentsize' ),
+			$original_size = $counter_circles_wrapper.data( 'originalsize' ),
+			$fusion_counters_circle_width = $counter_circles_wrapper.parent().width();
+
+		// Overall container width is smaller than one counter circle; e.g. happens for elements in column shortcodes
+		if ( $fusion_counters_circle_width < $counter_circles_wrapper.data( 'currentsize' ) ) {
+
+			$counter_circles_wrapper.css({
+				'width': $fusion_counters_circle_width,
+				'height': $fusion_counters_circle_width,
+				'line-height': $fusion_counters_circle_width + 'px'
+			});
+			$counter_circles_wrapper.find( '.fusion-counter-circle' ).each( function() {
+				jQuery( this ).css({
+					'width': $fusion_counters_circle_width,
+					'height': $fusion_counters_circle_width,
+					'line-height': $fusion_counters_circle_width + 'px',
+					'font-size': 50 * $fusion_counters_circle_width / 220
+				});
+				jQuery( this ).data( 'size', $fusion_counters_circle_width );
+				jQuery( this ).data( 'strokesize', $fusion_counters_circle_width / 220 * 11 );
 				jQuery( this ).data( 'animate', false );
-				jQuery( this ).attr( 'data-size', fusion_counters_circle_width );
-				jQuery( this ).attr( 'data-strokesize', fusion_counters_circle_width / 220 * 11 );
+				jQuery( this ).attr( 'data-size', $fusion_counters_circle_width );
+				jQuery( this ).attr( 'data-strokesize', $fusion_counters_circle_width / 220 * 11 );
 				jQuery( this ).children( 'canvas' ).remove();
 				jQuery( this ).removeData( 'easyPieChart' );
 			});
 
-			counter_circles_wrapper.fusion_draw_circles();
-		} else if( fusion_counters_circle_width >= counter_circles_wrapper.data( 'originalsize' ) && counter_circles_wrapper.width() < counter_circles_wrapper.data( 'originalsize' ) )  {
-			var original_size = counter_circles_wrapper.data( 'originalsize' );
+			$counter_circles_wrapper.fusion_draw_circles();
+		} else {
+			$counter_circles_wrapper.css({
+				'width': $original_size,
+				'height': $original_size,
+				'line-height': $original_size + 'px'
+			});
+			$counter_circles_wrapper.find( '.fusion-counter-circle' ).each( function() {
+				jQuery( this ).css({
+					'width': $original_size,
+					'height': $original_size,
+					'line-height': $original_size + 'px',
+					'font-size': 50* $original_size / 220
+				});
 
-			counter_circles_wrapper.css({ 'width': original_size, 'height': original_size, 'line-height': original_size + 'px' });
-			counter_circles_wrapper.find( '.fusion-counter-circle' ).each( function() {
-				jQuery( this ).css({ 'width': original_size, 'height': original_size, 'line-height': original_size + 'px' });
-				jQuery( this ).data( 'size', original_size );
-				jQuery( this ).data( 'strokesize', original_size / 220 * 11 );
+				jQuery( this ).data( 'size', $original_size );
+				jQuery( this ).data( 'strokesize', $original_size / 220 * 11 );
 				jQuery( this ).data( 'animate', false );
-				jQuery( this ).attr( 'data-size', original_size );
-				jQuery( this ).attr( 'data-strokesize', original_size / 220 * 11 );
+				jQuery( this ).attr( 'data-size', $original_size );
+				jQuery( this ).attr( 'data-strokesize', $original_size / 220 * 11 );
 				jQuery( this ).children( 'canvas' ).remove();
 				jQuery( this ).removeData( 'easyPieChart' );
 			});
 
-			counter_circles_wrapper.fusion_draw_circles();
+			$counter_circles_wrapper.fusion_draw_circles();
 		}
 	};
 
@@ -32314,8 +32847,13 @@ function add_styles_for_old_ie_versions() {
 	jQuery.fn.fusion_switch_tab_on_link_click = function( $custom_id ) {
 
 		// The custom_id is used for on page links
-		var $link_hash = $custom_id || document.location.hash,
-			$link_id = $link_hash.split( '#' )[1];
+
+		if ( $custom_id ) {
+			var $link_hash = $custom_id;
+		} else {
+			var $link_hash = ( document.location.hash.substring( 0, 2 )  == '#_' ) ? document.location.hash.replace( '#_', '#' ) : document.location.hash;
+		}
+			var $link_id = ( $link_hash.substring( 0, 2 )  == '#_' ) ? $link_hash.split( '#_' )[1] : $link_hash.split( '#' )[1];
 
 		if( $link_hash && jQuery( this ).find( '.nav-tabs li a[href="' + $link_hash + '"]' ).length ) {
 			jQuery( this ).find( '.nav-tabs li' ).removeClass( 'active' );
@@ -32336,8 +32874,7 @@ function add_styles_for_old_ie_versions() {
 
 	// Max height for columns and content boxes
 	jQuery.fn.equalHeights = function( $min_height, $max_height ) {
-
-		if ( jQuery( this ).children( '.fusion-column-table' ).length || Modernizr.mq( 'only screen and (min-width: 800px)' ) || Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)' ) ) {
+		if ( Modernizr.mq( 'only screen and (min-width: ' + js_local_vars.content_break_point + 'px)' ) || Modernizr.mq( 'only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)' ) ) {
 			var $tallest = ( $min_height ) ? $min_height : 0;
 
 			this.each( function() {
@@ -32381,7 +32918,7 @@ function add_styles_for_old_ie_versions() {
 	// Set the bg image dimensions of an empty column as data attributes
 	jQuery.fn.fusion_set_bg_img_dims = function() {
 		jQuery( this ).each( function() {
-			if ( jQuery.trim( jQuery( this ).html() ) == '<div class="fusion-clearfix"></div>' && jQuery( this ).data( 'bg-url' ) ) {
+			if ( ( jQuery.trim( jQuery( this ).html() ) == '<div class="fusion-clearfix"></div>' || jQuery.trim( jQuery( this ).html() ) == '<div class="fusion-column-table" style="height: 0px;"><div class="fusion-column-tablecell"><div class="fusion-clearfix"></div></div></div>' ) && jQuery( this ).data( 'bg-url' ) ) {
 				// For background image we need to setup the image object to get the natural heights
 				var $background_image = new Image();
 				$background_image.src = jQuery( this ).data( 'bg-url' );
@@ -32405,7 +32942,7 @@ function add_styles_for_old_ie_versions() {
 	jQuery.fn.fusion_calculate_empty_column_height = function() {
 
 		jQuery( this ).each( function() {
-			if ( ( jQuery( this ).parents( '.fusion-equal-height-columns' ).length && ( Modernizr.mq( 'screen and (max-width: 800px)' ) || jQuery( this ).data( 'empty-column' ) == true ) ) || ! jQuery( this ).parents( '.fusion-equal-height-columns' ).length ) {
+			if ( ( jQuery( this ).parents( '.fusion-equal-height-columns' ).length && ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) || jQuery( this ).data( 'empty-column' ) == true ) ) || ! jQuery( this ).parents( '.fusion-equal-height-columns' ).length ) {
 				if ( jQuery.trim( jQuery( this ).html() ) == '<div class="fusion-clearfix"></div>' ) {
 					var $image_height = jQuery( this ).data( 'bg-height' ),
 						$image_width = jQuery( this ).data( 'bg-width' ),
@@ -32547,9 +33084,11 @@ function add_styles_for_old_ie_versions() {
 
 		var $countdown = jQuery( this ),
 			$timer 	= $countdown.data( 'timer' ).split( '-' ),
+			$gmt_offset = $countdown.data( 'gmt-offset' ),
 			$omit_weeks	= $countdown.data( 'omit-weeks' );
 
 		$countdown.countDown({
+			gmtOffset: $gmt_offset,
 			omitWeeks: $omit_weeks,
 			targetDate: {
 
@@ -32574,6 +33113,29 @@ function add_styles_for_old_ie_versions() {
 				jQuery( this ).addClass( 'fusion-image-hovers' );
 			}
 		}
+	};
+
+	// Add/remove the mobile title class, depending on available space and title length
+	jQuery.fn.fusion_responsive_title_shortcode = function() {
+		jQuery( this ).each( function() {
+			var $title_wrapper = jQuery( this ),
+				$title = $title_wrapper.find( 'h1, h2, h3, h4, h5, h6' ),
+				$title_min_width = ( $title.data( 'min-width' ) ) ? $title.data( 'min-width' ) : $title.outerWidth(),
+				$wrapping_parent = $title_wrapper.parent(),
+				$wrapping_parent_width = ( $title_wrapper.parents( '.slide-content' ).length ) ? $wrapping_parent.width() : $wrapping_parent.outerWidth();
+
+			if ( $title_min_width == 0 && $wrapping_parent_width == 0 ) {
+				$title_wrapper.removeClass( 'fusion-border-below-title' );
+			} else if ( $title_min_width + 100 >= $wrapping_parent_width ) {
+				$title_wrapper.addClass( 'fusion-border-below-title' );
+				$title.data( 'min-width', $title_min_width );
+			} else {
+				$title_wrapper.removeClass( 'fusion-border-below-title' );
+			}
+
+
+
+		});
 	};
 
 })( jQuery );
@@ -32624,6 +33186,12 @@ jQuery( window ).load( function() { // start window_load_1
 	// Flip Boxes
 	jQuery( '.flip-box-inner-wrapper' ).each( function() {
 		jQuery( this ).fusion_calc_flip_boxes_height();
+	});
+
+	jQuery( window ).resize( function() {
+		jQuery( '.flip-box-inner-wrapper' ).each( function() {
+			jQuery( this ).fusion_calc_flip_boxes_height();
+		});
 	});
 
 	// Testimonials
@@ -32724,8 +33292,9 @@ jQuery( window ).load( function() { // start window_load_1
 					var grid_width = Math.floor( 100 / columns * 100 ) / 100  + '%';
 					jQuery( this ).find( '.fusion-blog-layout-grid' ).find( '.fusion-post-grid' ).css( 'width', grid_width );
 
-					jQuery( this).find( '.fusion-blog-layout-grid' ).isotope();
+					jQuery( this ).find( '.fusion-blog-layout-grid' ).isotope();
 
+					// Reinitialize select arrows
 					calc_select_arrow_dimensions();
 				});
 			}, 350);
@@ -32798,7 +33367,7 @@ jQuery( window ).load( function() { // start window_load_1
 				var grid_width = Math.floor( 100 / columns * 100 ) / 100  + '%';
 				jQuery( this ).find( '.fusion-blog-layout-grid' ).find( '.fusion-post-grid' ).css( 'width', grid_width );
 
-				jQuery( this).find( '.fusion-blog-layout-grid' ).isotope();
+				jQuery( this ).find( '.fusion-blog-layout-grid' ).isotope();
 
 				calc_select_arrow_dimensions();
 			});
@@ -32819,6 +33388,9 @@ jQuery( window ).load( function() { // start window_load_1
 
 				$slidingbar.find( '.fusion-testimonials .reviews' ).height( $active_testimonial.height() );
 			}
+
+			// Reinitialize select arrows
+			calc_select_arrow_dimensions();
 		}, 350);
 	});
 
@@ -32928,6 +33500,15 @@ jQuery( window ).load( function() { // start window_load_1
 
 		});
 
+	// Events Calendar Reinitialize Scripts
+	jQuery( '.tribe_events_filters_close_filters, .tribe_events_filters_show_filters' ).on( 'click', function() {
+		var tribe_events = jQuery( this );
+
+		setTimeout( function() {
+			jQuery( tribe_events ).parents( '#tribe-events-content-wrapper' ).find( '.fusion-blog-layout-grid' ).isotope();
+		});
+	});
+
 	generate_carousel();
 
 	// Equal Heights Elements
@@ -32984,17 +33565,6 @@ jQuery( window ).load( function() { // start window_load_1
 		jQuery( '.fusion-layout-column .fusion-column-wrapper' ).fusion_calculate_empty_column_height();
 	});
 
-	/*jQuery( '.fusion-events-shortcode' ).each( function() {
-		jQuery( this ).find('.fusion-column-wrapper' ).equalHeights();
-		jQuery( this ).find('.fusion-column-wrapper' ).css( 'overflow', 'visible' );
-	});
-
-	jQuery( window ).on( 'resize', function() {
-		jQuery( '.fusion-events-shortcode' ).each( function() {
-			jQuery( this ).find( '.fusion-column-wrapper' ).equalHeights();
-			jQuery( this ).find( '.fusion-column-wrapper' ).css( 'overflow', 'visible' );
-		});
-	});*/
 
 	/**
 	 * Icon Hack for iOS7 on Buttons
@@ -33009,6 +33579,13 @@ jQuery( window ).load( function() { // start window_load_1
 			});
 		}
 	}
+
+	// Woocommerce new cart icon width/height
+	jQuery( '.fusion-widget-cart-number' ).css( 'padding', 0 );
+	var cart_icon_height = jQuery( '.fusion-widget-cart-number' ).height();
+	jQuery( '.fusion-widget-cart-number' ).css( 'width', cart_icon_height + 10 );
+	jQuery( '.fusion-widget-cart-number' ).css( 'height', cart_icon_height + 10 );
+	jQuery( '.fusion-widget-cart-number' ).css( 'line-height', ( cart_icon_height + 10 ) + 'px' );
 }); // end window_load_1
 
 jQuery( document ).ajaxComplete( function() {
@@ -33021,7 +33598,22 @@ jQuery( document ).ajaxComplete( function() {
 				jQuery( this ).prepend( '<button class="close toggle-alert" aria-hidden="true" data-dismiss="alert" type="button">&times;</button><span class="alert-icon"><i class="fa fa-lg fa-exclamation-triangle"></i></span>');
 			}
 		}
+
+		if ( jQuery( this ).hasClass( 'wpcf7-mail-sent-ok' ) && ! jQuery( this ).find( '.alert-icon' ).length ) {
+			jQuery( this ).addClass( 'fusion-alert' );
+			if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
+				jQuery( this ).append( '<button class="close toggle-alert" aria-hidden="true" data-dismiss="alert" type="button">&times;</button><span class="alert-icon"><i class="fa fa-lg fa-check-circle"></i></span>');
+			} else {
+				jQuery( this ).prepend( '<button class="close toggle-alert" aria-hidden="true" data-dismiss="alert" type="button">&times;</button><span class="alert-icon"><i class="fa fa-lg fa-check-circle"></i></span>');
+			}
+		}
 	});
+
+		jQuery('.wpcf7-response-output.fusion-alert .close').click(function(e) {
+			e.preventDefault();
+
+			jQuery(this).parent().slideUp();
+		});
 });
 
 jQuery( document ).ready(function($) { // start document_ready_1
@@ -33112,10 +33704,15 @@ jQuery( document ).ready(function($) { // start document_ready_1
 	// Comment form title changes
 	if ( jQuery( '.comment-respond .comment-reply-title' ).length ) {
 		var $title_sep = js_local_vars.title_style_type.split( ' ' ),
-			$title_sep_class_string = '';
+			$title_sep_class_string = '',
+			$title_main_sep_class_string = '';
 
 		for ( var i = 0; i < $title_sep.length; i++ ) {
 			$title_sep_class_string += ' sep-' + $title_sep[i];
+		}
+
+		if ( $title_sep_class_string.indexOf( 'underline' ) > -1 ) {
+			$title_main_sep_class_string = $title_sep_class_string;
 		}
 
 		if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
@@ -33123,8 +33720,11 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		} else {
 			jQuery( '.comment-respond .comment-reply-title' ).addClass( 'title-heading-left' );
 		}
-		jQuery( '.comment-respond .comment-reply-title' ).wrap( '<div class="fusion-title title fusion-title-size-three"></div>' );
-		jQuery( '.comment-respond .comment-reply-title' ).parent().append( '<div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div>' );
+		jQuery( '.comment-respond .comment-reply-title' ).wrap( '<div class="fusion-title title fusion-title-size-three' + $title_sep_class_string + '"></div>' );
+
+		if ( $title_sep_class_string.indexOf( 'underline' ) == -1 ) {
+			jQuery( '.comment-respond .comment-reply-title' ).parent().append( '<div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div>' );
+		}
 	}
 
 	// Sidebar Position
@@ -33304,7 +33904,6 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		});
 
 		jQuery('.header-wrapper .mobile-topnav-holder .open-submenu, .header-wrapper .mobile-nav-holder .open-submenu, .sticky-header .mobile-nav-holder .open-submenu, .sh-mobile-nav-holder .open-submenu').click( function(e) {
-
 			e.stopPropagation();
 			jQuery( this ).parent().children( '.sub-menu' ).slideToggle(200,'easeOutQuad');
 
@@ -33312,81 +33911,22 @@ jQuery( document ).ready(function($) { // start document_ready_1
 	}
 
 	// One page scrolling effect
-	var $sticky_header_type = 1,
-		$adminbar_height = 0,
-		$sticky_header_height = 0;
-
-	function set_sticky_header_height() {
-		// Set the correct WP admin bar height
-		if ( jQuery( '#wpadminbar' ).length ) {
-			$adminbar_height = parseInt( jQuery( '#wpadminbar' ).outerHeight() );
-		}
-
-		// Set header type to 2 for headers v4, v5
-		if ( jQuery( '.fusion-header-v4' ).length || jQuery( '.fusion-header-v5' ).length ) {
-			$sticky_header_type = 2;
-		}
-
-		// Sticky header is enabled
-		if ( js_local_vars.header_sticky == '1' && jQuery( '.fusion-header-wrapper' ).length ) {
-			// Desktop mode - headers v1, v2, v3
-			if ( $sticky_header_type == 1 ) {
-				$sticky_header_height = jQuery( '.fusion-header' ).outerHeight() - 1;
-
-				// For headers v1 - v3 the sticky header min height is always 65px
-				if ( $sticky_header_height < 64 ) {
-					$sticky_header_height = 64;
-				}
-
-			// Desktop mode - headers v4, v5
-			} else {
-				$sticky_header_height = jQuery( '.fusion-secondary-main-menu' ).outerHeight();
-
-				if ( js_local_vars.header_sticky_type2_layout == 'menu_and_logo' ) {
-					$sticky_header_height += jQuery( '.fusion-header' ).outerHeight();
-				}
-			}
-
-			// Mobile mode
-			if ( window.$media_query_test_4 ) {
-
-				// Sticky header is enabled on mobile
-				if ( js_local_vars.header_sticky_mobile == '1' ) {
-					// Classic mobile menu
-					if ( jQuery( '.fusion-mobile-menu-design-classic' ).length ) {
-						$sticky_header_height = jQuery( '.fusion-secondary-main-menu' ).outerHeight();
-					}
-
-					// Modern mobile menu
-					if ( jQuery( '.fusion-mobile-menu-design-modern' ).length ) {
-						$sticky_header_height = jQuery( '.fusion-header' ).outerHeight();
-					}
-				// Sticky header is disabled on mobile
-				} else {
-					$sticky_header_height = 0;
-				}
-			}
-
-			// Tablet mode
-			if ( js_local_vars.header_sticky_tablet != '1' && ( window.$media_query_test_1 ) ) {
-				$sticky_header_height = 0;
-			}
-		}
-	}
-
-	set_sticky_header_height();
+	var $adminbar_height = get_adminbar_height(),
+		$sticky_header_height = get_sticky_header_height();
 
 	jQuery( window ).on('resize scroll', function() {
-		set_sticky_header_height();
+		$adminbar_height = get_adminbar_height();
+		$sticky_header_height = get_sticky_header_height();
 	});
 
-	jQuery( '.fusion-menu a:not([href=#], .fusion-megamenu-widgets-container a, .search-link), .fusion-mobile-nav-item a:not([href=#], .search-link), .fusion-button:not([href=#], input), .fusion-one-page-text-link:not([href=#])' ).click( function() {
+	jQuery( '.fusion-menu a:not([href=#], .fusion-megamenu-widgets-container a, .search-link), .fusion-mobile-nav-item a:not([href=#], .search-link), .fusion-button:not([href=#], input, button), .fusion-one-page-text-link:not([href=#])' ).click( function() {
 		if ( location.pathname.replace( /^\//,'') == this.pathname.replace(/^\//,'') || location.hostname == this.hostname ) {
 			if ( this.hash ) {
 				var $target = jQuery( this.hash );
 				$target = $target.length ? $target : jQuery( '[name=' + this.hash.slice( 1 ) +']' );
 				if ( $target.length && this.hash.slice( 1 ) !== '' ) {
-					set_sticky_header_height();
+					$adminbar_height = get_adminbar_height();
+					$sticky_header_height = get_sticky_header_height();
 
 					var $current_scroll_position = $( document ).scrollTop(),
 						$new_scroll_position = $target.offset().top - $adminbar_height - $sticky_header_height,
@@ -33402,7 +33942,8 @@ jQuery( document ).ready(function($) { // start document_ready_1
 						 scrollTop: $half_scroll_position
 					}, { duration: 400, easing: 'easeInExpo', complete: function() {
 
-						set_sticky_header_height();
+						$adminbar_height = get_adminbar_height();
+						$sticky_header_height = get_sticky_header_height();
 
 						$new_scroll_position = ( $target.offset().top - $adminbar_height - $sticky_header_height );
 
@@ -33425,16 +33966,25 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		}
 	});
 
+	// Ititialize ScrollSpy script
 	jQuery( 'body' ).scrollspy({
 		target: '.fusion-menu',
 		offset: parseInt( $adminbar_height + $sticky_header_height + 1 )
 	});
 
+	// Reset ScrollSpy offset to correct height after page is fully loaded, may be needed for
+    jQuery( window ).load( function() {
+		$adminbar_height = get_adminbar_height();
+		$sticky_header_height = get_sticky_header_height();
+
+    	jQuery( 'body' ).data()['bs.scrollspy'].options.offset = parseInt( $adminbar_height + $sticky_header_height + 1 );
+    });
+
 	// If an outbound anchor link is clicked make sure the one page scrolling works on page load
 	jQuery('.fusion-menu a[href*="#"]:not([href^="#"]), .fusion-one-page-text-link[href*="#"]:not([href^="#"])' ).on( 'click', function( e ) {
 		// Current path
 		var $current_href = window.location.href.split( '#' ),
-			$current_path = $current_href[0] + '/',
+			$current_path = ( $current_href[0].charAt( $current_href[0].length - 1 ) == '/' ) ? $current_href[0] : $current_href[0] + '/',
 
 			// Target path
 			$target       = jQuery( this ).attr( 'href' ),
@@ -33447,7 +33997,7 @@ jQuery( document ).ready(function($) { // start document_ready_1
 				$target_path = $target_path + '/';
 			}
 
-		// If the link is outbound add an underscore right after the hash tag to make sure the link isn't prsent on the loaded page
+		// If the link is outbound add an underscore right after the hash tag to make sure the link isn't present on the loaded page
 		if  ( $target_path != $current_path && $target_id ) {
 			e.preventDefault();
 			window.location = $target_path + '#_' + $target_id;
@@ -33507,14 +34057,16 @@ jQuery( document ).ready(function($) { // start document_ready_1
 
 		jQuery('.sub-menu li, .fusion-mobile-nav-item li').not('li.menu-item-has-children').on("click", function (e) {
 			var link = jQuery(this).find('a').attr('href');
-			window.location = link;
+			if(jQuery(this).find('a').attr('target') != '_blank') { // fix for #1564
+				window.location = link;
+			}
 
 	  		return true;
 		});
 	}
 
 	// Touch support for win phone devices
-	jQuery( '.fusion-main-menu li.menu-item-has-children a, .fusion-secondary-menu li.menu-item-has-children a, .side-nav li.page_item_has_children a' ).each( function() {
+	jQuery( '.fusion-main-menu li.menu-item-has-children > a, .fusion-secondary-menu li.menu-item-has-children > a, .side-nav li.page_item_has_children > a' ).each( function() {
 		jQuery( this ).attr( 'aria-haspopup', 'true' );
 	});
 
@@ -33532,7 +34084,7 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		});
 	}
 
-	jQuery( '#wrapper .share-box' ).each( function() {
+	jQuery( '#wrapper .fusion-sharing-box' ).each( function() {
 		if( ! jQuery( 'meta[property="og:title"]' ).length ) {
 			jQuery( 'head title' ).after( '<meta property="og:title" content="' + jQuery( this ).data( 'title' )  + '"/>' );
 			jQuery( 'head title' ).after( '<meta property="og:description" content="' + jQuery( this ).data( 'description' )  + '"/>' );
@@ -33542,35 +34094,11 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		}
 	});
 
-	sharebox_h4_width = jQuery('#wrapper .share-box h4').outerWidth();
-	sharebox_ul = jQuery('.share-box ul').outerWidth();
-	// social share box alignment on resize
-	if( sharebox_h4_width + sharebox_ul > jQuery('.post-content').width() && ! jQuery('.single-avada_portfolio').length ) {
-		jQuery('#wrapper .share-box').css('height', 'auto');
-		jQuery('#wrapper .share-box h4').css('float', 'none').css('line-height', '20px').css('padding-bottom', '25px').css('padding-top', '25px');
-		jQuery('.share-box ul').css('float', 'none').css('margin-top', '0').css('overflow', 'hidden').css('padding', '0 25px 25px');
-	} else {
-		jQuery('#wrapper .share-box').css( 'height', '' );
-	}
+	// Remove title separators and padding, when there is not enough space
+	jQuery( '.fusion-title' ).fusion_responsive_title_shortcode();
 
-	jQuery(window).on('resize', function() {
-		jQuery('.title').each(function(index) {
-			if(special_titles_width[index] > jQuery(this).parent().width()) {
-				jQuery(this).addClass('border-below-title');
-			} else {
-				jQuery(this).removeClass('border-below-title');
-			}
-		});
-
-		// social share box alignment on resize
-		if( sharebox_h4_width + sharebox_ul > jQuery('#content').width() ) {
-			jQuery('#wrapper .share-box').css('height', 'auto');
-			jQuery('#wrapper .share-box h4').css('float', 'none').css('line-height', '20px').css('padding-bottom', '25px').css('padding-top', '25px');
-			jQuery('.share-box ul').css('float', 'none').css('margin-top', '0').css('overflow', 'hidden').css('padding', '0 25px 25px');
-		} else {
-			jQuery('#wrapper .share-box').css( 'height', '' );
-			//jQuery('#wrapper .share-box, #wrapper .share-box h4, .share-box ul').attr("style", "");
-		}
+	jQuery( window ).on( 'resize', function() {
+		jQuery( '.fusion-title' ).fusion_responsive_title_shortcode();
 	});
 
 	// Position main menu search box correctly
@@ -33616,14 +34144,6 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		});
 	}
 
-	var special_titles_width = [];
-	jQuery('.title').each(function(index) {
-		special_titles_width[index] = jQuery(this).find('h1,h2,h3,h4,h5,h6').width();
-		if(jQuery(this).find('h1,h2,h3,h4,h5,h6').width() > jQuery(this).parent().width()) {
-			jQuery(this).addClass('border-below-title');
-		}
-	});
-
 	// Tabs
 	// On page load
 	// Direct linked tab handling
@@ -33631,19 +34151,32 @@ jQuery( document ).ready(function($) { // start document_ready_1
 
 	//On Click Event
 	jQuery( '.nav-tabs li' ).click( function(e) {
-		var clicked_tab = jQuery(this);
-		var tab_content_to_activate = jQuery(this).find("a").attr("href");
-		var map_id = clicked_tab.attr('id');
+		var clicked_tab = jQuery( this );
+		var tab_content_to_activate = clicked_tab.find( 'a' ).attr( 'href' );
+		var map_id = clicked_tab.attr( 'id' );
+
+		clicked_tab.parents( '.fusion-tabs' ).find( '.nav li' ).removeClass( 'active' );
+
+		if ( clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.fusion-woo-slider' ).length ) {
+			var $nav_tabs_height = 0;
+			if ( clicked_tab.parents( '.fusion-tabs' ).hasClass( 'horizontal-tabs' ) ) {
+				$nav_tabs_height = clicked_tab.parents( '.fusion-tabs' ).find( '.nav' ).height();
+			}
+			clicked_tab.parents( '.fusion-tabs' ).height( clicked_tab.parents( '.fusion-tabs' ).find( '.tab-content' ).outerHeight( true ) + $nav_tabs_height );
+		}
 
 		setTimeout( function(){
+			// Google maps
 			clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.shortcode-map' ).each(function() {
 				jQuery( this ).reinitialize_google_map();
 			});
 
+			// Image Carousels
 			if( clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.fusion-carousel' ).length ) {
 				generate_carousel();
 			}
 
+			// Portfolio
 			clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.fusion-portfolio' ).each( function() {
 				var $portfolio_wrapper = jQuery( this ).find( '.fusion-portfolio-wrapper' ),
 					$portfolio_wrapper_id = $portfolio_wrapper.attr( 'id' );
@@ -33665,11 +34198,16 @@ jQuery( document ).ready(function($) { // start document_ready_1
 			});
 
 			// Make WooCommerce shortcodes work
+			if ( clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.fusion-woo-slider' ).length ) {
+				clicked_tab.parents( '.fusion-tabs' ).css( 'height', '' );
+			}
+
 			jQuery( '.crossfade-images' ).each(	function() {
 				fusion_resize_crossfade_images_container( jQuery( this ) );
 				fusionResizeCrossfadeImages( jQuery( this ) );
 			});
 
+			// Blog
 			clicked_tab.parents( '.fusion-tabs' ).find( tab_content_to_activate ).find( '.fusion-blog-shortcode' ).each( function() {
 				var columns = 2;
 				for( i = 1; i < 7; i++ ) {
@@ -33681,11 +34219,14 @@ jQuery( document ).ready(function($) { // start document_ready_1
 				var grid_width = Math.floor( 100 / columns * 100 ) / 100  + '%';
 				jQuery( this ).find( '.fusion-blog-layout-grid' ).find( '.fusion-post-grid' ).css( 'width', grid_width );
 
-				jQuery( this).find( '.fusion-blog-layout-grid' ).isotope();
+				jQuery( this ).find( '.fusion-blog-layout-grid' ).isotope();
 
 				calc_select_arrow_dimensions();
 			});
-		}, 350);
+
+			// Reinitialize select arrows
+			calc_select_arrow_dimensions();
+		}, 350 );
 
 		e.preventDefault();
 	});
@@ -33917,12 +34458,12 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		}
 	}
 
-	if(Modernizr.mq('only screen and (max-width: 800px)')) {
+	if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 		jQuery('.tabs-vertical').addClass('tabs-horizontal').removeClass('tabs-vertical');
 	}
 
 	jQuery(window).on('resize', function() {
-		if(Modernizr.mq('only screen and (max-width: 800px)')) {
+		if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 			jQuery('.tabs-vertical').addClass('tabs-original-vertical');
 			jQuery('.tabs-vertical').addClass('tabs-horizontal').removeClass('tabs-vertical');
 		} else {
@@ -33930,204 +34471,18 @@ jQuery( document ).ready(function($) { // start document_ready_1
 		}
 	});
 
-	// Woocommerce
-	jQuery('.catalog-ordering .orderby .current-li a').html(jQuery('.catalog-ordering .orderby ul li.current a').html());
-	jQuery('.catalog-ordering .sort-count .current-li a').html(jQuery('.catalog-ordering .sort-count ul li.current a').html());
-	jQuery('.woocommerce .shop_table .variation dd').after('<br />');
-	jQuery('.woocommerce .avada-myaccount-data th.order-actions').text(js_local_vars.order_actions);
-
-	jQuery( 'body.rtl .woocommerce .wc-forward' ).each( function() {
-		var checkout_button = jQuery( this );
-		checkout_button.val( '\u2190 ' + checkout_button.val().replace( '\u2192', '' ) );
-	});
-
-	// My account page error check
-	if ( jQuery( '.avada_myaccount_user' ).length && jQuery( '.woocommerce-error' ).length && ! jQuery( '.avada-myaccount-nav' ).find( '.active' ).children().hasClass( 'address' ) ) {
-		jQuery( '.avada-myaccount-nav' ).find( '.active' ).removeClass( 'active' );
-		jQuery( '.avada-myaccount-nav' ).find( '.account' ).parent().addClass( 'active' );
-	}
-
-	var avada_myaccount_active = jQuery('.avada-myaccount-nav').find('.active a');
-
-	if(avada_myaccount_active.hasClass('address') ) {
-		jQuery('.avada-myaccount-data .edit_address_heading').fadeIn();
-	} else {
-		jQuery('.avada-myaccount-data h2:nth-of-type(1)').fadeIn();
-	}
-
-	if(avada_myaccount_active.hasClass('downloads') ) {
-		jQuery('.avada-myaccount-data .digital-downloads').fadeIn();
-	} else if(avada_myaccount_active.hasClass('orders') ) {
-		jQuery('.avada-myaccount-data .my_account_orders').fadeIn();
-	} else if(avada_myaccount_active.hasClass('address') ) {
-		jQuery('.avada-myaccount-data .myaccount_address, .avada-myaccount-data .address').fadeIn();
-	} else if(avada_myaccount_active ) {
-		jQuery('.avada-myaccount-data .edit-account-form, .avada-myaccount-data .edit-account-heading').fadeIn();
-		jQuery('.avada-myaccount-data h2:nth-of-type(1)').hide();
-	}
-
-	jQuery('body.rtl .avada-myaccount-data .my_account_orders .order-status').each( function() {
-		jQuery( this ).css( 'text-align', 'right' );
-	});
-
-	jQuery('.woocommerce input').each(function() {
-		if(!jQuery(this).has('#coupon_code')) {
-			var name = jQuery(this).attr('id');
-			jQuery(this).attr('placeholder', jQuery(this).parent().find('label[for='+name+']').text());
-		}
-	});
-
-
-	if(jQuery('.woocommerce #reviews #comments .comment_container .comment-text').length ) {
-		jQuery('.woocommerce #reviews #comments .comment_container').append('<div class="clear"></div>');
-	}
-
-	var $title_sep = js_local_vars.title_style_type.split( ' ' ),
-		$title_sep_class_string = '';
-
-	for ( var i = 0; i < $title_sep.length; i++ ) {
-		$title_sep_class_string += ' sep-' + $title_sep[i];
-	}
-
-	if( jQuery('.woocommerce.single-product .related.products > h2').length ) {
-		jQuery('.woocommerce.single-product .related.products > h2').addClass( 'title-heading-left'  );
-		jQuery('.woocommerce.single-product .related.products > h2').wrap( '<div class="fusion-title title' + $title_sep_class_string + '"></div>' );
-		jQuery('.woocommerce.single-product .related.products > .title').append( '<div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div>' );
-	}
-
-	if( jQuery('.woocommerce.single-product .upsells.products > h2').length ) {
-		jQuery('.woocommerce.single-product .upsells.products > h2').addClass( 'title-heading-left' );
-		jQuery('.woocommerce.single-product .upsells.products > h2').wrap( '<div class="fusion-title title' + $title_sep_class_string + '"></div>' );
-		jQuery('.woocommerce.single-product .upsells.products > .title').append( '<div class="title-sep-container"><div class="title-sep' + $title_sep_class_string + ' "></div></div>' );
-	}
-
-	if(jQuery('body .sidebar').css('display') == "block") {
-		calcTabsLayout('.woocommerce-tabs .tabs-horizontal');
-	}
-
-	jQuery('.sidebar .products,.fusion-footer-widget-area .products,#slidingbar-area .products').each(function() {
-		jQuery(this).removeClass('products-4');
-		jQuery(this).removeClass('products-3');
-		jQuery(this).removeClass('products-2');
-		jQuery(this).addClass('products-1');
-	});
-
-	jQuery('.products-6 li, .products-5 li, .products-4 li, .products-3 li, .products-3 li').removeClass('last');
-
-	// Woocommerce nested products plugin support
-	jQuery( '.subcategory-products' ).each( function() {
-		jQuery( this ).addClass( 'products-' + js_local_vars.woocommerce_shop_page_columns );
-	});
-
-	jQuery('.woocommerce-tabs ul.tabs li a').unbind( 'click' );
-	jQuery('.woocommerce-tabs > ul.tabs li a').click(function(){
-
-		var tab = jQuery( this );
-		var tabs_wrapper = tab.closest( '.woocommerce-tabs' );
-
-		jQuery( 'ul.tabs li', tabs_wrapper ).removeClass( 'active' );
-		jQuery( '> div.panel', tabs_wrapper ).hide();
-		jQuery( 'div' + tab.attr( 'href' ), tabs_wrapper ).show();
-		tab.parent().addClass( 'active' );
-
-		return false;
-	});
-
-
-	jQuery('.woocommerce-checkout-nav a,.continue-checkout').click(function(e) {
-		var $admin_bar_height = ( jQuery( '#wpadminbar' ).length ) ? jQuery( '#wpadminbar' ).height() : 0,
-			$header_div_children = jQuery( '.fusion-header-wrapper').find( 'div' ),
-			$sticky_header_height = 0;
-
-		$header_div_children.each( function() {
-			if ( jQuery( this ).css( 'position' ) == 'fixed' ) {
-				$sticky_header_height = jQuery( this ).height();
-			}
-		});
-
-		e.preventDefault();
-
-		if( ! jQuery( '.woocommerce .avada-checkout' ).find( '.woocommerce-invalid' ).is( ':visible' ) ) {
-			var data_name = $(this).attr('data-name');
-			var name = data_name;
-			if(data_name != '#order_review') {
-				name = '.' + data_name;
-			}
-
-			jQuery('form.checkout .col-1, form.checkout .col-2, form.checkout #order_review_heading, form.checkout #order_review').hide();
-
-			jQuery('form.checkout').find(name).fadeIn();
-			if(name == '#order_review') {
-				jQuery('form.checkout').find('#order_review_heading').fadeIn();
-			}
-
-			jQuery('.woocommerce-checkout-nav li').removeClass('active');
-			jQuery('.woocommerce-checkout-nav').find('[data-name='+data_name+']').parent().addClass('active');
-
-			if( jQuery( this ).hasClass( 'continue-checkout' ) && jQuery( window ).scrollTop() > 0 ) {
-				jQuery('html, body').animate({scrollTop: jQuery( '.woocommerce-content-box.avada-checkout' ).offset().top - $admin_bar_height - $sticky_header_height }, 500);
-			}
-		}
-
-		// set heights of select arrows correctly
-		calc_select_arrow_dimensions();
-	});
-
-	// Ship to a different address toggle
-	jQuery( 'input[name=ship_to_different_address]' ).change(
-		function() {
-			if ( jQuery ( this ).is( ':checked' ) ) {
-				setTimeout( function() {
-					// set heights of select arrows correctly
-					calc_select_arrow_dimensions();
-				}, 1 );
-			}
-		}
-	);
-
-	jQuery('.avada-myaccount-nav a').click(function(e) {
-		e.preventDefault();
-
-		jQuery('.avada-myaccount-data h2, .avada-myaccount-data .digital-downloads, .avada-myaccount-data .my_account_orders, .avada-myaccount-data .myaccount_address, .avada-myaccount-data .address, .avada-myaccount-data .edit-account-heading, .avada-myaccount-data .edit-account-form').hide();
-
-		if(jQuery(this).hasClass('downloads') ) {
-			jQuery('.avada-myaccount-data h2:nth-of-type(1), .avada-myaccount-data .digital-downloads').fadeIn();
-		} else if(jQuery(this).hasClass('orders') ) {
-
-			if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length ) {
-				heading = jQuery('.avada-myaccount-data h2:nth-of-type(2)');
-			} else {
-				heading = jQuery('.avada-myaccount-data h2:nth-of-type(1)');
-			}
-
-			heading.fadeIn();
-			jQuery('.avada-myaccount-data .my_account_orders').fadeIn();
-		} else if(jQuery(this).hasClass('address') ) {
-
-			if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length && jQuery(this).parents('.avada-myaccount-nav').find('.orders').length ) {
-				heading = jQuery('.avada-myaccount-data h2:nth-of-type(3)');
-			} else if( jQuery(this).parents('.avada-myaccount-nav').find('.downloads').length || jQuery(this).parents('.avada-myaccount-nav').find('.orders').length ) {
-				heading = jQuery('.avada-myaccount-data h2:nth-of-type(2)');
-			} else {
-				heading = jQuery('.avada-myaccount-data h2:nth-of-type(1)');
-			}
-
-			heading.fadeIn();
-			jQuery('.avada-myaccount-data .myaccount_address, .avada-myaccount-data .address').fadeIn();
-		} else if(jQuery(this).hasClass('account') ) {
-			jQuery('.avada-myaccount-data .edit-account-heading, .avada-myaccount-data .edit-account-form').fadeIn();
-		}
-
-		jQuery('.avada-myaccount-nav li').removeClass('active');
-		jQuery(this).parent().addClass('active');
-	});
-
-    // Text area climit expandability
+    // Text area limit expandability
     jQuery( '.textarea-comment' ).each( function() {
 		jQuery( this ).css( 'max-width', jQuery( '#content').width() );
     });
 
-	if(Modernizr.mq('only screen and (max-width: 800px)')) {
+    jQuery(window).on('resize', function() {
+		jQuery( '.textarea-comment' ).each( function() {
+			jQuery( this ).css( 'max-width', jQuery( '#content').width() );
+		});
+	});
+
+	if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 		 jQuery('.fullwidth-faded').each(function() {
 		 	var bkgd_img = jQuery(this).css('background-image');
 		 	jQuery(this).parent().css('background-image', bkgd_img);
@@ -34144,6 +34499,8 @@ jQuery( document ).ready(function($) { // start document_ready_1
 	jQuery( '.link-area-box' ).on('click', function() {
 		if( jQuery( this ).attr( 'data-link' ) ) {
 			window.location = jQuery( this ).attr( 'data-link' );
+			jQuery( this ).find( '.heading-link' ).attr( 'target', '' );
+			jQuery( this ).find( '.fusion-read-more' ).attr( 'target', '' );
 		}
 	});
 
@@ -34236,64 +34593,6 @@ function insertParam(url, parameterName, parameterValue, atStart){
 	return urlParts[0] + newQueryString + urlhash;
 }
 
-function ytVidId(url) {
-	var p = /^(?:https?:)?(\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-	return (url.match(p)) ? RegExp.$1 : false;
-	//return (url.match(p)) ? true : false;
-}
-
-jQuery(document).ready(function() {
-	var iframes = jQuery('iframe');
-	jQuery.each(iframes, function(i, v) {
-		var src = jQuery(this).attr('src');
-		if(src) {
-			if(!Number(js_local_vars.status_vimeo) && src.indexOf('vimeo') >= 1) {
-				jQuery(this).attr('id', 'player_'+(i+1));
-				var new_src = insertParam(src, 'api', '1', false);
-				var new_src_2 = insertParam(new_src, 'player_id', 'player_'+(i+1), false);
-				var new_src_3 = insertParam(new_src_2, 'wmode', 'opaque', false);
-
-				jQuery(this).attr('src', new_src_3);
-			}
-
-			if(!Number(js_local_vars.status_yt) && ytVidId(src)) {
-				jQuery(this).attr('id', 'player_'+(i+1));
-				jQuery(this).parent().not('.post-content').wrap('<span class="play3" />');
-
-				var new_src = insertParam(src, 'enablejsapi', '1', false);
-				var new_src_2 = insertParam(new_src, 'wmode', 'opaque', false);
-
-				jQuery(this).attr('src', new_src_2);
-
-				window.yt_vid_exists = true;
-			}
-		}
-	});
-
-	jQuery('.full-video, .video-shortcode, .wooslider .slide-content').not('#bbpress-forums full-video, #bbpress-forums .video-shortcode, #bbpress-forums .wooslider .slide-content').fitVids();
-	jQuery('#bbpress-forums').fitVids();
-});
-
-jQuery(window).load(function() {
-	jQuery('.fusion-youtube-flash-fix').remove();
-});
-
-jQuery(document).ready(function() {
-	jQuery('.fusion-fullwidth.video-background').each(function() {
-		if(jQuery(this).find('> div').attr('data-youtube-video-id')) {
-			window.yt_vid_exists = true;
-		}
-	});
-
-	if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
-		var tag = document.createElement('script');
-		tag.src = window.location.protocol + "//www.youtube.com/iframe_api";
-		var firstScriptTag = document.getElementsByTagName('script')[0];
-		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-	}
-});
-
-
 // Define YT_ready function.
 var YT_ready = (function() {
 	var onReady_funcs = [], api_isReady = false;
@@ -34315,8 +34614,162 @@ var YT_ready = (function() {
 	};
 })();
 
+
+
+function register_youtube_players() {
+	if ( ! Number( js_local_vars.status_yt ) && window.yt_vid_exists === true ) {
+		window.$youtube_players = [];
+
+		jQuery( '.tfs-slider' ).each( function() {
+			var $slider = jQuery( this );
+
+			$slider.find( '[data-youtube-video-id]' ).find( 'iframe' ).each( function() {
+				var $iframe = jQuery( this );
+
+				YT_ready( function() {
+					window.$youtube_players[$iframe.attr( 'id' )] = new YT.Player( $iframe.attr( 'id' ), {
+						events: {
+							'onReady': onPlayerReady( $iframe.parents( 'li' ) ),
+							'onStateChange': onPlayerStateChange( $iframe.attr( 'id' ), $slider )
+						}
+					});
+				});
+			});
+		});
+	}
+}
+
+// Load the YouTube iFrame API
+function load_youtube_iframe_api() {
+	if ( ! Number( js_local_vars.status_yt ) && window.yt_vid_exists === true ) {
+		var tag = document.createElement( 'script' );
+		tag.src = "https://www.youtube.com/iframe_api";
+		var firstScriptTag = document.getElementsByTagName( 'script' )[0];
+		firstScriptTag.parentNode.insertBefore( tag, firstScriptTag );
+	}
+}
+
 // This function will be called when the API is fully loaded
 function onYouTubePlayerAPIReady() {YT_ready(true);}
+
+function onPlayerStateChange( $frame, $slider ) {
+	return function( $event ) {
+		if ( $event.data == YT.PlayerState.PLAYING ) {
+			jQuery( $slider ).flexslider( 'pause' );
+		}
+
+		if ( $event.data == YT.PlayerState.PAUSED ) {
+			jQuery( $slider ).flexslider( 'play' );
+		}
+
+		if ( $event.data == YT.PlayerState.BUFFERING ) {
+			jQuery( $slider ).flexslider( 'pause' );
+		}
+
+		if ( $event.data == YT.PlayerState.ENDED ) {
+			if ( jQuery( $slider ).data( 'autoplay' ) == '1' ) {
+				jQuery( $slider ).flexslider( 'play' );
+			}
+		}
+	};
+}
+function onPlayerReady( $slide ) {
+	return function( $event ) {
+		if ( jQuery( $slide ).data( 'mute' ) == 'yes' ) {
+			$event.target.mute();
+		}
+	};
+}
+
+
+function ytVidId(url) {
+	var p = /^(?:https?:)?(\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+	return (url.match(p)) ? RegExp.$1 : false;
+	//return (url.match(p)) ? true : false;
+}
+
+function playVideoAndPauseOthers( slider ) {
+	// Play the youtube video inside the current slide
+	var $current_slider_iframes = jQuery( slider ).find( '[data-youtube-video-id]' ).find( 'iframe' ),
+		$current_slide = jQuery( slider ).data( 'flexslider' ).slides.eq( jQuery( slider ).data( 'flexslider' ).currentSlide ),
+		$current_slide_iframe = $current_slide.find( '[data-youtube-video-id]' ).find( 'iframe' );
+
+	// Stop all youtube videos
+	$current_slider_iframes.each( function(i) {
+		// Don't stop current video, but all others
+		if ( jQuery( this ).attr( 'id' ) != $current_slide_iframe.attr( 'id' ) ) {
+			window.$youtube_players[jQuery( this ).attr( 'id' )].stopVideo(); // stop instead of pause for preview images
+		}
+	});
+
+	if ( $current_slide_iframe.length ) {
+		if( ! $current_slide_iframe.parents('li').hasClass('clone') && $current_slide_iframe.parents('li').hasClass('flex-active-slide') && $current_slide_iframe.parents('li').attr('data-autoplay') == 'yes' ) { // play only if autoplay is setup
+
+			window.$youtube_players[$current_slide_iframe.attr( 'id' )].playVideo();
+		}
+
+		if( $current_slide.attr( 'data-mute' ) == 'yes' ) {
+			window.$youtube_players[$current_slide_iframe.attr( 'id' )].mute();
+		}
+	}
+
+	jQuery(slider).find('video').each(function(i) {
+		if( typeof jQuery(this)[0].pause === "function" ) {
+			jQuery(this)[0].pause();
+		}
+		if(!jQuery(this).parents('li').hasClass('clone') && jQuery(this).parents('li').hasClass('flex-active-slide') && jQuery(this).parents('li').attr('data-autoplay') == 'yes') {
+			if( typeof jQuery(this)[0].play === "function" ) {
+				jQuery(this)[0].play();
+			}
+		}
+	});
+}
+
+jQuery(document).ready(function() {
+
+	jQuery('.fusion-fullwidth.video-background').each(function() {
+		if(jQuery(this).find('> div').attr('data-youtube-video-id')) {
+			window.yt_vid_exists = true;
+		}
+	});
+
+	var iframes = jQuery('iframe');
+	jQuery.each(iframes, function(i, v) {
+		var src = jQuery(this).attr('src');
+		if(src) {
+			if(!Number(js_local_vars.status_vimeo) && src.indexOf('vimeo') >= 1) {
+				jQuery(this).attr('id', 'player_'+(i+1));
+				var new_src = insertParam(src, 'api', '1', false);
+				var new_src_2 = insertParam(new_src, 'player_id', 'player_'+(i+1), false);
+				var new_src_3 = insertParam(new_src_2, 'wmode', 'opaque', false);
+
+				jQuery(this).attr('src', new_src_3);
+			}
+
+			if(!Number(js_local_vars.status_yt) && ytVidId(src)) {
+				jQuery(this).attr('id', 'player_'+(i+1));
+
+				var new_src = insertParam(src, 'enablejsapi', '1', false);
+				var new_src_2 = insertParam(new_src, 'wmode', 'opaque', false);
+
+				jQuery(this).attr('src', new_src_2);
+
+				window.yt_vid_exists = true;
+			}
+		}
+	});
+
+	jQuery('.full-video, .video-shortcode, .wooslider .slide-content').not('#bbpress-forums full-video, #bbpress-forums .video-shortcode, #bbpress-forums .wooslider .slide-content').fitVids();
+	jQuery('#bbpress-forums').fitVids();
+
+	register_youtube_players();
+
+	load_youtube_iframe_api();
+});
+
+jQuery(window).load(function() {
+	jQuery('.fusion-youtube-flash-fix').remove();
+});
 
 // Control header-v1 and sticky on tfs parallax pages
 
@@ -34604,7 +35057,7 @@ jQuery(window).load(function() {
 				}
 
 				if ( jQuery( this_tfslider ).data( 'parallax' ) === 0 ) {
-					if ( js_local_vars.header_transparency  == 1 ) {
+					if ( js_local_vars.header_transparency == 1 || js_local_vars.slider_position == 'above' ) {
 						sliderHeight = jQuery( window ).height() - wpadminbarHeight;
 					} else {
 						sliderHeight = jQuery( window ).height() - ( headerHeight + wpadminbarHeight );
@@ -34619,20 +35072,27 @@ jQuery(window).load(function() {
 					}
 				}
 
-				jQuery(this_tfslider).find('video').each(function() {
-					var aspect_ratio = jQuery(this).width() / jQuery(this).height();
-					var arc_sliderWidth = aspect_ratio * sliderHeight;
-					var arc_sliderLeft = '-' + ((arc_sliderWidth - jQuery(this_tfslider).width()) / 2) + 'px';
-					var compare_width = jQuery(this_tfslider).parent().parent().parent().width();
-					if(jQuery(this_tfslider).parents('.post-content').length >= 1) {
-						compare_width = jQuery(this_tfslider).width();
+				jQuery( this_tfslider ).find( 'video' ).each(function() {
+					var aspect_ratio = jQuery( this ).width() / jQuery( this ).height(),
+						arc_sliderWidth = aspect_ratio * sliderHeight,
+						arc_sliderLeft = '-' + ( ( arc_sliderWidth - jQuery( this_tfslider ).width() ) / 2 ) + 'px',
+						compare_width = jQuery( this_tfslider ).parent().parent().parent().width();
+					if ( jQuery( this_tfslider ).parents( '.post-content' ).length ) {
+						compare_width = jQuery( this_tfslider ).width();
 					}
-					if(compare_width > arc_sliderWidth) {
+
+					if ( compare_width > arc_sliderWidth ) {
 						arc_sliderWidth = '100%';
 						arc_sliderLeft = 0;
+						$position = 'static';
+					} else {
+						$position = 'absolute';
 					}
-					jQuery(this).width(arc_sliderWidth);
-					jQuery(this).css('left', arc_sliderLeft);
+					jQuery( this ).width( arc_sliderWidth );
+					jQuery( this ).css({
+						'left': arc_sliderLeft,
+						'position': $position
+					});
 				});
 			} else {
 				var sliderWidth = jQuery(this_tfslider).data('slider_width');
@@ -34734,7 +35194,7 @@ jQuery(window).load(function() {
 				jQuery(this).data('old', jQuery(this).attr('class'));
 			});
 
-			if(Modernizr.mq('only screen and (max-width: 800px)')) {
+			if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 				jQuery(this_tfslider).find('.fusion-button').each(function() {
 					jQuery(this).data('old', jQuery(this).attr('class'));
 					jQuery(this).removeClass('button-xlarge button-large button-medium');
@@ -34776,7 +35236,7 @@ jQuery(window).load(function() {
 						}
 
 						if ( jQuery( this_tfslider ).data( 'parallax' ) === 0 ) {
-							if ( js_local_vars.header_transparency == 1 ) {
+							if ( js_local_vars.header_transparency == 1 || js_local_vars.slider_position == 'above' ) {
 								sliderHeight = jQuery( window ).height() - wpadminbarHeight;
 							} else {
 								sliderHeight = jQuery( window ).height() - ( headerHeight + wpadminbarHeight );
@@ -34791,20 +35251,27 @@ jQuery(window).load(function() {
 							}
 						}
 
-						jQuery(this_tfslider).find('video').each(function() {
-							var aspect_ratio = jQuery(this).width() / jQuery(this).height();
-							var arc_sliderWidth = aspect_ratio * jQuery(window).height();
-							var arc_sliderLeft = '-' + ((arc_sliderWidth - jQuery(this_tfslider).width()) / 2) + 'px';
-							var compare_width = jQuery(this_tfslider).parent().parent().parent().width();
-							if(jQuery(this_tfslider).parents('.post-content').length >= 1) {
-								compare_width = jQuery(this_tfslider).width();
+						jQuery( this_tfslider ).find( 'video' ).each(function() {
+							var aspect_ratio = jQuery( this ).width() / jQuery( this ).height(),
+								arc_sliderWidth = aspect_ratio * sliderHeight,
+								arc_sliderLeft = '-' + ( ( arc_sliderWidth - jQuery( this_tfslider ).width() ) / 2 ) + 'px',
+								compare_width = jQuery( this_tfslider ).parent().parent().parent().width();
+							if ( jQuery( this_tfslider ).parents( '.post-content' ).length ) {
+								compare_width = jQuery( this_tfslider ).width();
 							}
-							if(compare_width > arc_sliderWidth) {
+
+							if ( compare_width > arc_sliderWidth ) {
 								arc_sliderWidth = '100%';
 								arc_sliderLeft = 0;
+								$position = 'static';
+							} else {
+								$position = 'absolute';
 							}
-							jQuery(this).width(arc_sliderWidth);
-							jQuery(this).css('left', arc_sliderLeft);
+							jQuery( this ).width( arc_sliderWidth );
+							jQuery( this ).css({
+								'left': arc_sliderLeft,
+								'position': $position
+							});
 						});
 					} else {
 						var sliderWidth = jQuery(this_tfslider).data('slider_width');
@@ -34864,8 +35331,9 @@ jQuery(window).load(function() {
 						});
 					}
 
-					if(Modernizr.mq('only screen and (max-width: 800px)')) {
-						jQuery(this_tfslider).find('.fusion-button').each(function() {							jQuery(this).removeClass('button-xlarge button-large button-medium');
+					if ( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
+						jQuery(this_tfslider).find('.fusion-button').each(function() {
+							jQuery(this).removeClass('button-xlarge button-large button-medium');
 							jQuery(this).addClass('button-small');
 						});
 					} else {
@@ -35133,6 +35601,18 @@ jQuery(window).load(function() {
 
 					jQuery(slider.slides.eq(slider.currentSlide)).find('.slide-content-container').show();
 
+					// Remove title separators and padding, when there is not enough space
+					jQuery( slider.slides.eq( slider.currentSlide ) ).find( '.fusion-title' ).fusion_responsive_title_shortcode();
+
+					var maxHeight = Math.max.apply(
+						null,
+						jQuery(this_tfslider).find('.slide-content').map(function() {
+					    	return jQuery(this).outerHeight();
+					    }).get()
+					);
+
+					maxHeight = maxHeight + 40;
+
 					if(jQuery(this_tfslider).data('full_screen') == 1) {
 						var sliderHeight = jQuery(window).height();
 
@@ -35141,7 +35621,7 @@ jQuery(window).load(function() {
 						}
 
 						if ( jQuery( this_tfslider ).data( 'parallax' ) === 0 ) {
-							if ( js_local_vars.header_transparency == 1 ) {
+							if ( js_local_vars.header_transparency == 1 || js_local_vars.slider_position == 'above' ) {
 								sliderHeight = jQuery( window ).height() - wpadminbarHeight;
 							} else {
 								sliderHeight = jQuery( window ).height() - ( headerHeight + wpadminbarHeight );
@@ -35154,6 +35634,10 @@ jQuery(window).load(function() {
 							} else {
 								var sliderHeight = jQuery( window ).height() - wpadminbarHeight;
 							}
+						}
+
+						if( sliderHeight < maxHeight ) {
+							sliderHeight = maxHeight;
 						}
 
 						jQuery(this_tfslider).find('video').each(function() {
@@ -35216,6 +35700,10 @@ jQuery(window).load(function() {
 							sliderHeight = 200;
 						}
 
+						if( sliderHeight < maxHeight ) {
+							sliderHeight = maxHeight;
+						}
+
 						jQuery(this_tfslider).find('video').each(function() {
 							var aspect_ratio = jQuery(this).width() / jQuery(this).height();
 							var arc_sliderWidth = aspect_ratio * sliderHeight;
@@ -35243,7 +35731,7 @@ jQuery(window).load(function() {
 					jQuery(this_tfslider).css('height', sliderHeight);
 					jQuery(this_tfslider).find('.background, .mobile_video_image').css('height', sliderHeight);
 
-					if(jQuery(this_tfslider).data('full_screen') == 0 && (cssua.ua.mobile && cssua.ua.mobile != 'ipad') || jQuery(this_tfslider).parents('.post-content').length >= 1) {
+					/*if(jQuery(this_tfslider).data('full_screen') == 0 && (cssua.ua.mobile && cssua.ua.mobile != 'ipad') || jQuery(this_tfslider).parents('.post-content').length >= 1) {
 						jQuery(this_tfslider).parents('.fusion-slider-container').css('height', 'auto');
 						jQuery(this_tfslider).find('.mobile_video_image').each(function() {
 							var img_url = jQuery('.mobile_video_image').css('background-image').replace('url(', '').replace(')', '');
@@ -35272,7 +35760,7 @@ jQuery(window).load(function() {
 								preview_image.name = img_url;
 								preview_image.src = img_url;
 								preview_image.onload = function() {
-									var ar = this.height / this.width;
+									var ar = sliderHeight / this.width;
 									var compare_width = jQuery(this_tfslider).parent().parent().parent().width();
 									if(jQuery(this_tfslider).parents('.post-content').length >= 1) {
 										compare_width = jQuery(this_tfslider).width();
@@ -35285,7 +35773,7 @@ jQuery(window).load(function() {
 								};
 							}
 						}
-					}
+					}*/
 
 					if(jQuery(this_tfslider).data('parallax') == 1 && ! Modernizr.mq('only screen and (max-width: ' + js_local_vars.side_header_break_point + 'px)')) {
 						jQuery(this_tfslider).css('position', 'fixed');
@@ -35369,7 +35857,7 @@ jQuery(window).load(function() {
 							jQuery(this).css('margin-top', contentHeight);
 							jQuery(this).css('padding-top', contentPadding);
 						});
-					} else if(Modernizr.mq('only screen and (max-width: 800px)')) {
+					} else if( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 						var slideContent = jQuery(this_tfslider).find('.slide-content-container');
 						jQuery(slideContent).each(function() {
 							var contentHeight = '-' + (jQuery(this).find('.slide-content').height() / 2) + 'px';
@@ -35404,7 +35892,7 @@ jQuery(window).load(function() {
 							}
 						}
 					});
-
+/*
 					jQuery(slider.slides.eq(slider.currentSlide)).find('iframe').each(function() {
 						if(jQuery(this).parents('li').attr('data-autoplay') == 'yes') {
 							jQuery(this_tfslider).flexslider('pause');
@@ -35414,7 +35902,7 @@ jQuery(window).load(function() {
 							}, 1000);
 						}
 					});
-
+*/
 					if(js_local_vars.header_position == 'Left' || js_local_vars.header_position == 'Right') {
 						if( jQuery(this_tfslider).parents('#sliders-container').length >= 1 ) {
 							var slideContent = jQuery(this_tfslider).parents('#sliders-container').find('.slide-content-container');
@@ -35432,17 +35920,9 @@ jQuery(window).load(function() {
 
 					fusion_reanimate_slider( slideContent );
 
+					// Control Videos
 					if(typeof(slider.slides) !== 'undefined' && slider.slides.eq(slider.currentSlide).find('iframe').length !== 0) {
-						if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
-							YT_ready(function() {
-								new YT.Player(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), {
-									events: {
-										'onReady': onPlayerReady(slider.slides.eq(slider.currentSlide)),
-										'onStateChange': onPlayerStateChange(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), slider)
-									}
-								});
-							});
-						}
+						// Vimeo
 						if(!Number(js_local_vars.status_vimeo)) {
 							$f(slider.slides.eq(slider.currentSlide).find('iframe')[0]).api('pause');
 
@@ -35453,20 +35933,37 @@ jQuery(window).load(function() {
 								$f(slider.slides.eq(slider.currentSlide).find('iframe')[0]).api('setVolume', 0);
 							}
 						}
+
+						playVideoAndPauseOthers(slider);
 					}
 
 					jQuery(this_tfslider).find('.overlay-link').hide();
 					jQuery(slider.slides.eq(slider.currentSlide)).find('.overlay-link').show();
 
+					// Resize videos
+					jQuery(this_tfslider).find( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+						function() {
+							var $this = jQuery( this );
+							setTimeout(
+								function() {
+									resizeVideo( $this );
+								}, 500
+							);
+						}
+					);
+
 					// Reinitialize waypoint
 					jQuery.waypoints( 'viewportHeight' );
-					jQuery.waypoints('refresh');
+					jQuery.waypoints( 'refresh' );
 
 				},
 				before: function(slider) {
 					jQuery(this_tfslider).find('.slide-content-container').hide();
 
+
+					// Control Videos
 					if(slider.slides.eq(slider.currentSlide).find('iframe').length !== 0) {
+						// Vimeo
 						if(!Number(js_local_vars.status_vimeo)) {
 							jQuery(this_tfslider).find('iframe').each(function() {
 								$f(jQuery(this)[0]).api('pause');
@@ -35479,23 +35976,15 @@ jQuery(window).load(function() {
 								$f(slider.slides.eq(slider.currentSlide).find('iframe')[0]).api('setVolume', 0);
 							}
 						}
-
-						if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
-							YT_ready(function() {
-								new YT.Player(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), {
-									events: {
-										'onReady': onPlayerReady(slider.slides.eq(slider.currentSlide)),
-										'onStateChange': onPlayerStateChange(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), slider)
-									}
-								});
-							});
-						}
 					}
 
 					playVideoAndPauseOthers(slider);
 				},
 				after: function(slider) {
 					jQuery(slider.slides.eq(slider.currentSlide)).find('.slide-content-container').show();
+
+					// Remove title separators and padding, when there is not enough space
+					jQuery(slider.slides.eq(slider.currentSlide)).find( '.fusion-title' ).fusion_responsive_title_shortcode();
 
 					if(Modernizr.mq('only screen and (max-width: 640px)')) {
 						var slideContent = jQuery(this_tfslider).find('.slide-content-container');
@@ -35506,7 +35995,7 @@ jQuery(window).load(function() {
 							jQuery(this).css('margin-top', contentHeight);
 							jQuery(this).css('padding-top', contentPadding);
 						});
-					} else if(Modernizr.mq('only screen and (max-width: 800px)')) {
+					} else if( Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 						var slideContent = jQuery(this_tfslider).find('.slide-content-container');
 						jQuery(slideContent).each(function() {
 							var contentHeight = '-' + (jQuery(this).find('.slide-content').height() / 2) + 'px';
@@ -35536,17 +36025,9 @@ jQuery(window).load(function() {
 
 					fusion_reanimate_slider( slideContent );
 
+					// Control Videos
 					if(slider.slides.eq(slider.currentSlide).find('iframe').length !== 0) {
-						if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
-							YT_ready(function() {
-								new YT.Player(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), {
-									events: {
-										'onReady': onPlayerReady(slider.slides.eq(slider.currentSlide)),
-										'onStateChange': onPlayerStateChange(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), slider)
-									}
-								});
-							});
-						}
+						// Vimeo
 						if(!Number(js_local_vars.status_vimeo)) {
 							jQuery(this_tfslider).find('iframe').each(function() {
 								$f(jQuery(this)[0]).api('pause');
@@ -35563,6 +36044,12 @@ jQuery(window).load(function() {
 
 					jQuery(this_tfslider).find('.overlay-link').hide();
 					jQuery(slider.slides.eq(slider.currentSlide)).find('.overlay-link').show();
+
+					jQuery( slider.slides.eq( slider.currentSlide ) ).find( '[data-youtube-video-id], [data-vimeo-video-id]' ).each(
+						function() {
+							resizeVideo( jQuery( this ) );
+						}
+					);
 
 					playVideoAndPauseOthers(slider);
 
@@ -35767,7 +36254,7 @@ jQuery(window).load(function() {
 			}
 		});
 
-		jQuery('.flexslider').flexslider({
+		jQuery( '.flexslider:not(.tfs-slider)' ).flexslider({
 			slideshow: Boolean(Number(js_local_vars.slideshow_autoplay)),
 			slideshowSpeed: js_local_vars.slideshow_speed,
 			video: true,
@@ -35812,7 +36299,6 @@ jQuery(window).load(function() {
 					if(!Number(js_local_vars.status_vimeo)) {
 						$f( slider.slides.eq(slider.currentSlide).find('iframe')[0] ).api('pause');
 					}
-
 					if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
 						YT_ready(function() {
 							new YT.Player(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), {
@@ -35834,7 +36320,6 @@ jQuery(window).load(function() {
 					} else {
 						jQuery(slider).find('.flex-control-nav').hide();
 					}
-
 					if(!Number(js_local_vars.status_yt) && window.yt_vid_exists === true) {
 						YT_ready(function() {
 							new YT.Player(slider.slides.eq(slider.currentSlide).find('iframe').attr('id'), {
@@ -35857,31 +36342,6 @@ jQuery(window).load(function() {
 			}
 		});
 
-		function playVideoAndPauseOthers(slider) {
-			jQuery(slider).find('iframe').each(function(i) {
-				var func = 'pauseVideo';
-				this.contentWindow.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
-				if(!jQuery(this).parents('li').hasClass('clone') && jQuery(this).parents('li').hasClass('flex-active-slide') && jQuery(this).parents('li').attr('data-autoplay') == 'yes') {
-					jQuery(this).parents('.flexslider').flexslider('pause');
-					this.contentWindow.postMessage('{"event":"command","func":"' + 'playVideo' + '","args":""}', '*');
-
-					if(jQuery(this).parents('li').attr('data-mute') == 'yes') {
-						this.contentWindow.postMessage('{"event":"command","func":"' + 'mute' + '","args":""}', '*');
-					}
-				}
-			});
-			jQuery(slider).find('video').each(function(i) {
-				if( typeof jQuery(this)[0].pause === "function" ) {
-					jQuery(this)[0].pause();
-				}
-				if(!jQuery(this).parents('li').hasClass('clone') && jQuery(this).parents('li').hasClass('flex-active-slide') && jQuery(this).parents('li').attr('data-autoplay') == 'yes') {
-					if( typeof jQuery(this)[0].play === "function" ) {
-						jQuery(this)[0].play();
-					}
-				}
-			});
-		}
-
 		/* ------------------ PREV & NEXT BUTTON FOR FLEXSLIDER (YOUTUBE) ------------------ */
 		jQuery('.flex-next, .flex-prev').click(function() {
 			//playVideoAndPauseOthers(jQuery(this).parents('.flexslider'));
@@ -35891,6 +36351,7 @@ jQuery(window).load(function() {
 	if(jQuery().isotope) {
 
 		jQuery( '.fusion-blog-layout-grid' ).each(function() {
+			$grid_container = jQuery( this );
 
 			var columns = 2;
 			for( i = 1; i < 7; i++ ) {
@@ -35900,8 +36361,8 @@ jQuery(window).load(function() {
 			}
 
 			var grid_width = Math.floor( 100 / columns * 100 ) / 100  + '%';
-			jQuery( this ).find( '.fusion-post-grid' ).css( 'width', grid_width );
-			jQuery( this ).isotope({
+			$grid_container.find( '.fusion-post-grid' ).css( 'width', grid_width );
+			$grid_container.isotope({
 				layoutMode: 'masonry',
 				itemSelector: '.fusion-post-grid',
 				transformsEnabled: false,
@@ -35911,10 +36372,10 @@ jQuery(window).load(function() {
 			});
 
 
-			if( ( jQuery ( this ).hasClass( 'fusion-blog-layout-grid-4') || jQuery ( this ).hasClass( 'fusion-blog-layout-grid-5') || jQuery ( this ).hasClass( 'fusion-blog-layout-grid-6') ) && Modernizr.mq('only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)')) {
+			if( ( $grid_container.hasClass( 'fusion-blog-layout-grid-4') || $grid_container.hasClass( 'fusion-blog-layout-grid-5') || $grid_container.hasClass( 'fusion-blog-layout-grid-6') ) && Modernizr.mq('only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait)')) {
 				var grid_width = Math.floor( 100 / 3 * 100 ) / 100  + '%';
-				jQuery( this ).find( '.fusion-post-grid' ).css( 'width', grid_width );
-				jQuery( this ).isotope({
+				$grid_container.find( '.fusion-post-grid' ).css( 'width', grid_width );
+				$grid_container.isotope({
 					layoutMode: 'masonry',
 					itemSelector: '.fusion-post-grid',
 					transformsEnabled: false,
@@ -35927,6 +36388,7 @@ jQuery(window).load(function() {
 			setTimeout(
 				function() {
 					jQuery( window ).trigger( 'resize' );
+					$grid_container.isotope();
 				}, 250
 			);
 		});
@@ -36053,25 +36515,24 @@ jQuery( document ).ready( function() {
 });
 
 jQuery( window ).load( function() {
-	if ( jQuery( '.fusion-secondary-menu .fusion-secondary-menu-cart' ).width() > 176 ) {
-		setTimeout( function() {
-			var cart_width = jQuery( '.fusion-secondary-menu .fusion-secondary-menu-cart' ).outerWidth(),
-				cart_content = jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a'),
-				cart_content_width = cart_content.width(),
-				cart_content_padding = cart_content.outerWidth() - cart_content_width,
-				new_cart_content_width = cart_width - cart_content_padding,
-				img = jQuery( '.fusion-secondary-menu-cart .fusion-menu-cart-items a > img' ),
-				img_width = img.width();
-				img_margin = img.outerWidth( true ) - img_width;
+	setTimeout( function() {
+		var cart_width = jQuery( '.fusion-secondary-menu .fusion-secondary-menu-cart' ).outerWidth(),
+			cart_content = jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a'),
+			cart_content_width = cart_content.width(),
+			cart_content_padding = cart_content.outerWidth() - cart_content_width,
+			new_cart_content_width = cart_width - cart_content_padding,
+			img = jQuery( '.fusion-secondary-menu-cart .fusion-menu-cart-items a > img' ),
+			img_width = img.width();
+			img_margin = img.outerWidth( true ) - img_width;
 
-			jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items').width( cart_width );
-			jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a').width( new_cart_content_width );
+		jQuery('.fusion-secondary-menu-cart .fusion-secondary-menu-icon').css( 'min-width', cart_width );
+		jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items').width( cart_width );
+		jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a').width( new_cart_content_width );
 
-			jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a').find( '.fusion-menu-cart-item-details' ).each( function() {
-				jQuery ( this ).width( jQuery ( this ).parent().width() - img_width - img_margin );
-			});
-		}, 750 );
-	}
+		jQuery('.fusion-secondary-menu-cart .fusion-menu-cart-items a').find( '.fusion-menu-cart-item-details' ).each( function() {
+			jQuery ( this ).width( jQuery ( this ).parent().width() - img_width - img_margin );
+		});
+	}, 750 );
 
 	if( js_local_vars.sidenav_behavior == 'Click' ) {
 		jQuery('.side-nav li a').on('click', function(e) {
@@ -36135,11 +36596,11 @@ jQuery( window ).load( function() {
 	}
 
 	// Timeline vars and click events for infinite scroll
-	var last_timeline_date = jQuery( '.blog-layout-timeline' ).find( '.timeline-date' ).last().text();
+	var last_timeline_date = jQuery( '.fusion-blog-layout-timeline' ).find( '.fusion-timeline-date' ).last().text();
 	var collapse_month_visible = true;
 
 	jQuery( '.fusion-blog-layout-timeline' ).find( '.fusion-timeline-date' ).click( function() {
-		jQuery( this ).next( '.collapse-month' ).slideToggle();
+		jQuery( this ).next( '.fusion-collapse-month' ).slideToggle();
 	});
 
 	jQuery( '.fusion-timeline-icon' ).find( '.fusion-icon-bubbles' ).click( function() {
@@ -36155,18 +36616,25 @@ jQuery( window ).load( function() {
 	// Setup infinite scroll for each blog instance; main blog page and blog shortcodes
 	jQuery( '.fusion-posts-container-infinite' ).each( function() {
 		// Set the correct container for blog shortcode infinite scroll
-		var $blog_infinite_container = jQuery( this );
+		var $blog_infinite_container = jQuery( this ),
+			$original_posts = jQuery( this ).find( '.post' );
 		if ( jQuery( this ).find( '.fusion-blog-layout-timeline' ).length ) {
 			$blog_infinite_container = jQuery( this ).find( '.fusion-blog-layout-timeline' );
 		}
 
+		// If more than one blog shortcode is on the page, make sure the infinite scroll selectors are correct
+		$parent_wrapper_classes = '';
+		if ( $blog_infinite_container.parents( '.fusion-blog-shortcode' ).length ) {
+			$parent_wrapper_classes = '.' + $blog_infinite_container.parents( '.fusion-blog-shortcode' ).attr( 'class' ).replace( /\ /g, '.' ) + ' ';
+		}
+
 		// Infite scroll for main blog page and blog shortcode
 		jQuery( $blog_infinite_container ).infinitescroll({
-			navSelector  : "div.pagination",
+			navSelector  : $parent_wrapper_classes + 'div.pagination',
 						   // selector for the paged navigation (it will be hidden)
-			nextSelector : "a.pagination-next",
+			nextSelector : $parent_wrapper_classes + 'a.pagination-next',
 						   // selector for the NEXT link (to page 2)
-			itemSelector : "div.pagination .current, div.post:not( .fusion-archive-description ), .fusion-collapse-month, .fusion-timeline-date",
+			itemSelector : $parent_wrapper_classes + 'div.pagination .current, ' + $parent_wrapper_classes + 'div.post:not( .fusion-archive-description ), ' + $parent_wrapper_classes + '.fusion-collapse-month, ' + $parent_wrapper_classes + '.fusion-timeline-date',
 						   // selector for all items you'll retrieve
 			loading	  : {
 							finishedMsg: js_local_vars.infinite_finished_msg,
@@ -36360,7 +36828,12 @@ jQuery( window ).load( function() {
 			}
 
 			// Activate lightbox for the newly added posts
-			$avada_lightbox.activate_lightbox( jQuery( posts ) );
+			if( js_local_vars.lightbox_behavior == 'individual' || ! $original_posts.find( '.fusion-post-slideshow' ).length ) {
+				$avada_lightbox.activate_lightbox( jQuery( posts ) );
+
+				$original_posts = $blog_infinite_container.find( '.post' );
+			}
+
 			// Refresh the lightbox, needed in any case
 			$avada_lightbox.refresh_lightbox();
 		});
@@ -36481,7 +36954,7 @@ jQuery( window ).load( function() {
 										if ( $filter.hasClass( 'fusion-hidden' ) ) {
 
 
-											if ( ! Modernizr.mq( 'only screen and (max-width: 800px)' ) ) {
+											if ( ! Modernizr.mq( 'only screen and (max-width: ' + js_local_vars.content_break_point + 'px)' ) ) {
 												// Animate the filter to make it visible
 												var $filter_width = $filter.css( 'width' ),
 													$filter_margin_right = $filter.css( 'margin-right' );

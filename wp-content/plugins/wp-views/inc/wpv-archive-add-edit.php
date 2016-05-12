@@ -16,8 +16,6 @@ require_once WPV_PATH . '/inc/redesign/wpv-section-layout-extra.php';
 require_once WPV_PATH . '/inc/redesign/wpv-section-layout-extra-js.php';
 // Extra section files
 require_once WPV_PATH . '/inc/redesign/wpv-section-content.php';
-// editor addon
-require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/visual-editor/editor-addon.class.php';
 
 /**
 * WordPress Archives edit screen
@@ -38,7 +36,7 @@ function views_archive_redesign_html() {
 		} elseif ( 'view'!= $view->post_type ) {
 			wpv_die_toolset_alert_error( __( 'You attempted to edit a WordPress Archive that doesn&#8217;t exist. Perhaps it was deleted?', 'wpv-views') );
 		} else {
-			$view_settings = get_post_meta( $_GET['view_id'], '_wpv_settings', true );
+			$view_settings = get_post_meta( $view_id, '_wpv_settings', true );
 			
 			/**
 			* wpv_view_settings
@@ -57,7 +55,7 @@ function views_archive_redesign_html() {
 			
 			$view_settings = apply_filters( 'wpv_view_settings', $view_settings, $view_id );
 			
-			$view_layout_settings = get_post_meta( $_GET['view_id'], '_wpv_layout_settings', true );
+			$view_layout_settings = get_post_meta( $view_id, '_wpv_layout_settings', true );
 			
 			/**
 			* wpv_view_layout_settings
@@ -253,7 +251,7 @@ function views_archive_redesign_html() {
 				<div class="wpv-setting">
 					<div id="titlediv">
 						<div id="titlewrap" class="wpv-titlewrap js-wpv-titlewrap">
-							<label class="screen-reader-text js-title-reader" id="title-prompt-text" for="title"><?php _e('Enter title here','wp-views'); ?></label>
+							<label class="screen-reader-text js-title-reader" id="title-prompt-text" for="title"><?php _e('Enter title here','wpv-views'); ?></label>
 							<input id="title" class="wpv-title js-title" type="text" name="post_title" size="30" value="<?php echo esc_attr( $view->post_title ); ?>" id="title" autocomplete="off">
 							<span class="update-button-wrap js-wpv-update-button-wrap">
 								<button

@@ -55,6 +55,24 @@ function wpv_get_view_pagination_data( $view_settings ) {
 	}
 	// Callback next
 	$pagination_data['callback_next'] = ( isset( $view_settings['pagination']['callback_next'] ) ) ? $view_settings['pagination']['callback_next'] : '';
+	// History management
+	$pagination_data['manage_history'] = ( isset( $view_settings['pagination']['manage_history'] ) ) ? $view_settings['pagination']['manage_history'] : 'on';
+	if ( $pagination_data['manage_history'] == 'on' ) {
+		$global_enable_manage_history = apply_filters( 'wpv_filter_wpv_global_pagination_manage_history_status', true );
+		if ( ! $global_enable_manage_history ) {
+			$pagination_data['manage_history'] = 'off';
+		}
+	}
+	// Whether the View has pagination controls in the Form editor
+	$pagination_data['has_controls_in_form'] = 'off';
+	if ( 
+		isset( $view_settings['filter_meta_html'] ) 
+		&& strpos( $view_settings['filter_meta_html'], '[wpv-pager-' ) !== false 
+	) {
+		$pagination_data['has_controls_in_form'] = 'on';
+	}
+	// Infinite scrolling tolerance
+	$pagination_data['tolerance'] = ( isset( $view_settings['pagination']['tolerance'] ) ) ? $view_settings['pagination']['tolerance'] : '0';
 	
 	return $pagination_data;
 }
@@ -84,7 +102,7 @@ function wpv_pager_current_page_shortcode( $atts ) {
     extract(
         shortcode_atts(
 			array(
-				'force'		=> 'false'
+				'force' => 'false'
 			), 
 			$atts
 		)
@@ -137,7 +155,7 @@ function wpv_pager_current_page_shortcode( $atts ) {
         switch( $atts['style'] ) {
             case 'drop_down':
                 $out = '';
-                $out .= '<select id="wpv-page-selector-' . $WP_Views->get_view_count() . '" class="js-wpv-page-selector" data-viewnumber="' . $WP_Views->get_view_count() . '">' . "\n";
+                $out .= '<select class="wpv-page-selector-' . $WP_Views->get_view_count() . ' js-wpv-page-selector" data-viewnumber="' . $WP_Views->get_view_count() . '">' . "\n";
         
                 $max_page = intval( $WP_Views->get_max_pages() );
                 for ($i = 1; $i < $max_page + 1; $i++) {
@@ -163,12 +181,12 @@ function wpv_pager_current_page_shortcode( $atts ) {
                     $page_title = esc_attr( apply_filters( 'wpv_pagination_page_title', $page_title, $i, $atts['style'], $view_id ) );
                     $page_number = apply_filters( 'wpv_pagination_page_number', $i, $atts['style'], $view_id );
                     $link = '<a title="' . $page_title . '" href="#" class="wpv-filter-pagination-link js-wpv-pagination-link" data-viewnumber="' . $WP_Views->get_view_count() . '" data-page="' . $i . '">' . $page_number . '</a>';
-                    $link_id = 'wpv-page-link-' . $WP_Views->get_view_count() . '-' . $i;
+                    $link_class = ' wpv-page-link-' . $WP_Views->get_view_count() . '-' . $i . ' js-wpv-page-link-' . $WP_Views->get_view_count() . '-' . $i;
                     $item = '';
 					if ( $i == $page ) {
-                        $item .= '<li id="' . $link_id . '" class="' . $classname . '_item wpv_page_current">' . $link . '</li>';
+                        $item .= '<li class="' . $classname . '_item wpv_page_current' . $link_class . '">' . $link . '</li>';
                     } else {
-                        $item .= '<li id="' . $link_id . '" class="' . $classname . '_item">' . $link . '</li>';
+                        $item .= '<li class="' . $classname . '_item' . $link_class . '">' . $link . '</li>';
                     }
 					$item = apply_filters( 'wpv_pagination_page_item', $item, $i, $page, $page_count, $atts['style'], $view_id );
 					$out .= $item;
@@ -194,29 +212,33 @@ function wpv_pager_current_page_shortcode( $atts ) {
 class WPV_Pagination_Embedded {
 	
 	public function __construct() {
-		add_action( 'init', array( $this, 'init' ) );		
+		add_action( 'init',											array( $this, 'init' ) );	
     }
 	
 	function init() {
 		$this->register_shortcodes();
 		
-		add_filter( 'wpv_view_settings', array( $this, 'pagination_defaults' ), 10 );
+		add_filter( 'wpv_view_settings',								array( $this, 'pagination_defaults' ), 10 );
 		
-		// add a filter so we can set the correct language in WPML during pagination
-		add_filter( 'icl_current_language', array( $this, 'wpv_ajax_pagination_lang' ) );
+		// Compatibility
+		add_action( 'wp',												array( $this, 'force_disable_404' ), -1 );
+		add_filter( 'icl_current_language',								array( $this, 'wpv_ajax_pagination_lang' ) );
+		
+		add_filter( 'wpv_filter_wpv_global_pagination_manage_history_status',	array( $this, 'wpv_global_pagination_manage_history_status' ), 1 );
+		
 	}
 	
 	function register_shortcodes() {
-		add_shortcode( 'wpv-pagination', array( $this, 'wpv_pagination_shortcode_callback' ) );
+		add_shortcode( 'wpv-pagination',								array( $this, 'wpv_pagination_shortcode_callback' ) );
 		
-		add_shortcode( 'wpv-pager-num-page', array( $this, 'wpv_pager_total_pages_shortcode' ) );
-		add_shortcode( 'wpv-pager-total-pages', array( $this, 'wpv_pager_total_pages_shortcode' ) );
+		add_shortcode( 'wpv-pager-num-page',							array( $this, 'wpv_pager_total_pages_shortcode' ) );
+		add_shortcode( 'wpv-pager-total-pages',							array( $this, 'wpv_pager_total_pages_shortcode' ) );
 		
-		add_shortcode( 'wpv-pager-prev-page', array( $this, 'wpv_pager_prev_page_callback' ) );
-		add_shortcode( 'wpv-pager-next-page', array( $this, 'wpv_pager_next_page_callback' ) );
+		add_shortcode( 'wpv-pager-prev-page',							array( $this, 'wpv_pager_prev_page_callback' ) );
+		add_shortcode( 'wpv-pager-next-page',							array( $this, 'wpv_pager_next_page_callback' ) );
 		
-		add_shortcode( 'wpv-pager-nav-dropdown', array( $this, 'wpv_pager_nav_dropdown_callback' ) );
-		add_shortcode( 'wpv-pager-nav-links', array( $this, 'wpv_pager_nav_links_callback' ) );
+		add_shortcode( 'wpv-pager-nav-dropdown',						array( $this, 'wpv_pager_nav_dropdown_callback' ) );
+		add_shortcode( 'wpv-pager-nav-links',							array( $this, 'wpv_pager_nav_links_callback' ) );
 		
 		//add_shortcode( 'wpv-pager-pause-rollover', array( $this, 'wpv_pager_pause_rollover_callback' ) );
 		//add_shortcode( 'wpv-pager-resume-rollover', array( $this, 'wpv_pager_resume_rollover_callback' ) );
@@ -224,28 +246,29 @@ class WPV_Pagination_Embedded {
 	
 	function pagination_defaults( $view_settings ) {
 		$defaults = array(
-			'posts_per_page' => 10,
-			'pagination' => array(
-				'mode' => 'paged',
-				'preload_images' => 1,
-				'cache_pages' => 1,
-				'preload_pages' => 1,
-				'spinner' => 'default',
-				'spinner_image' => WPV_URL_EMBEDDED . '/res/img/ajax-loader.gif',
-				'spinner_image_uploaded' => '',
-				'callback_next' => '',
-				'page_selector_control_type' => 'drop_down',
+			'posts_per_page'	=> 10,
+			'pagination'		=> array(
+				'mode'								=> 'paged',
+				'preload_images'					=> 1,
+				'cache_pages'						=> 1,
+				'preload_pages'						=> 1,
+				'spinner'							=> 'default',
+				'spinner_image'						=> WPV_URL_EMBEDDED . '/res/img/ajax-loader.gif',
+				'spinner_image_uploaded'			=> '',
+				'callback_next'						=> '',
+				'manage_history'					=> 'on',
+				'page_selector_control_type'		=> 'drop_down',
 			),
-			'ajax_pagination' => array(
-				'style' => 'fade',
+			'ajax_pagination'	=> array(
+				'style'								=> 'fade',
 			),
-			'rollover' => array(
-				'posts_per_page' => 1,
-				'speed' => 5,
-				'effect' => 'fade',
-				'preload_images' => 1,
-				'include_page_selector' => 0,
-				'include_prev_next_page_controls' => 0,
+			'rollover'			=> array(
+				'posts_per_page'					=> 1,
+				'speed'								=> 5,
+				'effect'							=> 'fade',
+				'preload_images'					=> 1,
+				'include_page_selector'				=> 0,
+				'include_prev_next_page_controls' 	=> 0,
 			),
 		);
 		$view_settings = wpv_parse_args_recursive( $view_settings, $defaults );
@@ -482,8 +505,7 @@ class WPV_Pagination_Embedded {
 			$class = ' ' . $class;
 		}
 		
-		$return .= '<select id="wpv-page-selector-' . esc_attr( $view_count ) . '"' 
-			. ' class="js-wpv-page-selector' . $class . '"'
+		$return .= '<select class="wpv-page-selector-' . esc_attr( $view_count ) . ' js-wpv-page-selector"' 
 			. ' data-viewnumber="' 		. esc_attr( $view_count ) . '"'
 			. '>';
 		for ( $i = 1; $i < $max_page + 1; $i++ ) {
@@ -589,8 +611,10 @@ class WPV_Pagination_Embedded {
 				$needs_ellipsis = true;
 				$anchor_text_i = str_replace( '%%PAGE%%', $i, $anchor_text );
 				$anchor_title_i = str_replace( '%%PAGE%%', $i, $anchor_title );
-				$li_current_id = 'wpv-page-link-' . $view_count . '-' . $i;
 				$li_current_class_array = $li_class_array;
+				
+				$li_current_class_array[] = 'wpv-page-link-' . $view_count . '-' . $i;
+				$li_current_class_array[] = 'js-wpv-page-link-' . $view_count . '-' . $i;
 				
 				$li_current_content = '<a'
 					. ' class="wpv-filter-pagination-link js-wpv-pagination-link"'
@@ -614,7 +638,7 @@ class WPV_Pagination_Embedded {
 				}
 				
 				$li_current_class_string = ( empty( $li_current_class_array ) ) ? '' : ' class="' . implode( ' ', $li_current_class_array ) . '"';
-				$return  .= '<li id="' . esc_attr( $li_current_id ) . '"' . $li_current_class_string . '>' 
+				$return  .= '<li' . $li_current_class_string . '>' 
 					. $li_current_content 
 					. '</li>';
 			} else if ( $needs_ellipsis ) {
@@ -705,15 +729,24 @@ class WPV_Pagination_Embedded {
 		return $lang;
 	}
 	
-	function get_pager_permalink( $page, $view_hash ) {
+	/**
+	* Get the current page URL, including allowed URL parameters and passed parameters to override
+	*
+	* @since 2.0	No parameters will return the current clean permalink.
+	* 				$page defaults to 1 and produces no wpv_paged URL parameter
+	* 				$view_hash defaults to false and produces no wpv_view_count URL parameter
+	*/
+	
+	function get_pager_permalink( $page = 1, $view_hash = false, $get_override = array() ) {
 		global $WP_Views;
 		$view_id				= $WP_Views->get_current_view();
 		$view_url_data			= get_view_allowed_url_parameters( $view_id );
 		$view_url_parameters	= wp_list_pluck( $view_url_data, 'attribute' );
 		$view_url_parameters[]	= 'lang';
-		$view_url_parameters[]	= 'wpv_column_sort_id';
-		$view_url_parameters[]	= 'wpv_column_sort_dir';
-		$view_url_parameters[]	= 'wpv_post_id';
+		$view_url_parameters[]	= 'wpv_sort_orderby';
+		$view_url_parameters[]	= 'wpv_sort_order';
+		$view_url_parameters[]	= 'wpv_aux_current_post_id';
+		$view_url_parameters[]	= 'wpv_aux_parent_post_id';
 		$view_url_parameters[]	= 'wpv_aux_parent_term_id';
 		$view_url_parameters[]	= 'wpv_aux_parent_user_id';
 		$origin					= false;
@@ -733,6 +766,13 @@ class WPV_Pagination_Embedded {
 			$origin = wp_get_referer();
 		}
 		
+		if ( ! empty( $get_override ) ) {
+			$post_old = $_GET;
+			foreach ( $get_override as $key => $value ) {
+				$_GET[ $key ] = $value;
+			}
+		}
+		
 		foreach ( $view_url_parameters as $param ) {
 			if ( isset( $_GET[ $param ] ) ) {
 				$query_args[ $param ] = $_GET[ $param ];
@@ -740,8 +780,22 @@ class WPV_Pagination_Embedded {
 				$query_args_remove[] = $param;
 			}
 		}
-		$query_args['wpv_view_count']	= $view_hash;
-		$query_args['wpv_paged']		= $page;
+		
+		if ( $view_hash ) {
+			$query_args['wpv_view_count']	= $view_hash;
+		} else {
+			$query_args_remove[] = 'wpv_view_count';
+		}
+		
+		if ( $page != 1 ) {
+			$query_args['wpv_paged']		= $page;
+		} else {
+			$query_args_remove[] = 'wpv_paged';
+		}
+		
+		if ( ! empty( $get_override ) ) {
+			$_GET = $post_old;
+		}
 		
 		$url = add_query_arg(
 			$query_args,
@@ -759,6 +813,36 @@ class WPV_Pagination_Embedded {
 		$url = preg_replace( '/%5B(\d+)%5D/is', '%5B%5D', $url );
 		
 		return $url;
+	}
+	
+	/**
+	* force_disable_404
+	*
+	* Make sure that Views AJAX pagination is not mistaken for a 404.
+	*
+	* This is the earliest hook where we can un-404 the Views AJAX pagination GETed page.
+	*
+	* @since 1.12
+	*/
+	
+	function force_disable_404() {
+		$bits = explode( "/", esc_attr( $_SERVER['REQUEST_URI'] ) );
+		if ( in_array( 'wpv-ajax-pagination', $bits ) ) {
+			global $wp_query;
+			if ( $wp_query->is_404 ) {
+				$wp_query->is_404 = false;
+			}
+		}
+	}
+	
+	function wpv_global_pagination_manage_history_status( $status ) {
+		$settings = WPV_Settings::get_instance();
+		if ( $settings->wpv_enable_pagination_manage_history ) {
+			$status = true;
+		} else {
+			$status = false;
+		}
+		return $status;
 	}
 	
 }
@@ -838,40 +922,26 @@ function wpv_pagination_rollover_js() {
 function wpv_ajax_get_page( $post_data ) {
     global $WP_Views, $post, $authordata, $id;
     
-    // Fix a problem with WPML using cookie language when DOING_AJAX is set.
-    $cookie_lang = null;
-    if (
-		isset( $_COOKIE['_icl_current_language'] ) 
-		&& isset( $post_data['lang'] )
-	) {
-        $cookie_lang = $_COOKIE['_icl_current_language'];
-        $_COOKIE['_icl_current_language'] = $post_data['lang'];
-    }
-    
-    // Switch WPML to the correct language.
-    if ( isset( $post_data['lang'] ) ) {
-        global $sitepress;
-        if ( method_exists( $sitepress, 'switch_lang' ) ) {
-            $sitepress->switch_lang( $post_data['lang'] );
-        }
-    }
+	if ( isset( $post_data['lang'] ) ) {
+		do_action( 'wpml_switch_language', $post_data['lang'] );
+	}
 
 
     $_GET['wpv_paged'] = intval( esc_attr( $post_data['page'] ) );
     $_GET['wpv_view_count'] = esc_attr( $post_data['view_number'] );
     if (
-		isset( $post_data['wpv_column_sort_id'] ) 
-		&& esc_attr( $post_data['wpv_column_sort_id'] ) != 'undefined' 
-		&& esc_attr( $post_data['wpv_column_sort_id'] ) != '' 
+		isset( $post_data['wpv_sort_orderby'] ) 
+		&& esc_attr( $post_data['wpv_sort_orderby'] ) != 'undefined' 
+		&& esc_attr( $post_data['wpv_sort_orderby'] ) != '' 
 	) {
-        $_GET['wpv_column_sort_id'] = esc_attr( $post_data['wpv_column_sort_id'] );
+        $_GET['wpv_sort_orderby'] = esc_attr( $post_data['wpv_sort_orderby'] );
     }
     if (
-		isset( $post_data['wpv_column_sort_dir'] ) 
-		&& esc_attr( $post_data['wpv_column_sort_dir'] ) != 'undefined' 
-		&& esc_attr( $post_data['wpv_column_sort_dir'] ) != ''
+		isset( $post_data['wpv_sort_order'] ) 
+		&& esc_attr( $post_data['wpv_sort_order'] ) != 'undefined' 
+		&& esc_attr( $post_data['wpv_sort_order'] ) != ''
 	) {
-        $_GET['wpv_column_sort_dir'] = esc_attr( $post_data['wpv_column_sort_dir'] );
+        $_GET['wpv_sort_order'] = esc_attr( $post_data['wpv_sort_order'] );
     }
     
 	// $post_data['get_params'] holds arbitrary URL parameters from the page triggering the pagination
@@ -947,15 +1017,25 @@ function wpv_ajax_get_page( $post_data ) {
 
 	$view_data = json_decode( base64_decode( $post_data['view_hash'] ), true );
 	
-	// Adjust wpv_post_id, wpv_aux_parent_term_id, wpv_aux_parent_user_id
+	// Adjust wpv_aux_current_post_id, wpv_aux_parent_term_id, wpv_aux_parent_user_id
 	// Needed for filters based on the current page or on nested Views
 
     if ( 
-		isset( $post_data['post_id'] ) 
-		&& is_numeric( $post_data['post_id'] )
+		isset( $post_data['wpv_aux_current_post_id'] ) 
+		&& is_numeric( $post_data['wpv_aux_current_post_id'] )
 	) {
-		$_GET['wpv_post_id'] = esc_attr( $post_data['post_id'] );
-        $post_id = esc_attr( $post_data['post_id'] );
+		$_GET['wpv_aux_current_post_id'] = esc_attr( $post_data['wpv_aux_current_post_id'] );
+		$top_post_id = esc_attr( $post_data['wpv_aux_current_post_id'] );
+		$top_post = get_post( $top_post_id );
+		$WP_Views->top_current_page = $top_post;
+    }
+	
+	if ( 
+		isset( $post_data['wpv_aux_parent_post_id'] ) 
+		&& is_numeric( $post_data['wpv_aux_parent_post_id'] )
+	) {
+		$_GET['wpv_aux_parent_post_id'] = esc_attr( $post_data['wpv_aux_parent_post_id'] );
+        $post_id = esc_attr( $post_data['wpv_aux_parent_post_id'] );
         $post = get_post( $post_id );
         $authordata = new WP_User( $post->post_author );
         $id = $post->ID;
@@ -977,14 +1057,33 @@ function wpv_ajax_get_page( $post_data ) {
         $WP_Views->parent_user = esc_attr( $post_data['wpv_aux_parent_user_id'] );
     }
 
+    $view_id = ( $post_data['wpv_view_widget_id'] == 0 ) ? $WP_Views->get_view_id( $view_data ) : (int) $post_data['wpv_view_widget_id'];
+	
+	if ( ! isset( $post ) ) {
+		// Sometimes, depending on the permalink structure, $wp_query tries to load the pagination pseudo-page and fails, so $post is not set
+		// We need to dummy it
+		$registered_post_types = get_post_types( array(), 'names' );
+		$dummy_post_type_counter = 0;
+		$dummy_post_type_base = 'view-dummy';
+		$dummy_post_type = 'view-dummy';
+		
+		while ( in_array( $dummy_post_type, $registered_post_types ) ) {
+			$dummy_post_type_counter = $dummy_post_type_counter + 1;
+			$dummy_post_type = $dummy_post_type_base . '-' . $dummy_post_type_counter;
+		}
+		
+		$post = get_post( $view_id );
+		$post->post_type = $dummy_post_type;
+		
+	}
+
     if ( esc_attr( $post_data['wpv_view_widget_id'] ) == 0 ) {
         // set the view count so we return the right view number after rendering.
-        $view_id = $WP_Views->get_view_id( $view_data );
         $WP_Views->set_view_count( intval( esc_attr( $post_data['view_number'] ) ), $view_id );
         echo $WP_Views->short_tag_wpv_view( $view_data );
     } else {
         // set the view count so we return the right view number after rendering.
-        $WP_Views->set_view_count( intval( esc_attr( $post_data['view_number'] ) ), esc_attr( $post_data['wpv_view_widget_id'] ) );
+        $WP_Views->set_view_count( (int) esc_attr( $post_data['view_number'] ), $view_id );
         $widget = new WPV_Widget();
         $args = array(
 			'before_widget' => '',
@@ -996,21 +1095,16 @@ function wpv_ajax_get_page( $post_data ) {
 			$args, 
 			array(
 				'title' => '',
-                'view' => esc_attr( $post_data['wpv_view_widget_id'] )
+                'view' => $view_id
 			)
 		);
         echo $WP_Views->get_max_pages();
     }
-
-    if ( $cookie_lang ) {
-        // reset language cookie.
-        $_COOKIE['_icl_current_language'] = $cookie_lang;
-    }
 }
 
-function wpv_get_pagination_page_permalink( $page, $view_count ) {
+function wpv_get_pagination_page_permalink( $page = 1, $view_count = false, $get_override = array() ) {
 	global $WPV_Pagination_Embedded;
-	return $WPV_Pagination_Embedded->get_pager_permalink( $page, $view_count );
+	return $WPV_Pagination_Embedded->get_pager_permalink( $page, $view_count, $get_override );
 }
 
 /**

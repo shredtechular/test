@@ -399,6 +399,16 @@ WPViews.QueryFilters = function( $ ) {
 						var responseRow = $('.js-filter-list').append( response );
 					}
 					self.first_open_filter_row( '.js-wpv-filter-row-usermeta-field' );
+				} else if (filter_type.substr(0, 14) == 'termmeta-field') {
+					if ( $( '.js-wpv-filter-row-termmeta-field' ).length > 0 ) {
+						var responseRow = $( '<div></div>' ).append( response ),
+						responseUsable = responseRow.find( '.js-wpv-filter-termmeta-field-multiple-element' );
+						$( '.js-wpv-filter-row-termmeta-field .js-wpv-filter-row-' + filter_type ).remove();
+						$('.js-wpv-filter-termmeta-field-edit').prepend( responseUsable );
+					} else {
+						var responseRow = $('.js-filter-list').append( response );
+					}
+					self.first_open_filter_row( '.js-wpv-filter-row-termmeta-field' );
 				} else if ( filter_type == 'post_date' ) {
 					$( '.js-filter-list .js-filter-row-post-date' ).remove();
 					var responseRow = $( '.js-filter-list' ).append( response );

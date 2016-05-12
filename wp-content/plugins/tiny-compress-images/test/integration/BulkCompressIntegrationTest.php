@@ -2,6 +2,9 @@
 
 require_once(dirname(__FILE__) . "/IntegrationTestCase.php");
 
+use Facebook\WebDriver\WebDriverBy;
+use Facebook\WebDriver\WebDriverExpectedCondition;
+
 class BulkCompressIntegrationTest extends IntegrationTestCase {
 
     public function setUp() {
@@ -15,8 +18,8 @@ class BulkCompressIntegrationTest extends IntegrationTestCase {
     }
 
     public function testBulkCompressActionShouldBePresentInMedia() {
-        $this->upload_image(dirname(__FILE__) . '/../fixtures/input-example.png');
-        $this->assertEquals('Compress Images', self::$driver->findElement(
+        $this->upload_media(dirname(__FILE__) . '/../fixtures/input-example.png');
+        $this->assertEquals('Compress All Images', self::$driver->findElement(
             WebDriverBy::cssSelector('select[name="action"] option[value="tiny_bulk_compress"]')
         )->getText());
     }
@@ -26,11 +29,14 @@ class BulkCompressIntegrationTest extends IntegrationTestCase {
         $this->enable_compression_sizes(array());
 
         for ($i = 0; $i < $normal; $i++) {
-            $this->upload_image(dirname(__FILE__) . '/../fixtures/input-example.png');
+            $this->upload_media(dirname(__FILE__) . '/../fixtures/input-example.jpg');
         }
         for ($i = 0; $i < $large; $i++) {
-            $this->upload_image(dirname(__FILE__) . '/../fixtures/input-large.png');
+            $this->upload_media(dirname(__FILE__) . '/../fixtures/input-example.png');
         }
+
+        $this->upload_media(dirname(__FILE__) . '/../fixtures/input-example.gif');
+        $this->upload_media(dirname(__FILE__) . '/../fixtures/input-example.pdf');
 
         $this->enable_compression_sizes(array('thumbnail', 'medium', 'large'));
     }
@@ -55,7 +61,7 @@ class BulkCompressIntegrationTest extends IntegrationTestCase {
     public function testBulkCompressShouldCompressAll() {
         $this->prepare(1, 1);
 
-        self::$driver->get(wordpress('/wp-admin/tools.php?page=tiny-bulk-compress.php'));
+        self::$driver->get(wordpress('/wp-admin/upload.php?page=tiny-bulk-compress.php'));
         $elements = self::$driver->findElements(WebDriverBy::cssSelector('#tiny-bulk-compress p'));
         $this->assertContains('2 images', $elements[1]->getText());
 
@@ -67,10 +73,9 @@ class BulkCompressIntegrationTest extends IntegrationTestCase {
         $filenames = array_map('innerText', $elements);
 
         $this->assertEquals(2, count($filenames));
-        $this->assertContains('input-large', $filenames);
         $this->assertContains('input-example', $filenames);
 
         $this->assertEquals('2', self::$driver->findElement(WebDriverBy::cssSelector('#tiny-progress span'))->getText());
-        $this->assertEquals('5', self::$driver->findElement(WebDriverBy::cssSelector('#tiny-status span'))->getText());
+        $this->assertEquals('4', self::$driver->findElement(WebDriverBy::cssSelector('#tiny-status span'))->getText());
     }
 }

@@ -81,8 +81,10 @@
 .about-wrap .about-text {
 	margin-bottom: 55px;
 }
-.avada-registration-steps h4 {
-	font-weight: 400;
+.avada-registration-steps h3 {
+    font-size: 1em;
+    margin: 1.4em 0 0.6em;
+	font-weight: normal;
 }
 .avada-thanks{
 	float: left;
@@ -176,23 +178,8 @@ span.avada-loader {
 	width: 100%;
 	float: left;
 }
-.avada-registration-steps h4 > span {
+.avada-registration-steps h3 > span {
 	margin-right: 10px;
-}
-.avada-demo-themes .theme {
-	width: 31%;
-	margin: 0 3% 3% 0;
-}
-.avada-demo-themes .theme:nth-child(3n) {
-	margin-right: 0;
-}
-
-.theme-browser .theme:nth-child(4n) {
-    margin-right: 3%;
-}
-
-.theme-browser .theme:nth-child(12n) {
-    margin-right: 0;
 }
 
 .theme-browser .theme .theme-screenshot img {
@@ -205,7 +192,7 @@ span.avada-loader {
 }
 
 .theme-browser .theme .theme-screenshot:after {
-	padding-top: 75%;
+	padding-top: 74.9%;
 }
 
 .screenshot-hover{
@@ -387,23 +374,61 @@ span.avada-loader {
 	display: inline-block;
 }
 
+#wpwrap .avada-demo-themes .theme-browser {
+	margin: 0 -1.5%;
+	float: none;
+	width: auto;
+}
+
+#wpwrap .avada-demo-themes .theme-browser .theme {
+	margin: 0 0 3% 0;
+	padding: 0 1.5%;
+	width: 33.33333%;
+	border: none;
+	box-shadow: none;
+}
+
+#wpwrap .avada-demo-themes .theme-browser .theme-wrapper {
+    position: relative;
+    border: 1px solid #dedede;
+    box-shadow: 0 1px 1px -1px rgba(0, 0, 0, 0.1);		
+}
+
 @media only screen and (min-width: 2000px) {
-	#wpwrap .avada-demo-themes .theme {
-		width: 31%;
-		margin: 0 3% 3% 0;
+	#wpwrap .avada-demo-themes .theme-browser .theme {
+		padding: 0 1.5%;
+		width: 33.33333%;
 	}
-	#wpwrap .avada-demo-themes .theme:nth-child(3n) {
-		margin-right: 0;
-	}
+}
 
-	#wpwrap .theme-browser .theme:nth-child(4n),
-	#wpwrap .theme-browser .theme:nth-child(5n) {
-		margin-right: 3%;
+@media only screen and (max-width: 1120px) {
+	#wpwrap .avada-demo-themes .theme-browser .theme  {
+		padding: 0 2.5%;
+		width: 50%;
 	}
+	
+	#wpwrap .avada-demo-themes .theme-browser {
+		margin: 0 -2.5%;
+	}	
+}
 
-  #wpwrap .theme-browser .theme:nth-child(12n) {
-      margin-right: 0;
-  }
+@media screen and (max-width: 620px){
+	#wpwrap .avada-demo-themes .theme-browser .theme {
+		padding: 0;
+		width: 100%;
+	}
+	
+	#wpwrap .avada-demo-themes .theme-browser {
+		margin: 0;
+	}	
+	
+	.avada-demo-themes .theme:hover .theme-actions {
+		display: block !important;
+		opacity: 1 !important;
+	}
+	.avada-demo-themes .theme:hover .screenshot-hover {
+		display: none !important;
+	}
 }
 
 @media screen and (max-width: 500px){
@@ -440,30 +465,6 @@ span.avada-loader {
 		display: none !important;
 	}
 }
-@media only screen and (max-width: 1120px) {
-	.theme-browser .theme:nth-child(odd) {
-		margin-right: 5% !important;
-	}
-
-	.theme-browser .theme {
-		width: 47.5% !important;
-		margin-right: auto !important;
-	}
-}
-@media screen and (max-width: 620px){
-	.theme-browser .theme {
-		width: 100% !important;
-		margin-right: 0;
-	}
-	.avada-demo-themes .theme:hover .theme-actions {
-		display: block !important;
-		opacity: 1 !important;
-	}
-	.avada-demo-themes .theme:hover .screenshot-hover {
-		display: none !important;
-	}
-}
-
 
 /* TipTip CSS - Version 1.2 */
 

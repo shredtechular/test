@@ -77,6 +77,15 @@
 
 		var nowTime = new Date();
 
+		// ThemeFusion edit for Avada theme:
+		// Calculate start time according to site time offset
+		if ( options.gmtOffset ) {
+			var site_offset = options.gmtOffset*60*60000,
+				user_offset = nowTime.getTimezoneOffset()*60000;
+			nowTime = new Date( nowTime.getTime() + site_offset + user_offset );
+
+		}
+
 		diffSecs = Math.floor((targetTime.valueOf()-nowTime.valueOf())/1000);
 
 		$.data(this[0], 'diffSecs', diffSecs);

@@ -150,8 +150,8 @@ function wpv_update_content_callback() {
 		wp_send_json_error( $data );
 	}
 	if (
-		! isset( $_POST["id"] )
-		|| ! is_numeric( $_POST["id"] )
+		! isset( $_POST['id'] )
+		|| ! is_numeric( $_POST['id'] )
 		|| intval( $_POST['id'] ) < 1 
 	) {
 		$data = array(
@@ -160,18 +160,18 @@ function wpv_update_content_callback() {
 		);
 		wp_send_json_error( $data );
 	}
-	$content_post = get_post( $_POST["id"] );
+	$content_post = get_post( $_POST['id'] );
 	$content = $content_post->post_content;
 	wpv_register_wpml_strings( $_POST["content"] );
 	if ( $_POST["content"] != $content ) {
 		$this_post = array();
-		$this_post['ID'] = $_POST["id"];
+		$this_post['ID'] = $_POST['id'];
 		$this_post['post_content'] = $_POST["content"];
 		wp_update_post( $this_post );
 	}
-	do_action( 'wpv_action_wpv_save_item', $_POST["id"] );
+	do_action( 'wpv_action_wpv_save_item', $_POST['id'] );
 	$data = array(
-		'id' => $_POST["id"],
+		'id' => $_POST['id'],
 		'message' => __( 'Combined Output saved', 'wpv-views' )
 	);
 	wp_send_json_success( $data );

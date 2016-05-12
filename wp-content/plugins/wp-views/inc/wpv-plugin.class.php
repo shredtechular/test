@@ -1,7 +1,6 @@
 <?php
 
 require WPV_PATH_EMBEDDED . '/inc/wpv.class.php';
-require_once( WPV_PATH . '/inc/filters/editor-addon-parametric.class.php');
 
 class WP_Views_plugin extends WP_Views {
 
@@ -12,13 +11,21 @@ class WP_Views_plugin extends WP_Views {
 
         parent::__construct();
     }
+	
+	// This happens on after_setup_theme:999
+	function before_init() {
+		parent::before_init();
+	}
 
     function init() {
+		
         add_filter( 'custom_menu_order', array( $this, 'enable_custom_menu_order' ) );
         add_filter( 'menu_order', array( $this, 'custom_menu_order' ) ); // @todo I really feel this is not used anymore
         add_action( 'admin_head', array( $this, 'admin_add_help' ) );
 
         parent::init();
+		
+		require_once( WPV_PATH . '/inc/filters/editor-addon-parametric.class.php');
 		
 		// Actions to display buttons in edit screen textareas
 		add_action( 'wpv_views_fields_button', array( $this, 'add_views_fields_button' ), 10, 2 );
@@ -44,6 +51,9 @@ class WP_Views_plugin extends WP_Views {
          * add some debug information
          */
         add_filter( 'icl_get_extra_debug_info', array( $this, 'add_config_to_toolset_extra_debug' ) );
+
+		add_filter( 'toolset_filter_toolset_admin_bar_menu_insert', array( $this, 'extend_toolset_admin_bar_menu' ), 10, 3 );
+		
     }
 
 
@@ -177,6 +187,11 @@ class WP_Views_plugin extends WP_Views {
         return true;
     }
 
+
+    /**
+     * @deprecated This looks VERY deprecated.
+     * @todo Check and remove.
+     */
     function custom_menu_order( $menu_ord ) {
         $types_index = array_search('wpcf', $menu_ord);
         $views_index = array_search('edit.php?post_type=view', $menu_ord);
@@ -191,63 +206,188 @@ class WP_Views_plugin extends WP_Views {
         return $menu_ord;
     }
 
+
     function is_embedded() {
         return false;
     }
 
-
-    function admin_menu() {
-		parent::admin_menu();
+	function register_views_pages_in_menu( $pages ) {
 		global $pagenow;
-		$cap = 'manage_options';
         $page = wpv_getget( 'page' );
-
-		add_menu_page(__('Views', 'wpv-views'), __('Views', 'wpv-views'), $cap, 'views', 'wpv_admin_menu_views_listing_page', 'none');
-
-        add_submenu_page( 'views', __('Views', 'wpv-views'), __('Views', 'wpv-views'), $cap, 'views', 'wpv_admin_menu_views_listing_page');
-
-        if ( 'views-editor' == $page ) {
-			add_submenu_page( 'views', __( 'Edit View', 'wpv-views' ), __( 'Edit View', 'wpv-views' ), $cap, 'views-editor', 'views_redesign_html');
+		
+		$pages[] = array(
+			'slug'			=> 'views',
+			'menu_title'	=> __( 'Views', 'wpv-views' ),
+			'page_title'	=> __( 'Views', 'wpv-views' ),
+			'callback'		=> 'wpv_admin_menu_views_listing_page'
+		);
+		if ( 'views-editor' == $page ) {
 			add_filter( 'screen_options_show_screen', '__return_true', 99 );
+			$pages[] = array(
+				'slug'			=> 'views-editor',
+				'menu_title'	=> __( 'Edit View', 'wpv-views' ),
+				'page_title'	=> __( 'Edit View', 'wpv-views' ),
+				'callback'		=> 'views_redesign_html'
+			);
 		}
-
-        add_submenu_page( 'views', __('Content Templates', 'wpv-views'), __('Content Templates', 'wpv-views'), $cap, 'view-templates', 'wpv_admin_menu_content_templates_listing_page');
-
-
-        // Edit Content Template page
-        if( ( 'admin.php' == $pagenow ) && ( WPV_CT_EDITOR_PAGE_NAME == $page ) ) {
-            $edit_content_template_label = __( 'Edit Content Template', 'wpv-views' );
-            add_submenu_page( 'views', $edit_content_template_label, $edit_content_template_label, $cap,
-                WPV_CT_EDITOR_PAGE_NAME, 'wpv_ct_editor_page'
-            );
+		$pages[] = array(
+			'slug'			=> 'view-templates',
+			'menu_title'	=> __( 'Content Templates', 'wpv-views' ),
+			'page_title'	=> __( 'Content Templates', 'wpv-views' ),
+			'callback'		=> 'wpv_admin_menu_content_templates_listing_page'
+		);
+        if ( 
+			( 'admin.php' == $pagenow ) 
+			&& ( WPV_CT_EDITOR_PAGE_NAME == $page ) 
+		) {
 			add_filter( 'screen_options_show_screen', '__return_false', 99 );
+			$pages[] = array(
+				'slug'			=> WPV_CT_EDITOR_PAGE_NAME,
+				'menu_title'	=> __( 'Edit Content Template', 'wpv-views' ),
+				'page_title'	=> __( 'Edit Content Template', 'wpv-views' ),
+				'callback'		=> 'wpv_ct_editor_page'
+			);
         }
-
-
-		add_submenu_page( 'views', __('WordPress Archives', 'wpv-views'), __('WordPress Archives', 'wpv-views'), $cap, 'view-archives', 'wpv_admin_archive_listing_page');
-
+		$pages[] = array(
+			'slug'			=> 'view-archives',
+			'menu_title'	=> __( 'WordPress Archives', 'wpv-views' ),
+			'page_title'	=> __( 'WordPress Archives', 'wpv-views' ),
+			'callback'		=> 'wpv_admin_archive_listing_page'
+		);
         if ( 'view-archives-editor' == $page ) {
-			add_submenu_page( 'views', __( 'Edit WordPress Archive', 'wpv-views' ), __( 'Edit WordPress Archive', 'wpv-views' ), $cap, 'view-archives-editor', 'views_archive_redesign_html');
 			add_filter( 'screen_options_show_screen', '__return_true', 99 );
+			$pages[] = array(
+				'slug'			=> 'view-archives-editor',
+				'menu_title'	=> __( 'Edit WordPress Archive', 'wpv-views' ),
+				'page_title'	=> __( 'Edit WordPress Archive', 'wpv-views' ),
+				'callback'		=> 'views_archive_redesign_html'
+			);
 		}
-
-        global $WPV_settings;
-		add_submenu_page( 'views', __( 'Settings', 'wpv-views' ), __( 'Settings', 'wpv-views' ), $cap, 'views-settings', array( $WPV_settings, 'wpv_settings_admin' ) );
-        add_submenu_page( 'views', __('Import/Export', 'wpv-views'), __('Import/Export', 'wpv-views'), $cap, 'views-import-export', 'wpv_admin_menu_import_export');
-		add_submenu_page( 'views', __('Help', 'wpv-views'), __('Help', 'wpv-views'), $cap, WPV_FOLDER . '/menu/help.php', null );
-
-		if ( 'views-debug-information' == $page ) {
-			add_submenu_page( 'views', __( 'Debug information', 'wpv-views' ), __( 'Debug information', 'wpv-views' ), $cap, 'views-debug-information', array( $this, 'debug_page' ) );
-		}
-
 		// create a new submenu for specific update routines
 		if ( 'views-update-help' == $page && function_exists( 'views_update_help_wpv_if' ) ) {
-			add_submenu_page( 'views', __( 'Update changes', 'wpv-views' ), __( 'Update changes', 'wpv-views' ), $cap, 'views-update-help', 'views_update_help');
+			$pages[] = array(
+				'slug'			=> 'views-update-help',
+				'menu_title'	=> __( 'Update changes', 'wpv-views' ),
+				'page_title'	=> __( 'Update changes', 'wpv-views' ),
+				'callback'		=> 'views_update_help'
+			);
 		}
 
         // Fake menu. Toolbar create a new X link
         $this->add_views_admin_create_ct_or_wpa_auto();
-    }
+		return $pages;
+	}
+	
+	function register_export_import_section( $sections ) {
+		// @todo check assets...
+		// @todo move this to a template, but we might need a complete templating system instead of patching
+		$sections['wpv-views'] = array(
+			'slug'		=> 'wpv-views',
+			'title'		=> __( 'Views', 'wpv-views' ),
+			'icon'		=> '<i class="icon-views-logo ont-icon-16"></i>',
+			'items'		=> array(
+				'export'	=> array(
+								'title'		=> __( 'Export Views, WordPress Archives and Content Templates', 'wpv-views' ),
+								'content'	=> '<form name="View_export" action="' . admin_url('edit.php') . '" method="post">'
+													. '<p>'
+														. __( 'You can export the Views settings as a .zip file.', 'wpv-views' )
+													. '</p>'
+													. '<p>'
+														. __( 'That file will contain all the data related to Views, Content Templates and WordPress Archives, as well as the general Views settings.', 'wpv-views' )
+													. '</p>'
+													. '<input type="checkbox" id="wpv-affiliate-data" class="js-toolset-control-hidden-setting" name="wpv-affiliate-data" value="1" data-target="wpv-affiliate-data" autocomplete="off" />'
+													. '<label for="wpv-affiliate-data">' . __( 'I am a theme designer and I want to receive affiliate commission', 'wpv-views' ) . '</label>'
+													. '<div class="js-toolset-control-hidden-setting-target-wpv-affiliate-data" style="display:none">'
+														. '<ul>'
+															. '<li>'
+																. '<label for="aid">' . __( 'Affiliate ID:', 'wpv-views' ) . '</label><br>'
+																. '<input type="text" name="aid" id="aid" />'
+															. '</li>'
+															. '<li>'
+																. '<label for="akey">' . __( 'Affiliate Key:', 'wpv-views' ) . '</label><br>'
+																. '<input type="text" name="akey" id="akey" />'
+															. '</li>'
+														. '</ul>'
+														. '<p>'
+															. __( 'To receive affiliate commission you have to provide your affiliate ID and Key.', 'wpv-views' )
+															. WPV_MESSAGE_SPACE_CHAR
+															. sprintf(
+																__( 'Log into <a href="%s">your account</a> and go to <a href="%s">affiliate settings</a> for details.', 'wpv-views' ),
+																WPV_Admin_Messages::get_documentation_promotional_link( 
+																	array(
+																		'query' => array(
+																			'utm_source'	=> 'viewsplugin',
+																			'utm_campaign'	=> 'views',
+																			'utm_medium'	=> 'import-export-login-to-wp-types-com',
+																			'utm_term'		=> 'your account'
+																		)
+																	), 
+																	'https://wp-types.com' 
+																),
+																WPV_Admin_Messages::get_documentation_promotional_link( 
+																	array(
+																		'query' => array(
+																			'utm_source'	=> 'viewsplugin',
+																			'utm_campaign'	=> 'views',
+																			'utm_medium'	=> 'import-export-get-affiliate-link',
+																			'utm_term'		=> 'affiliate settings'
+																		)
+																	), 
+																	'https://wp-types.com/account/affiliate/' 
+																)
+															)
+														. '</p>'
+													. '</div>'
+													. '<p class="toolset-update-button-wrap">'
+														. '<input id="wpv-export" type="hidden" value="wpv-export" name="export" />'
+														. '<button id="wpv-export-button" class="button-primary">' . __( 'Export', 'wpv-views' ) . '</button>'
+													. '</p>'
+													. wp_nonce_field( 'wpv-export-nonce', 'wpv-export-nonce', true, false )
+												. '</form>'
+							),
+				'import'	=> array(
+								'title'		=> __( 'Import Views, WordPress Archives and Content Templates', 'wpv-views' ),
+								'content'	=> '<form name="View_import" enctype="multipart/form-data" action="' . admin_url('admin.php') . '?page=toolset-export-import&tab=wpv-views" method="post">'
+													. '<p>' 
+														. __( 'You can upload a .zip or .xml file from your computer:', 'wpv-views' ) 
+													. '</p>'
+													. '<p>'
+														. '<input type="file" id="upload-views-file" name="import-file" />'
+														. '<input type="hidden" name="page" value="views-import-export" />'
+													. '</p>'
+													. '<ul>'
+														. '<li>'
+															. '<input id="checkbox-1" type="checkbox" name="views-overwrite" />'
+															. '<label for="checkbox-1">' . __( 'Bulk overwrite if View or WordPress Archive exists', 'wpv-views' ) . '</label>'
+														. '</li>'
+														. '<li>'
+															. '<input id="checkbox-2" type="checkbox" name="views-delete" />'
+															. '<label for="checkbox-2">' . __( 'Delete any existing Views or WordPress Archives that are not in the import', 'wpv-views' ) . '</label>'
+														. '</li>'
+														. '<li>'
+															. '<input id="checkbox-3" type="checkbox" name="view-templates-overwrite" />'
+															. '<label for="checkbox-3">' . __( 'Bulk overwrite if Content Template exists', 'wpv-views' ) . '</label>'
+														. '</li>'
+														. '<li>'
+															. '<input id="checkbox-4" type="checkbox" name="view-templates-delete" />'
+															. '<label for="checkbox-4">' . __( 'Delete any existing Content Templates that are not in the import', 'wpv-views' ) . '</label>'
+														. '</li>'
+														. '<li>'
+															. '<input id="checkbox-5" type="checkbox" name="view-settings-overwrite" />'
+															. '<label for="checkbox-5">' . __( 'Overwrite Views settings', 'wpv-views' ) . '</label>'
+														. '</li>'
+													. '</ul>'
+													. '<p class="toolset-update-button-wrap">'
+														. '<input id="wpv-import" type="hidden" value="wpv-import" name="import" />'
+														. '<button id="wpv-import-button" class="button-primary">' . __( 'Import', 'wpv-views' ) . '</button>'
+													. '</p>'
+													. wp_nonce_field( 'wpv-import-nonce', 'wpv-import-nonce', true, false )
+												. '</form>'
+							),
+			),
+		);
+		return $sections;
+	}
     
     public function add_views_admin_create_ct_or_wpa_auto() {
         $parent_slug = 'options.php'; // Invisible. See WordPress documentation. todo add link
@@ -442,12 +582,52 @@ class WP_Views_plugin extends WP_Views {
         exit( $exit_string );
     }
 
-    /**
-     * debug page
-     */
-    public function debug_page()
-    {
-        require_once WPV_PATH_EMBEDDED . '/toolset/toolset-common/debug/debug-information.php';
+
+	/**
+	 * Optionally add an item to edit View to the "Design with Toolset" admin bar menu.
+	 *
+	 * See the toolset_filter_toolset_admin_bar_menu_insert filter.
+	 *
+	 * @param array|mixed $menu_item_definitions
+	 * @param string $context
+	 * @param int $post_id
+	 * @return array Menu item definitions.
+	 * @since 1.12
+	 */
+    public function extend_toolset_admin_bar_menu( $menu_item_definitions,
+		/** @noinspection PhpUnusedParameterInspection */ $context,
+		/** @noinspection PhpUnusedParameterInspection */ $post_id )
+	{
+        if( !is_array( $menu_item_definitions ) ) {
+            $menu_item_definitions = array();
+        }
+
+        $used_view_ids = array_unique( $this->view_used_ids );
+
+		foreach( $used_view_ids as $view_id ) {
+
+			// Take only Views, not WPAs
+			$view = WPV_View_Base::get_instance( $view_id );
+
+			if( null != $view && $view->is_a_view() ) {
+
+				// Try to get a post edit link
+				$link = apply_filters( 'icl_post_link', null, WPV_View_Base::POST_TYPE, $view->id, 'edit' );
+				$is_disabled = wpv_getarr( $link, 'is_disabled', false );
+				$url = wpv_getarr( $link, 'url' );
+				if( !$is_disabled && !empty( $url ) ) {
+
+					// We got a valid post edit link to a View, now we can add the submenu item.
+					$menu_item_definitions[] = array(
+						'title' => sprintf( '%s: %s', __( 'Edit View', 'wpv-views' ), $view->title ),
+						'menu_id' => sprintf( 'toolset_design_view_%s', $view->slug ),
+						'href' => $url
+					);
+				}
+			}
+		}
+
+		return $menu_item_definitions;
     }
 
     function settings_box_load(){
@@ -552,14 +732,20 @@ class WP_Views_plugin extends WP_Views {
 		
 		$views_admin_pages = array(
 			'toplevel_page_views', 
-			'views_page_views-editor', 
-			'views_page_view-templates', 
-			'views_page_ct-editor', 
-			'views_page_view-archives', 
-			'views_page_view-archives-editor', 
-			'views_page_views-settings', 
-			'views_page_views-import-export', 
-			'views_page_views-framework-integration'
+			'toolset_page_views', 
+			'views_page_views-editor', //DEPRECATED
+			'toolset_page_views-editor', 
+			'views_page_view-templates', //DEPRECATED
+			'toolset_page_view-templates', 
+			'views_page_ct-editor', //DEPRECATED
+			'toolset_page_ct-editor', 
+			'views_page_view-archives', //DEPRECATED
+			'toolset_page_view-archives', 
+			'views_page_view-archives-editor', //DEPRECATED
+			'toolset_page_view-archives-editor', 
+			'views_page_views-settings', //DEPRECATED
+			'views_page_views-import-export', //DEPRECATED
+			'views_page_views-framework-integration'//DEPRECATED
 		);
 		
 		if ( ! in_array( $screen->id, $views_admin_pages ) ) {
@@ -567,7 +753,8 @@ class WP_Views_plugin extends WP_Views {
 		}
 
         switch ( $screen->id ) {
-			case 'toplevel_page_views':
+			case 'toplevel_page_views'://DEPRECATED
+			case 'toolset_page_views':
                 $help = '<p>'.__("Use <strong>Views</strong> to load content from the database and display it anyway you choose.",'wpv-views').'</p>';
                 $help .= '<p>'.__("This page lists the <strong>Views</strong> in your site. You have contextual actions to ‘duplicate’ and ‘delete’ Views. You can also perform bulk actions.", 'wpv-views').'</p>';
                 $help .= '<p>'.__("Click on a <strong>Views</strong> name to edit it or create new Views.", 'wpv-views').'</p>';
@@ -580,7 +767,8 @@ class WP_Views_plugin extends WP_Views {
 					)
 				);
                 break;
-			case 'views_page_views-editor':
+			case 'views_page_views-editor'://DEPRECATED
+			case 'toolset_page_views-editor':
                 $help = '<p>'.__("<strong>Views</strong> load content from the database and display it anyway you choose.",'wpv-views').'</p>';
                 $help .= '<p>'.__("To make it easier to use Views, we’ve created different preset usage modes for <strong>Views</strong>. Each usage mode emphasizes the features that you need and hides the ones that are not needed.",'wpv-views').'</p>';
                 $help .= '<p>'.__("You can switch between the different <strong>Views</strong> usage mode by opening the ‘Screen options’ tab.",'wpv-views').'</p>';
@@ -600,7 +788,8 @@ class WP_Views_plugin extends WP_Views {
 					)
 				);
 				break;
-            case 'views_page_view-templates':
+            case 'views_page_view-templates'://DEPRECATED
+            case 'toolset_page_view-templates':
                 $help = '<p>'.__("Use <strong>Content Templates</strong> to design single pages in your site. ",'wpv-views').'</p>';
                 $help .= '<p>'.__("This page lists the <strong>Content Templates</strong> that you have created and allows you to create new ones.",'wpv-views').'</p>';
                 $help .= '<p>'.__("The tabs menu at the top of the page lets you list the <strong>Content Templates</strong> by their name or by how they are used in the site.",'wpv-views').'</p>';
@@ -614,9 +803,11 @@ class WP_Views_plugin extends WP_Views {
 					)
 				);
 				break;
-            case 'views_page_ct-editor':
+            case 'views_page_ct-editor'://DEPRECATED
+            case 'toolset_page_ct-editor':
 				break;
-            case 'views_page_view-archives':
+            case 'views_page_view-archives'://DEPRECATED
+            case 'toolset_page_view-archives':
                 $help = '<p>'.__("Use <strong>WordPress Archives</strong> to style and design standard listing and archive pages.",'wpv-views').'</p>';
                 $help .= '<p>'.__("This page lists the <strong>WordPress Archives</strong> in your site.", 'wpv-views').'</p>';
                 $help .= '<p>'.__("The tabs menu at the top of the page lets you list the <strong>WordPress Archives</strong> by their name or by how they are used in the site.", 'wpv-views').'</p>';
@@ -630,7 +821,8 @@ class WP_Views_plugin extends WP_Views {
 					)
 				);
 				break;
-            case 'views_page_view-archives-editor':
+            case 'views_page_view-archives-editor'://DEPRECATED
+            case 'toolset_page_view-archives-editor':
                 $help = '<p>'.__("<strong>WordPress Archives</strong> let you style and design standard listing and archive pages.",'wpv-views').'</p>';
                 $help .= '<p>'.__("To create a <strong>WordPress Archive</strong>:", 'wpv-views').'</p>';
                 $help .= '<ol><li>'.__("Set the title", 'wpv-views').'</li>';
@@ -645,9 +837,9 @@ class WP_Views_plugin extends WP_Views {
 					)
 				);
 				break;
-			case 'views_page_views-settings':
-			case 'views_page_views-import-export':
-			case 'views_page_views-framework-integration':
+			case 'views_page_views-settings':// DERPECATED
+			case 'views_page_views-import-export':// DEPRECATED
+			case 'views_page_views-framework-integration'://DEPRECATED
 				break;
         }
 
@@ -862,7 +1054,7 @@ class WP_Views_plugin extends WP_Views {
             'bootstrap_not_set' => __( 'You need to set the Bootstrap version used in your theme.', 'wpv-views' ) . ' ' .
                 sprintf(
                     __("<a href='%s' target='_blank'>Go to the Settings page &raquo;</a>", 'wpv-views'),
-                    add_query_arg( array( 'page' => 'views-settings', 'tab' => 'compatibility' ), admin_url( 'admin.php' ) )
+                    esc_url( add_query_arg( array( 'page' => 'toolset-settings', 'tab' => 'front-end-content' ), admin_url( 'admin.php' ) ) )
                 ),
             'bootstrap_2' => __( 'This site is using Bootstrap 2.0', 'wpv-views' ),
             'bootstrap_3' => __( 'This site is using Bootstrap 3.0', 'wpv-views' ),
@@ -1026,7 +1218,9 @@ class WP_Views_plugin extends WP_Views {
 		$wpv_custom_admin_pages = array( 
 			'views', 'view-archives', 'view-templates', 
 			'views-editor', 'view-archives-editor', WPV_CT_EDITOR_PAGE_NAME,
-			'views-update-help' );
+			// DEPRECATED:
+			'views-settings', 'views-import-export', 'views-update-help' 
+		);
 		$wpv_custom_admin_pages = apply_filters( 'wpv_filter_wpv_custom_admin_pages', $wpv_custom_admin_pages );
 
 		$wpv_custom_admin_edit_pages = array( 'views-editor', 'view-archives-editor', WPV_CT_EDITOR_PAGE_NAME );

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <?php global $woocommerce; ?>
-<html class="<?php echo ( ! Avada()->settings->get( 'smooth_scrolling' ) ) ? 'no-overflow-y' : ''; ?>" xmlns="http<?php echo (is_ssl())? 's' : ''; ?>://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
+<html class="<?php echo ( ! Avada()->settings->get( 'smooth_scrolling' ) ) ? 'no-overflow-y' : ''; ?>" <?php language_attributes(); ?>>
 <head>
 	<?php if ( isset( $_SERVER['HTTP_USER_AGENT'] ) && ( false !== strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) ) ) : ?>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
@@ -8,7 +8,16 @@
 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-	<title><?php wp_title( '' ); ?></title>
+	<?php
+	if ( ! function_exists( '_wp_render_title_tag' ) ) {
+		function avada_render_title() {
+		?>
+			<title><?php wp_title( '' ); ?></title>
+		<?php
+		}
+		add_action( 'wp_head', 'avada_render_title' );
+	}
+	?>
 
 	<!--[if lte IE 8]>
 	<script type="text/javascript" src="<?php echo get_template_directory_uri(); ?>/assets/js/html5shiv.js"></script>
@@ -128,7 +137,8 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 }
 
 ?>
-<body <?php body_class(); ?> data-spy="scroll">
+<body <?php body_class(); ?>>
+	<?php do_action( 'avada_before_body_content' ); ?>
 	<?php $boxed_side_header_right = false; ?>
 	<?php if ( ( ( 'Boxed' == Avada()->settings->get( 'layout' ) && ( 'default' == get_post_meta( $c_pageID, 'pyre_page_bg_layout', true ) || '' == get_post_meta( $c_pageID, 'pyre_page_bg_layout', true ) ) ) || 'boxed' == get_post_meta( $c_pageID, 'pyre_page_bg_layout', true ) ) && 'Top' != Avada()->settings->get( 'header_position' ) ) : ?>
 		<?php if ( Avada()->settings->get( 'slidingbar_widgets' ) && ! is_page_template( 'blank.php' ) && ( 'Right' == Avada()->settings->get( 'header_position' ) || 'Left' == Avada()->settings->get( 'header_position' ) ) ) : ?>
@@ -156,7 +166,6 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			if ( is_search() ) {
 				$slider_page_id = '';
 			} else {
-				// Layer Slider
 				$slider_page_id = '';
 				if ( ! is_home() && ! is_front_page() && ! is_archive() && isset( $object_id ) ) {
 					$slider_page_id = $object_id;
@@ -170,7 +179,12 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 				if ( class_exists( 'WooCommerce' ) && is_shop() ) {
 					$slider_page_id = get_option( 'woocommerce_shop_page_id' );
 				}
-				avada_slider( $slider_page_id );
+				
+				if ( ( get_post_status( $slider_page_id ) == 'publish' && ! post_password_required() ) || 
+					 ( get_post_status( $slider_page_id ) == 'private' && current_user_can( 'read_private_pages' ) ) 
+				) {				
+					avada_slider( $slider_page_id );
+				}
 			} ?>
 		</div>
 		<?php if ( get_post_meta( $slider_page_id, 'pyre_fallback', true ) ) : ?>
@@ -200,7 +214,7 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			$address_pin_animation = ( Avada()->settings->get( 'gmap_pin_animation' ) ) ? 'yes' : 'no';
 			?>
 			<div id="fusion-gmap-container">
-				<?php echo do_shortcode( '[avada_map address="' . Avada()->settings->get( 'gmap_address' ) . '" type="' . Avada()->settings->get( 'gmap_type' ) . '" address_pin="' . $address_pin . '" animation="' .  $address_pin_animation . '" map_style="' . Avada()->settings->get( 'map_styling' ) . '" overlay_color="' . Avada()->settings->get( 'map_overlay_color' ) . '" infobox="' . Avada()->settings->get( 'map_infobox_styling' ) . '" infobox_background_color="' . Avada()->settings->get( 'map_infobox_bg_color' ) . '" infobox_text_color="' . Avada()->settings->get( 'map_infobox_text_color' ) . '" infobox_content="' . htmlentities( Avada()->settings->get( 'map_infobox_content' ) ) . '" icon="' . Avada()->settings->get( 'map_custom_marker_icon' ) . '" width="' . Avada()->settings->get( 'gmap_width' ) . '" height="' . Avada()->settings->get( 'gmap_height' ) . '" zoom="' . Avada()->settings->get( 'map_zoom_level' ) . '" scrollwheel="' . $map_scrollwheel . '" scale="' . $map_scale . '" zoom_pancontrol="' . $map_zoomcontrol . '" popup="' . $map_popup . '"][/avada_map]' ); ?>
+				<?php echo Avada()->google_map->render_map( array( 'address' => Avada()->settings->get( 'gmap_address' ), 'type' => Avada()->settings->get( 'gmap_type' ), 'address_pin' => $address_pin, 'animation' => $address_pin_animation, 'map_style' => Avada()->settings->get( 'map_styling' ), 'overlay_color' => Avada()->settings->get( 'map_overlay_color' ), 'infobox' => Avada()->settings->get( 'map_infobox_styling' ), 'infobox_background_color' => Avada()->settings->get( 'map_infobox_bg_color' ), 'infobox_text_color' => Avada()->settings->get( 'map_infobox_text_color' ), 'infobox_content' => htmlentities( Avada()->settings->get( 'map_infobox_content' ) ), 'icon' => Avada()->settings->get( 'map_custom_marker_icon' ), 'width' => Avada()->settings->get( 'gmap_width' ), 'height' => Avada()->settings->get( 'gmap_height' ), 'zoom' => Avada()->settings->get( 'map_zoom_level' ), 'scrollwheel' => $map_scrollwheel, 'scale' => $map_scale, 'zoom_pancontrol' => $map_zoomcontrol, '"popup' => $map_popup ) ); ?>
 			</div>
 		<?php endif; ?>
 
@@ -213,9 +227,8 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			$address_pin_animation = ( Avada()->settings->get( 'gmap_pin_animation' ) ) ? 'yes' : 'no';
 			?>
 			<div id="fusion-gmap-container">
-				<?php echo do_shortcode( '[avada_map address="' . Avada()->settings->get( 'gmap_address' ) . '" type="' . Avada()->settings->get( 'gmap_type' ) . '" map_style="' . Avada()->settings->get( 'map_styling' ) . '" animation="' .  $address_pin_animation . '" overlay_color="' . Avada()->settings->get( 'map_overlay_color' ) . '" infobox="' . Avada()->settings->get( 'map_infobox_styling' ) . '" infobox_background_color="' . Avada()->settings->get( 'map_infobox_bg_color' ) . '" infobox_text_color="' . Avada()->settings->get( 'map_infobox_text_color' ) . '" infobox_content="' . Avada()->settings->get( 'map_infobox_content' ) . '" icon="' . Avada()->settings->get( 'map_custom_marker_icon' ) . '" width="' . Avada()->settings->get( 'gmap_width' ) . '" height="' . Avada()->settings->get( 'gmap_height' ) . '" zoom="' . Avada()->settings->get( 'map_zoom_level' ) . '" scrollwheel="' . $map_scrollwheel . '" scale="' . $map_scale . '" zoom_pancontrol="' . $map_zoomcontrol . '" popup="' . $map_popup . '"][/avada_map]' ); ?>
+				<?php echo Avada()->google_map->render_map( array( 'address' => Avada()->settings->get( 'gmap_address' ), 'type' => Avada()->settings->get( 'gmap_type' ), 'map_style' => Avada()->settings->get( 'map_styling' ), 'animation' => $address_pin_animation, 'overlay_color' => Avada()->settings->get( 'map_overlay_color' ), 'infobox' => Avada()->settings->get( 'map_infobox_styling' ), 'infobox_background_color' => Avada()->settings->get( 'map_infobox_bg_color' ), 'infobox_text_color' => Avada()->settings->get( 'map_infobox_text_color' ), 'infobox_content' => htmlentities( Avada()->settings->get( 'map_infobox_content' ) ), 'icon' => Avada()->settings->get( 'map_custom_marker_icon' ), 'width' => Avada()->settings->get( 'gmap_width' ), 'height' => Avada()->settings->get( 'gmap_height' ), 'zoom' => Avada()->settings->get( 'map_zoom_level' ), 'scrollwheel' => $map_scrollwheel, 'scale' => $map_scale, 'zoom_pancontrol' => $map_zoomcontrol, '"popup' => $map_popup ) ); ?>
 			</div>
-			?>
 		<?php endif; ?>
 		<?php
 		$main_css      = '';
@@ -227,11 +240,11 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			$custom_fields = get_post_custom_values( '_wp_page_template', $c_pageID );
 			$page_template = ( is_array( $custom_fields ) && ! empty( $custom_fields ) ) ? $custom_fields[0] : '';
 		}
-		
+
 		if ( get_post_type( $c_pageID ) == 'tribe_events' && tribe_get_option( 'tribeEventsTemplate', 'default' ) == '100-width.php' ) {
 			$page_template = '100-width.php';
 		}
-		
+
 		if (
 			is_page_template( '100-width.php' ) ||
 			is_page_template( 'blank.php' ) ||
@@ -240,7 +253,7 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			( ( '1' == fusion_get_option( 'blog_width_100', 'portfolio_width_100', $c_pageID ) || 'yes' == fusion_get_option( 'blog_width_100', 'portfolio_width_100', $c_pageID ) ) && ( 'post' == get_post_type( $c_pageID ) ) ) ||
 			( 'yes' == fusion_get_page_option( 'portfolio_width_100', $c_pageID ) && ( 'post' != get_post_type( $c_pageID ) && 'avada_portfolio' != get_post_type( $c_pageID ) ) ) ||
 			( avada_is_portfolio_template() && 'yes' == get_post_meta( $c_pageID, 'pyre_portfolio_width_100', true ) )
-			) {
+		) {
 			$main_css = 'padding-left:0px;padding-right:0px;';
 			if ( Avada()->settings->get( 'hundredp_padding' ) && ! get_post_meta( $c_pageID, 'pyre_hundredp_padding', true ) ) {
 				$main_css = 'padding-left:' . Avada()->settings->get( 'hundredp_padding' ) . ';padding-right:' . Avada()->settings->get( 'hundredp_padding' );
@@ -251,7 +264,7 @@ if ( 'modern' == Avada()->settings->get( 'mobile_menu_design' ) ) {
 			$row_css    = 'max-width:100%;';
 			$main_class = 'width-100';
 		}
-		do_action( 'avada_before_main' );
+		do_action( 'avada_before_main_container' );
 		?>
 		<div id="main" class="clearfix <?php echo $main_class; ?>" style="<?php echo $main_css; ?>">
 			<div class="fusion-row" style="<?php echo $row_css; ?>">

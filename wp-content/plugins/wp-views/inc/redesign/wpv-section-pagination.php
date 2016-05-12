@@ -150,7 +150,7 @@ function add_view_pagination( $view_settings, $view_id ) { //TODO review that de
 						<li>
 							<p>
 								<label><?php _e('Transition effect:', 'wpv-views')?></label>
-								<select id="wpv-settings-ajax-pagination-effect" name="ajax_pagination[style]" autocomplete="off">
+								<select id="wpv-settings-ajax-pagination-effect" name="ajax_pagination[style]" class="js-wpv-settings-ajax-pagination-effect" autocomplete="off">
 									<?php 
 									if ( ! isset( $view_settings['ajax_pagination']['style'] ) ) {
 										$view_settings['ajax_pagination']['style'] = 'fade';
@@ -190,6 +190,39 @@ function add_view_pagination( $view_settings, $view_id ) { //TODO review that de
 								<button class="js-pagination-advanced button-secondary" type="button" data-closed="<?php echo esc_attr( __( 'Advanced options', 'wpv-views' ) ); ?>" data-opened="<?php echo esc_attr( __( 'Close advanced options', 'wpv-views' ) ); ?>" data-section="ajax_pagination" data-state="closed"><?php _e( 'Advanced options', 'wpv-views' ); ?></button>
 							</p>
 						</li>
+						<?php 
+						$global_enable_manage_history = apply_filters( 'wpv_filter_wpv_global_pagination_manage_history_status', true );
+						if ( $global_enable_manage_history ) {
+							?>
+							<li class="wpv-pagination-advanced hidden">
+								<?php 
+								$hide_on_infinite_scroll = '';
+								$show_on_infinite_scrol = ' style="display: none;"';
+								if ( $view_settings['ajax_pagination']['style'] == 'infinite' ) {
+									$hide_on_infinite_scroll = ' style="display: none;"';
+									$show_on_infinite_scrol = '';
+								}
+								?>
+								<div class="js-wpv-pagination-switch-history-management js-wpv-pagination-switch-on-infinite-scrolling-hide"<?php echo $hide_on_infinite_scroll; ?>>
+									<h4><?php _e( 'History management', 'wpv-views' ); ?></h4>
+									<?php $checked = ( isset( $view_settings['pagination']['manage_history'] ) && ( $view_settings['pagination']['manage_history'] == 'on' ) ) ? ' checked="checked"' : '';?>
+									
+									<label>
+										<input type="checkbox" name="pagination[manage_history]" value="on"<?php echo $checked; ?> autocomplete="off" />
+										<?php _e('Enable browser history management when paginating the View',  'wpv-views'); ?>
+									</label>
+								</div>
+								<div class="js-wpv-pagination-switch-infinite-scrolling-tolerance js-wpv-pagination-switch-on-infinite-scrolling-show"<?php echo $show_on_infinite_scrol; ?>>
+									<h4><?php _e( 'Infinite scrolling tolerance', 'wpv-views' ); ?></h4>									
+									<label>
+										<?php _e( 'Infinite scrolling tolerance, in pixels:', 'wpv-views' ); ?>
+										<input type="text" name="pagination[tolerance]" value="<?php echo ( isset( $view_settings['pagination']['tolerance'] ) ) ? $view_settings['pagination']['tolerance'] : ''; ?>" autocomplete="off" />
+									</label>
+								</div>
+							</li>
+							<?php
+							}
+						?>
 						<li class="wpv-pagination-advanced hidden">
 							<h4><?php _e( 'Cache and preload', 'wpv-views' ); ?></h4>
 							<?php $checked = ( isset( $view_settings['pagination']['preload_images'] ) && $view_settings['pagination']['preload_images'] ) ? ' checked="checked"' : '';?>
@@ -426,13 +459,14 @@ function wpv_update_pagination_callback() {
 	$changed = false;
 	parse_str( $_POST['settings'], $settings );
 	$defaults = array(
-		'pagination' => array(
-			'preload_images' => 0,
-			'cache_pages' => 0,
-			'preload_pages' => 0,
+		'pagination'	=> array(
+			'preload_images'	=> 0,
+			'cache_pages'		=> 0,
+			'preload_pages'		=> 0,
+			'manage_history'	=> 'off'
 		),
-		'rollover' => array(
-			'preload_images' => 0,
+		'rollover'		=> array(
+			'preload_images'	=> 0,
 		),
 	);
 	$settings = wpv_parse_args_recursive( $settings, $defaults );

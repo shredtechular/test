@@ -6,6 +6,8 @@
  * The embedded version of the wrapper. Concentrates on getters and get_ methods only.
  *
  * @since 1.8
+ *
+ * @property-read string $filter_meta_html
  */
 class WPV_View_Embedded extends WPV_View_Base {
 
@@ -88,9 +90,19 @@ class WPV_View_Embedded extends WPV_View_Base {
     }
 
 
+	/**
+	 * Determine if this is a View and not a WPA.
+	 * @return bool
+	 * @since 1.12
+	 */
+    public function is_a_view() {
+        return true;
+    }
+
 
     /* ************************************************************************* *\
-            Custom getters    \* ************************************************************************* */
+            Custom getters
+    \* ************************************************************************* */
 
 
     /**
@@ -190,6 +202,28 @@ class WPV_View_Embedded extends WPV_View_Base {
             $purpose = 'full';
         }
         return $purpose;
+    }
+
+
+    /**
+     * Type of content that is being queried.
+     *
+     * @return string 'posts', 'taxonomy' or 'users', see WPV_View_Base::VIEW_SETTINGS_QUERY_TYPE.
+     * @since 1.12
+     */
+    protected function _get_query_type() {
+        $query_type = $this->get_view_setting( WPV_View_Embedded::VIEW_SETTINGS_QUERY_TYPE );
+
+		// For historical reasons, it is stored as one-element array.
+		if( is_array( $query_type ) ) {
+			$query_type = $query_type[0];
+		}
+
+		if( !in_array( $query_type, array( 'posts', 'taxonomy', 'users' ) ) ) {
+			$query_type = 'posts';
+		}
+
+		return $query_type;
     }
 
 }

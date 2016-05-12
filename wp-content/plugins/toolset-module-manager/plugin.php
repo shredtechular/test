@@ -1,9 +1,9 @@
 <?php
 /*
- Plugin Name: Module Manager
-Plugin URI: http://wp-types.com/home/module-manager/
+ Plugin Name: Toolset Module Manager
+Plugin URI: https://wp-types.com/home/toolset-components/
 Description: Create reusable modules comprising of Types, Views and CRED parts that represent complete functionality
-Version: 1.6.3
+Version: 1.6.5
 Author: OnTheGoSystems
 Author URI: http://www.onthegosystems.com/
 */
@@ -13,7 +13,7 @@ define('MODMAN_RUN_MODE','PLUGIN_MODE');
 
 // current version
 if (!(defined('MODMAN_VERSION'))) {
-define('MODMAN_VERSION','1.6.3');
+define('MODMAN_VERSION','1.6.5');
 }
 
 if (!(defined('MODMAN_NAME'))) {
@@ -45,6 +45,10 @@ define('MODMAN_PLUGIN_NAME',MODMAN_PLUGIN_FOLDER.'/'.basename(__FILE__));
 
 if (!(defined('MODMAN_PLUGIN_BASENAME'))) {
 define('MODMAN_PLUGIN_BASENAME',MODMAN_PLUGIN);
+}
+
+if (!defined('WPVDEMO_TOOLSET_DOMAIN')) {
+	define('WPVDEMO_TOOLSET_DOMAIN', 'wp-types.com');
 }
 
 //Define correct URL with embedded MM implementation

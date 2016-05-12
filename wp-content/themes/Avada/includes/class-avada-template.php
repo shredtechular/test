@@ -12,7 +12,6 @@ class Avada_Template {
 		}
 
 		add_filter( 'body_class', array( $this, 'body_classes' ) );
-
 	}
 
 	/**
@@ -114,12 +113,12 @@ class Avada_Template {
 			$sidebar_2 = Avada()->settings->get( 'blog_archive_sidebar_2' );
 		}
 
-		if ( is_archive() && ( ! is_buddypress() && ! is_bbpress() && ( class_exists( 'WooCommerce' ) && ! is_shop() ) || ! class_exists( 'WooCommerce' ) ) && ! is_tax( 'portfolio_category' ) && ! is_tax( 'portfolio_skills' )  && ! is_tax( 'portfolio_tags' ) && ! is_tax( 'product_cat') && ! is_tax( 'product_tag' ) ) {
+		if ( is_archive() && ( ! is_buddypress() && ! is_bbpress() && ( class_exists( 'WooCommerce' ) && ! is_shop() ) || ! class_exists( 'WooCommerce' ) ) && !is_post_type_archive( 'avada_portfolio' ) && ! is_tax( 'portfolio_category' ) && ! is_tax( 'portfolio_skills' )  && ! is_tax( 'portfolio_tags' ) && ! is_tax( 'product_cat') && ! is_tax( 'product_tag' ) ) {
 			$sidebar_1 = Avada()->settings->get( 'blog_archive_sidebar' );
 			$sidebar_2 = Avada()->settings->get( 'blog_archive_sidebar_2' );
 		}
 
-		if ( is_tax( 'portfolio_category' ) || is_tax( 'portfolio_skills' )  || is_tax( 'portfolio_tags' ) ) {
+		if ( is_post_type_archive( 'avada_portfolio' ) || is_tax( 'portfolio_category' ) || is_tax( 'portfolio_skills' )  || is_tax( 'portfolio_tags' ) ) {
 			$sidebar_1 = Avada()->settings->get( 'portfolio_archive_sidebar' );
 			$sidebar_2 = Avada()->settings->get( 'portfolio_archive_sidebar_2' );
 		}
@@ -211,11 +210,11 @@ class Avada_Template {
 			$classes[] = 'layout-wide-mode';
 		}
 
-		if ( is_array( $sidebar_1 ) && ! empty( $sidebar_1 ) && ( $sidebar_1[0] || '0' == $sidebar_1[0] ) && ! is_buddypress() && ! is_bbpress() && ! is_page_template( '100-width.php' ) && ( ! class_exists( 'WooCommerce' ) || ( class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_account_page() && ! ( get_option( 'woocommerce_thanks_page_id' ) && is_page( get_option( 'woocommerce_thanks_page_id' ) ) ) ) ) ) {
+		if ( is_array( $sidebar_1 ) && ! empty( $sidebar_1 ) && ( $sidebar_1[0] || '0' == $sidebar_1[0] ) && ! is_buddypress() && ! is_bbpress() && ! is_page_template( '100-width.php' ) && ! is_page_template( 'blank.php' ) && ( ! class_exists( 'WooCommerce' ) || ( class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_account_page() && ! ( get_option( 'woocommerce_thanks_page_id' ) && is_page( get_option( 'woocommerce_thanks_page_id' ) ) ) ) ) ) {
 			$classes[] = 'has-sidebar';
 		}
 
-		if ( is_array( $sidebar_1 ) && $sidebar_1[0] && is_array( $sidebar_2 ) && $sidebar_2[0] && ! is_buddypress() && ! is_bbpress() && ! is_page_template( '100-width.php' ) && ( ! class_exists( 'WooCommerce' ) || ( class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_account_page() && ! ( get_option( 'woocommerce_thanks_page_id' ) && is_page( get_option( 'woocommerce_thanks_page_id' ) ) ) ) ) ) {
+		if ( is_array( $sidebar_1 ) && $sidebar_1[0] && is_array( $sidebar_2 ) && $sidebar_2[0] && ! is_buddypress() && ! is_bbpress() && ! is_page_template( '100-width.php' )  && ! is_page_template( 'blank.php' ) && ( ! class_exists( 'WooCommerce' ) || ( class_exists( 'WooCommerce' ) && ! is_cart() && ! is_checkout() && ! is_account_page() && ! ( get_option( 'woocommerce_thanks_page_id' ) && is_page( get_option( 'woocommerce_thanks_page_id' ) ) ) ) ) ) {
 			$classes[] = 'double-sidebars';
 		}
 
@@ -316,9 +315,19 @@ class Avada_Template {
 			$classes[] = 'menu-text-align-' . strtolower( Avada()->settings->get( 'menu_text_align' ) );
 		}
 
+		if( class_exists( 'WooCommerce' ) ) {
+			$classes[] = 'fusion-woo-product-design-' . Avada()->settings->get( 'woocommerce_product_box_design' );
+		}
+
 		$classes[] = 'mobile-menu-design-' . Avada()->settings->get( 'mobile_menu_design' );
 
 		$classes[] = 'fusion-image-hovers';
+
+		if( Avada()->settings->get( 'pagination_text_display') ) {
+			$classes[] = 'fusion-show-pagination-text';
+		} else {
+			$classes[] = 'fusion-hide-pagination-text';
+		}
 
 		return $classes;
 	}
@@ -344,7 +353,57 @@ class Avada_Template {
 			</div>
 		<?php
 	}
-
+	
+	public function title_template( $content = '', $size = '2', $content_align = 'left' ) {
+		$margin_top	= Avada()->settings->get( 'title_top_margin' );
+		$margin_bottom	= Avada()->settings->get( 'title_bottom_margin' );
+		$sep_color = Avada()->settings->get( 'title_border_color' );
+		$style_type	= Avada()->settings->get( 'title_style_type' );
+		$size_array = array( '1' => 'one', '2' => 'two', '3' => 'three', '4' => 'four', '5' => 'five', '6' => 'six' );
+		$classes = '';
+		$styles = '';
+		$sep_styles = '';
+		
+		$classes_array = explode( ' ', $style_type );
+		foreach ( $classes_array as $class ) {
+			$classes .= ' sep-' . $class;
+		}		
+		
+		if ( $margin_top ) {
+			$styles .= sprintf( 'margin-top:%s;', Avada_Sanitize::get_value_with_unit( $margin_top ) );
+		}
+		if ( $margin_bottom ) {
+			$styles .= sprintf( 'margin-bottom:%s;', Avada_Sanitize::get_value_with_unit( $margin_bottom ) );
+		}		
+		
+		if ( strpos( $style_type, 'underline' ) !== FALSE || 
+			 strpos( $style_type, 'none' ) !== FALSE
+		) {
+		
+			if ( strpos( $style_type, 'underline' ) !== false ) {
+				if ( $sep_color ) {
+					$styles .= 'border-bottom-color:' . $sep_color;
+				}
+			} elseif ( strpos( $style_type, 'none' ) !== false ) {
+				$classes .= ' fusion-sep-none';
+			}		
+		
+			$html = sprintf( '<div class="fusion-title fusion-title-size-%s%s" style="%s"><h%s class="title-heading-%s">%s</h%s></div>', $size_array[$size], 
+							 $classes, $styles, $size, $content_align, $content, $size );
+		} else {
+			if ( $content_align == 'right' ) {
+				$html = sprintf( '<div class="fusion-title fusion-title-size-%s%s" style="%s"><div class="title-sep-container"><div class="title-sep%s"></div></div><h%s class="title-heading-%s">%s</h%s></div>', 
+								 $size_array[$size], $classes, $styles, $classes, $size, $content_align, $content, $size );								
+			} elseif ( $content_align == 'center' ) {
+				$html = sprintf( '<div class="fusion-title fusion-title-center fusion-title-size-%s%s" style="%s"><div class="title-sep-container title-sep-container-left"><div class="title-sep%s"></div></div><h%s class="title-heading-%s">%s</h%s><div class="title-sep-container title-sep-container-right"><div class="title-sep%s"></div></div></div>', 
+								 $size_array[$size], $classes, $styles, $classes, $size, $content_align, $content, $size, $classes );	
+			} else {	 
+				$html = sprintf( '<div class="fusion-title fusion-title-size-%s%s" style="%s"><h%s class="title-heading-%s">%s</h%s><div class="title-sep-container"><div class="title-sep%s"></div></div></div>', 
+								 $size_array[$size], $classes, $styles, $size, $content_align, $content, $size, $classes );
+			}
+		}
+		return $html;
+	}	
 }
 
 // Omit closing PHP tag to avoid "Headers already sent" issues.

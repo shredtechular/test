@@ -45,7 +45,7 @@ function add_view_ordering( $view_settings, $view_id ) {
 		$hide = ' hidden';
 	}
 	$section_help_pointer = WPV_Admin_Messages::edit_section_help_pointer( 'ordering' );
-	$view_settings = wpv_order_orderby_default_settings( $view_settings );
+	$view_settings = apply_filters( 'wpv_filter_wpv_get_sorting_defaults', $view_settings );
 	?>
 	<div class="wpv-setting-container wpv-settings-ordering js-wpv-settings-ordering<?php echo $hide; ?>">
 		<div class="wpv-settings-header">
@@ -113,7 +113,31 @@ function add_view_ordering( $view_settings, $view_id ) {
 						?>
 							<option value="<?php echo esc_attr( $id ); ?>" <?php selected( $view_settings['taxonomy_orderby'], $id ); ?>><?php echo $text; ?></option>
 						<?php
-
+						}
+					?>
+					<?php
+						global $wp_version;
+						if ( ! version_compare( $wp_version, '4.5', '<' ) ) {
+							$all_types_termmeta_fields = get_option( 'wpcf-termmeta', array() );
+							$termmeta_keys = $WP_Views->get_termmeta_keys();
+							foreach ( $termmeta_keys as $key ) {
+								$selected = ( $view_settings['taxonomy_orderby'] == "taxonomy-field-" . $key ) ? ' selected="selected"' : '';
+								$option = '<option value="taxonomy-field-' . esc_attr( $key ) . '"' . $selected . '>';
+								if ( stripos( $key, 'wpcf-' ) === 0 )  {
+									if ( 
+										isset( $all_types_termmeta_fields[substr( $key, 5 )] ) 
+										&& isset( $all_types_termmeta_fields[substr( $key, 5 )]['name'] ) 
+									) {
+										$option .= sprintf( __( 'Term field - %s', 'wpv-views' ), $all_types_termmeta_fields[substr( $key, 5 )]['name'] );
+									} else {
+										$option .= sprintf( __( 'Term field - %s', 'wpv-views' ), $key );
+									}
+								} else {
+									$option .= sprintf( __( 'Term field - %s', 'wpv-views' ), $key );
+								}
+								$option .= '</option>';
+								echo $option;
+							}
 						}
 					?>
 				</select>

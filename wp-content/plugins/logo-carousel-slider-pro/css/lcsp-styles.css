@@ -1,0 +1,49 @@
+h2.lcsp_logo_carousel_slider_title {
+    margin: 0 0 2px 0;
+    font-weight: normal;
+}
+
+.lcsp_logo_container {
+    margin: 6px;
+}
+
+.lcsp_logo_container a.lcsp_logo_link {
+    display: block;
+    padding: 6px;
+    -moz-transition: all 0.3s linear;
+    -o-transition: all 0.3s linear;
+    -webkit-transition: all 0.3s linear;
+    transition: all 0.3s linear;
+}
+
+.lcsp_logo_container img {
+    box-shadow: none;
+    display: block;
+    margin: 0 auto;
+    border-radius: 0;
+    -webkit-transition: all 0.22s linear;
+    -moz-transition: all 0.22s linear;
+    -o-transition: all 0.22s linear;
+    -ms-transition: all 0.22s linear;
+    transition: all 0.22s linear;
+}
+
+h3.lcsp_logo_title {
+	font-size: 15px;
+	font-weight: normal;
+	text-align: center;
+	margin: 3px 0 0 0;
+    color: #444;
+    -moz-transition: all 0.3s linear;
+    -o-transition: all 0.3s linear;
+    -webkit-transition: all 0.3s linear;
+    transition: all 0.3s linear;
+}
+
+h3.lcsp_logo_title:hover {
+    color: #808080;
+}
+
+.owl-theme .owl-controls .owl-page span {
+    background: #666666;
+}

@@ -179,6 +179,17 @@ WPViews.ViewEditScreenPaginationUX = function( $ ) {
 		self.pagination_insert_pointer();
 	});
 	
+	$( document ).on( 'change', '.js-wpv-settings-ajax-pagination-effect', function() {
+		var thiz = $( this );
+		if ( thiz.val() == 'infinite' ) {
+			$( '.js-wpv-pagination-switch-on-infinite-scrolling-hide' ).fadeOut( 'fast' );
+			$( '.js-wpv-pagination-switch-on-infinite-scrolling-show' ).fadeIn( 'fast' );
+		} else {
+			$( '.js-wpv-pagination-switch-on-infinite-scrolling-hide' ).fadeIn( 'fast' );
+			$( '.js-wpv-pagination-switch-on-infinite-scrolling-show' ).fadeOut( 'fast' );
+		}
+	});
+	
 	// Insert pagination shortcode
 	
 	$( document ).on( 'click', '.js-wpv-pagination-popup', function() {

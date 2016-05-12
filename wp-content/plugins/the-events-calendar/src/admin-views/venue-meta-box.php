@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<tr class="venue">
 		<td class='tribe-table-field-label'><?php printf( esc_html__( '%s Name:', 'the-events-calendar' ), tribe_get_venue_label_singular() ); ?></td>
 		<td>
-			<input tabindex="<?php tribe_events_tab_index(); ?>" type='text' name='venue[Venue]' size='25' value='<?php if ( isset( $_VenueVenue ) ) {
+			<input tabindex="<?php tribe_events_tab_index(); ?>" type='text' name='venue[Venue]' size='25' value='<?php if ( ! empty( $_VenueVenue ) ) {
 				echo esc_attr( $_VenueVenue );
 			} ?>' />
 		</td>
@@ -49,14 +49,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<td>
 		<?php
 		$countries = Tribe__View_Helpers::constructCountries( $event->ID );
-		$defaultCountry = tribe_get_default_value( 'country' );
+
 		if ( isset( $_VenueCountry ) && $_VenueCountry ) {
 			$current = $_VenueCountry;
-		} elseif ( isset( $defaultCountry[1] ) ) {
-			$current = $defaultCountry[1];
 		} else {
 			$current = null;
 		}
+
 		if ( is_array( $current ) && isset( $current[1] ) ) {
 			$current = $current[1];
 		}

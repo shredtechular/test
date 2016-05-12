@@ -438,6 +438,11 @@
 				margin-left: 22px;
 				margin-right: 22px;
 			}
+			
+			.wpv-setting h3 {
+				color: #333;
+				font-size: 14px;
+			}
 
 			.wpv-setting .wpv-advanced-setting,
 			.wpv-setting.wpv-setting-module-manager .modman-inline-module-manager-inner {
@@ -2219,4 +2224,84 @@ html[dir='rtl'] .wpv-itembox-header .wpv-code-editor-toggler {
 	left: 2px;
 }
 
+/* ************************************************************************** *\
+ 		Fields and Views dialog
+\* ************************************************************************** */
 
+.wpv-fields-and-views-dialog.ui-dialog-content {
+	padding: 0;
+}
+
+.wpv-editor_addon_dropdown_content.editor_addon_dropdown_content {
+	padding: 16px;
+}
+
+.wpv-fields-and-views-dialog .item {
+    margin: 0 10px 0 0;
+    line-height: 1.8;
+    white-space: nowrap;
+    padding: 0;
+    display: inline-block;
+    color: #21759b;
+    cursor: pointer;
+}
+.wpv-fields-and-views-dialog .item:hover,
+.wpv-fields-and-views-dialog .item:active {
+    color: #d54e21;
+    text-decoration: underline;
+}
+
+.wpv-fields-and-views-dialog .item.button {
+    margin: 0 5px 5px 0;
+    line-height: auto;
+    white-space: nowrap;
+    display: inline-block;
+    color: #555;
+}
+.wpv-fields-and-views-dialog .item.button:hover,
+.wpv-fields-and-views-dialog .item.button:active {
+    color: #32373c;
+    text-decoration: none;
+}
+
+.wpv-fields-and-views-dialog .direct-links {
+    display: inline-block;
+}
+
+.wpv-fields-and-views-dialog .direct-links-desc {
+    margin: 0 5px 0 0;
+	padding: 0 0 5px;
+	border-bottom: 1px solid #ededed;
+}
+
+.wpv-fields-and-views-dialog .direct-links {
+    padding: 10px 0 0 0;
+    list-style: none;
+}
+
+.wpv-fields-and-views-dialog .direct-links li {
+    display: inline-block;
+    margin: 0;
+    padding: 0 10px;
+    border-right: 1px solid #ccc;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.wpv-fields-and-views-dialog .direct-links li:hover {
+    color: #d54e21;
+}
+
+.wpv-fields-and-views-dialog .direct-links li.direct-links-label,
+.wpv-fields-and-views-dialog .direct-links li.direct-links-label:hover {
+	padding: 0;
+	border: none;
+	font-weight: normal;
+	color: #666;
+	cursor: auto;
+}
+
+.wpv-fields-and-views-dialog .direct-links li:last-child {
+    border-right: 0;
+}

@@ -3,8 +3,9 @@
 /* ------- */
 
 /* Dialogs global */
-.popup-window-container
-,.js-wpv-add a span
+.popup-window-container,
+.toolset-dialog-container,
+.js-wpv-add a span
 {
 	display: none;
 }
@@ -670,6 +671,10 @@
 	margin: 5px 0 5px 20px;
 	padding:1px 0 1px 20px;
 	background: none repeat scroll 0 0 #e9e9e9;
+}
+
+.ui-dialog-buttonpane .ui-button.toolset-shortcode-gui-dialog-button-close {
+	margin-right: 10px;
 }
 
 /* Compat with old pro_dropdown_2.css files START */

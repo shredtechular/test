@@ -290,33 +290,18 @@ function wpv_users_query_limit_and_offset( $args, $view_settings, $view_id ) {
 * @return $return (array)
 *
 * @since 1.6.2
-*
-* @updated 1.10 limit and offset attributes will always override the stored settings
+* @since 1.10 	Limit and offset attributes will always override the stored settings
 */
 
 function wpv_override_view_limit_offset() {
 	global $WP_Views;
 	// Override limit and offset values with the shortcode-provided ones
 	$return = array();
-	//$attributes_allowed = get_view_allowed_attributes( $view_id );
-	//$attributes_used_by_filters = array();
 	$view_attrs = $WP_Views->get_view_shortcodes_attributes();
-	// Check the attributes allowed to see if 'limit' and 'offset' are already in use
-	// If a query filter already uses any of those two words, this override will not be applied
-	//if ( is_array( $attributes_allowed ) ) {
-	//	$attributes_used_by_filters = wp_list_pluck( $attributes_allowed, 'attribute' );
-	//}
-	// If that is not the case, see if we need to override
-	if ( 
-		isset( $view_attrs['limit'] ) 
-		//&& !in_array( 'limit', $attributes_used_by_filters ) 
-	) {
+	if ( isset( $view_attrs['limit'] ) ) {
 		$return['limit'] = intval( $view_attrs['limit'] );
 	}
-	if ( 
-		isset( $view_attrs['offset'] ) 
-		//&& !in_array( 'offset', $attributes_used_by_filters ) 
-	) {
+	if ( isset( $view_attrs['offset'] ) ) {
 		$return['offset'] = intval( $view_attrs['offset'] );
 	}
 	return $return;

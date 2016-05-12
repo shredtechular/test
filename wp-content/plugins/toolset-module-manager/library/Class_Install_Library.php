@@ -49,8 +49,16 @@ class Class_Install_Library {
 					if (($module_installation_mode_valid) && ($module_installation_name_for_import_valid)) {
 						$module_name_url_encoded=str_replace(' ', '+', $module_installation_name_for_import);
 						//Define module manager import URL
-						$module_manager_import_url=admin_url('admin.php?page=ModuleManager_Modules&tab=import&step=1&mode_install_import='.$module_installation_mode.'&mm_install_name_import='.$module_name_url_encoded.'&'.$put_files_in_get);	
-						$this->move_to_modman_importhook($module_manager_import_url);
+						
+						//Support for shared import screens in Toolset						
+						$shared_import_menu= ModuleManager::modulemanager_can_implement_unified_menu();
+						if ( true === $shared_import_menu) {
+							$mm_unique_import_url = 'admin.php?page=toolset-export-import&tab=modules_import';
+						} else {
+							$mm_unique_import_url = 'admin.php?page=ModuleManager_Modules&tab=import';
+						}
+						$module_manager_import_url=admin_url( $mm_unique_import_url.'&step=1&mode_install_import='.$module_installation_mode.'&mm_install_name_import='.$module_name_url_encoded.'&'.$put_files_in_get);	
+						$this->move_to_modman_importhook($module_manager_import_url );
 					}				
 				}
 			} 

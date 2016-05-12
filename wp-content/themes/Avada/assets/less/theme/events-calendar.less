@@ -28,7 +28,7 @@
 
 #tribe-events-bar {
   float: left;
-  z-index: 1;
+  z-index: 5;
   margin-bottom: 60px;
 
  &:before, &:after {
@@ -158,17 +158,137 @@
       padding: 10px 0 40px;
     }
   }
+
+  // When events tribe bar is disabled
+
+  .tribe-bar-disabled & {
+    float: left;
+    width: 100%;
+    min-width: 220px;
+
+    #tribe-bar-form {
+      width: 100%;
+      border-radius: 0;
+    }
+  }
 }
 
-#tribe-events-content {
-    clear: both;
+.tribe-bar-disabled {
+  float: none;
+}
+
+// Restyling Events Calendar Filter Addon
+
+#tribe-events-content-wrapper #tribe_events_filters_wrapper.tribe-events-filters-horizontal {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  float: left;
+  margin-bottom: 50px;
+  width: 100%;
+  z-index: 3;
+
+  &:before, &:after {
+      content: ' ';
+      position: absolute;
+      display: block;
+      background-color: #f5f5f5;
+      width: 2224px;
+      height: 100%;
+      left: -2224px;
+      overflow: hidden;
+  }
+
+  &:after {
+      left: 100%;
+  }
+
+  .tribe-events-filters-content {
+    float: left;
+    width: 100%;
+    padding: 25px 0px 15px 0px;
+    border: 0;
+    background: transparent;
+  }
+
+  #tribe_events_filter_control {
+    position: absolute;
+    right: 0;
+  }
+
+  .tribe-mobile & #tribe_events_filter_control, .tribe-filters-closed & #tribe_events_filter_control {
+    position: relative;
+  }
+
+  .tribe-filters-closed & .tribe-events-filters-content {
+    padding: 25px 0px;
+  }
+
+  .tribe-events-filters-label {
+    margin-left: 0;
+    margin-bottom: 10px;
+  }
+
+  .tribe-filters-open & #tribe_events_filter_control.tribe-events-filters-mobile-controls {
+    margin-top: 20px;
+    margin-left: 0;
+  }
+
+  .tribe-events-filters-label {
+    padding-left: 0;
+    border-bottom: 0;
+  }
+
+  label input[type=checkbox], label input[type=radio] {
+    width: auto;
+  }
+
+  .tribe-events-filter-group {
+    box-shadow: none;
+  }
+
+  .tribe-events-filter-group:before {
+    top: -14px;
+  }
+
+  #tribe_events_filter_control #tribe_events_filters_reset,
+  #tribe_events_filter_control #tribe_events_filters_toggle {
+    height: auto;
+    border-color: transparent;
+  }
+}
+
+#tribe-events-content-wrapper #tribe_events_filters_wrapper.tribe-events-filters-vertical {
+  z-index: 1;
+
+  .tribe-filters-open & {
+    position: relative;
+    margin-bottom: 30px;
+  }
+
+  .tribe-events-filters-content {
+    background: transparent;
+  }
+
+  .tribe_events_filters_show_filters { text-align: center; }
+  label input[type=checkbox], label input[type=radio] {
+    width: auto;
+  }
+
+  #tribe_events_filter_control #tribe_events_filters_reset,
+  #tribe_events_filter_control #tribe_events_filters_toggle {
+    height: auto;
+    border-color: transparent;
+  }
 }
 
 // Restyling Events Title
 
 .fusion-events-before-title {
     .clearfix();
+    clear: both;
     margin-bottom: 60px;
+    text-align: center;
 
     #wrapper .post-content & h2 {
       margin: 0;
@@ -177,6 +297,7 @@
       border-bottom-width: 1px;
       border-bottom-style: solid;
       padding: 20px 0px;
+      text-align: center;
     }
 
     .tribe-events-user-recurrence-toggle {
@@ -219,7 +340,7 @@
         padding: 13px 22px 5px 22px;
     }
 
-    .entry-title {
+    .entry-title, .tribe-event-title {
         padding: 12px 22px 12px 22px;
         font-weight: normal;
     }
@@ -235,6 +356,16 @@
       .tribe-events-event-body {
           padding: 14px;
       }
+    }
+
+    .tribe-events-event-body {
+      .description {
+        word-wrap: break-word;
+      }
+    }
+
+    .tribe-event-duration {
+      font-weight: bold;
     }
 }
 
@@ -272,6 +403,7 @@
     border: 1px solid;
     margin-bottom: 44px;
     min-height: 250px;
+    position: relative;
 
     .tribe-events-event-image {
       width: 100%;
@@ -453,6 +585,15 @@
   }
 }
 
+// Photo View
+#tribe-events {
+	.fusion-blog-layout-grid {
+		.fusion-post-slideshow .slides {
+			overflow: visible;
+		}
+	}
+}
+
 // Restyling Events Calendar Grid
 
 #tribe-events-content table.tribe-events-calendar {
@@ -600,7 +741,9 @@
 	}
 }
 
-.single-tribe_events .tribe-events-schedule .recurringinfo .tribe-events-divider, 
+.single-tribe_events .tribe-events-schedule .recurringinfo .tribe-events-divider {
+	display: inline-block;
+}
 .single-tribe_events .tribe-events-schedule .tribe-events-divider {
 	display: block;
 }
@@ -666,6 +809,18 @@
 
   dl :last-child {
     border-bottom: 0;
+  }
+}
+
+.tribe-events-meta-group {
+	.url {
+		a {
+			word-wrap: break-word;
+		}
+	}
+
+  .email {
+    word-wrap: break-word;
   }
 }
 
@@ -856,18 +1011,13 @@
   line-height: normal;
   thead {
     background-color: transparent;
-    border: 0px;
+    border: none;
   }
 
   td, th {
     border: 0;
     padding: 0;
     transition: none !important;
-
-    > div {
-      padding-left: 1px;
-      padding-top: 1px;
-    }
   }
 
   td {
@@ -876,7 +1026,8 @@
 
   .tribe-mini-calendar-nav {
     td {
-      padding: 9px 10px;
+      padding: 10px 10px;
+      border: none;
 
       a, span {
         font-weight: normal;
@@ -903,7 +1054,7 @@
 
   .tribe-mini-calendar-dayofweek {
     background-color: transparent;
-    padding: 9px 10px;
+    padding: 10px 10px;
     border: 0px;
   }
 
@@ -912,21 +1063,22 @@
   }
 
   // Remove the circle from mini calendar current event
-  td.tribe-events-has-events div[id*='daynum-'] a:before {
-    display: none;
+  td.tribe-events-has-events div[id*='daynum-'] a {
+  	font-weight: normal;
+  	
+	  &:before {
+		display: none;
+	  }
   }
 
-  div[id*='daynum-'] a, .tribe-mini-calendar-no-event {
-    padding: 9px 10px;
-    font-weight: normal;
-
-    span {
-      font-weight: normal;
-    }
+  td.tribe-events-has-events div[id*='daynum-'] a, 
+  .tribe-mini-calendar-no-event {
+    padding: 10px 10px;
   }
 
   .tribe-mini-calendar-no-event {
     background-color: transparent;
+    font-weight: normal;
   }
 
   .tribe-events-past {
@@ -934,8 +1086,15 @@
     opacity: 1;
   }
 
-  .tribe-events-has-events:hover, .tribe-events-has-events.tribe-mini-calendar-today:hover {
+  .tribe-events-has-events:hover,
+  .tribe-events-has-events.tribe-mini-calendar-today:hover {
     background-color: transparent;
+  }
+  
+  .tribe-events-has-events:hover a:hover {
+  	.fusion-body & {
+  		background-color: transparent;
+  	}
   }
 
   .tribe-events-othermonth, .tribe-events-othermonth div[id*='daynum-'] a, .tribe-events-othermonth div[id*='daynum-'] span {
@@ -1175,4 +1334,9 @@
     border-width: 18px;
     margin-top: -18px;
   }
+}
+
+// Woocommerce Tickets
+#tribe-events .tribe-events-tickets .woocommerce {
+    min-width: 107px;
 }

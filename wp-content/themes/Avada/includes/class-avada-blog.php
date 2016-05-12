@@ -37,7 +37,7 @@ class Avada_Blog {
      * Apply post per page on search pages
      */
     public function alter_search_loop( $query ) {
-        if ( $query->is_main_query() && $query->is_search() && Avada()->settings->get( 'search_results_per_page' ) ) {
+        if ( ! is_admin() && $query->is_main_query() && $query->is_search() && Avada()->settings->get( 'search_results_per_page' ) ) {
             $query->set( 'posts_per_page', Avada()->settings->get( 'search_results_per_page' ) );
         }
     }

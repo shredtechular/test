@@ -1063,6 +1063,9 @@ jQuery(document).ready(function($) {
 	light['social_links_box_color']='#e8e8e8';
 	light['sharing_social_links_icon_color']='#bebdbd';
 	light['sharing_social_links_box_color']='#e8e8e8';
+	light['load_more_posts_button_bg_color'] = '#ebeaea';
+	light['ec_bar_bg_color'] = '#efeded';
+
 
 	var dark = new Array()
 	dark['header_bg_color'] = '#29292a';
@@ -1172,6 +1175,8 @@ jQuery(document).ready(function($) {
 	dark['social_links_box_color']='#383838';
 	dark['sharing_social_links_icon_color']='#919191';
 	dark['sharing_social_links_box_color']='#4b4e4f';
+	dark['load_more_posts_button_bg_color'] = '#3e3e3e';
+	dark['ec_bar_bg_color'] = '#353535';
 
 	$('#scheme_type').change(function() {
 		colorscheme = $(this).val();
@@ -1569,8 +1574,6 @@ jQuery(document).ready(function($) {
 		jQuery('#section-header_position').show();
 	};
 
-	//change_header_options( jQuery('#section-header_position #header_position').val(), jQuery('#section-header_layout img.of-radio-img-selected').parent().find('input[type=radio]').attr('value') );
-
 	jQuery('#section-header_position #header_position').change(function() {
 		change_header_options( jQuery(this).val(), jQuery('#section-header_layout img.of-radio-img-selected').parent().find('input[type=radio]').attr('value') );
 	});
@@ -1580,15 +1583,19 @@ jQuery(document).ready(function($) {
 	});
 
 	// Responsive type check
-	jQuery( 'input[name=typography_responsive]' ).change(
-		function() {
-			if ( jQuery ( this ).is( ':checked' ) ) {
-				jQuery( '#section-typography_sensitivity, #section-typography_factor' ).show();
-			} else {
-				jQuery( '#section-typography_sensitivity, #section-typography_factor' ).hide();
-			}
-		}
-	);
+	if ( jQuery( '#section-typography_responsive input.main_checkbox' ).is( ':checked' ) ) {
+		jQuery( '#section-typography_sensitivity, #section-typography_factor' ).show();
+	} else {
+		jQuery( '#section-typography_sensitivity, #section-typography_factor' ).hide();
+	}
+
+	jQuery( '#section-typography_responsive .cb-enable' ).click( function() {
+		jQuery( '#section-typography_sensitivity, #section-typography_factor' ).show();
+	});
+
+	jQuery( '#section-typography_responsive .cb-disable' ).click( function() {
+		jQuery( '#section-typography_sensitivity, #section-typography_factor' ).hide();
+	});
 
 	// Footer Special Effects Section
 	jQuery( '#section-footer_parallax_effect_info, #section-footer_area_bg_parallax_info, #section-footer_sticky_info, #section-footer_sticky_with_parallax_bg_image_info' ).hide();
@@ -1615,5 +1622,15 @@ jQuery(document).ready(function($) {
 			}
 		}
 	);
+
+	// mharis/Avada#56
+	jQuery('#woocommerce_product_box_design').change(function() {
+		var $design = jQuery(this).val();
+
+		if ( $design == 'clean' ) {
+			of_update_color( 'timeline_bg_color', 'transparent' );
+			of_update_color( 'timeline_color', 'transparent' );
+		}
+	});
 });
 // End Avada edit

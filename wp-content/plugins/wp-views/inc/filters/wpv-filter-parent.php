@@ -6,7 +6,11 @@
 * @package Views
 *
 * @since unknown
-* @todo this is ready to add URL params, shortcode attrs and framework values options
+* @since 1.12.1	Changes in the filter modes for the posts filter and the taxonomy filter
+* 		current_page becomes current_post_or_parent_post_view and tracks $WP_Views->get_current_page()
+* 		top_current_post tracks $WP_Views->get_top_current_page()
+* 		current_view becomes current_taxonomy_view
+* 
 */
 
 WPV_Parent_Filter::on_load();
@@ -38,11 +42,11 @@ class WPV_Parent_Filter {
 		add_action( 'wpv_add_taxonomy_filter_list_item', array( 'WPV_Parent_Filter', 'wpv_add_filter_taxonomy_parent_list_item' ), 1, 1 );
 		//AJAX callbakcks
 		add_action('wp_ajax_wpv_filter_post_parent_update', array( 'WPV_Parent_Filter', 'wpv_filter_post_parent_update_callback') );
-			// TODO This might not be needed here, maybe for summary filter
+			// @todo This might not be needed here, maybe for summary filter
 			add_action('wp_ajax_wpv_filter_parent_sumary_update', array( 'WPV_Parent_Filter', 'wpv_filter_post_parent_sumary_update_callback') );
 		add_action('wp_ajax_wpv_filter_post_parent_delete', array( 'WPV_Parent_Filter', 'wpv_filter_post_parent_delete_callback') );
 		add_action( 'wp_ajax_wpv_filter_taxonomy_parent_update', array( 'WPV_Parent_Filter', 'wpv_filter_taxonomy_parent_update_callback' ) );
-			// TODO This might not be needed here, maybe for summary filter
+			// @todo This might not be needed here, maybe for summary filter
 			add_action( 'wp_ajax_wpv_filter_taxonomy_parent_sumary_update', array( 'WPV_Parent_Filter', 'wpv_filter_taxonomy_parent_sumary_update_callback' ) );
 		add_action(	'wp_ajax_wpv_filter_taxonomy_parent_delete', array( 'WPV_Parent_Filter', 'wpv_filter_taxonomy_parent_delete_callback' ) );
 		add_filter( 'wpv-view-get-summary', array( 'WPV_Parent_Filter', 'wpv_parent_summary_filter' ), 5, 3 );
@@ -109,7 +113,7 @@ class WPV_Parent_Filter {
 
 	static function wpv_add_new_filter_post_parent_list_item() {
 		$args = array(
-			'parent_mode' => array( 'current_page' )
+			'parent_mode' => array( 'no_parent' )
 		);
 		WPV_Parent_Filter::wpv_add_filter_post_parent_list_item( $args );
 	}
@@ -161,7 +165,7 @@ class WPV_Parent_Filter {
 		WPV_Filter_Item::simple_filter_list_item_buttons( 'post-parent', 'wpv_filter_post_parent_update', wp_create_nonce( 'wpv_view_filter_post_parent_nonce' ), 'wpv_filter_post_parent_delete', wp_create_nonce( 'wpv_view_filter_post_parent_delete_nonce' ) );
 		?>
 		<span class="wpv-filter-title-notice js-wpv-filter-post-parent-notice hidden">
-			<i class="icon-bookmark fa fa-bookmark icon-rotate-270 fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
+			<i class="icon-bookmark fa fa-bookmark fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
 		</span>
 		<div id="wpv-filter-parent-edit" class="wpv-filter-edit js-wpv-filter-edit" style="padding-bottom:28px;">
 			<div id="wpv-filter-parent" class="js-wpv-filter-options js-wpv-filter-post-parent-options">
@@ -383,8 +387,8 @@ class WPV_Parent_Filter {
 
 	static function wpv_add_new_filter_taxonomy_parent_list_item( $taxonomy_type ) {
 		$args = array(
-			'taxonomy_parent_mode' => array('current_view'),
-			'taxonomy_type' => $taxonomy_type
+			'taxonomy_parent_mode'	=> array('current_taxonomy_view'),
+			'taxonomy_type'			=> $taxonomy_type
 		);
 		WPV_Parent_Filter::wpv_add_filter_taxonomy_parent_list_item( $args );
 	}
@@ -448,7 +452,7 @@ class WPV_Parent_Filter {
 		WPV_Filter_Item::simple_filter_list_item_buttons( 'taxonomy-parent', 'wpv_filter_taxonomy_parent_update', wp_create_nonce( 'wpv_view_filter_taxonomy_parent_nonce' ), 'wpv_filter_taxonomy_parent_delete', wp_create_nonce( 'wpv_view_filter_taxonomy_parent_delete_nonce' ) );
 		?>
 		<span class="wpv-filter-title-notice js-wpv-filter-taxonomy-parent-notice hidden">
-			<i class="icon-bookmark fa fa-bookmark icon-rotate-270 fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
+			<i class="icon-bookmark fa fa-bookmark fa-rotate-270 icon-large fa-lg" title="<?php echo esc_attr( __( 'This filters needs some action', 'wpv-views' ) ); ?>"></i>
 		</span>
 		<div id="wpv-filter-taxonomy-parent-edit" class="wpv-filter-edit js-wpv-filter-edit">
 			<div id="wpv-filter-taxonomy-parent" class="js-wpv-filter-options js-wpv-filter-taxonomy-parent-options">
@@ -462,25 +466,6 @@ class WPV_Parent_Filter {
 		
 	}
 	
-	/**
-	* Check that chosen term belongs to taxonomy when updating taxonomy in Content Selection callback
-	*/
-/*
-	add_action('wp_ajax_wpv_filter_taxonomy_parent_test', 'wpv_filter_taxonomy_parent_test_callback');
-
-	function wpv_filter_taxonomy_parent_test_callback() {
-		$nonce = $_POST["wpnonce"];
-		if ( ! wp_verify_nonce( $nonce, 'wpv_view_filter_taxonomy_parent_nonce' ) ) {
-			die("Security check");
-		}
-		if ( $_POST['tax_parent_id'] == '0' ) {
-			echo $_POST['tax_parent_id'];
-		} else {
-			echo wpv_get_tax_relationship_test( $_POST['tax_parent_id'], $_POST['tax_type'] );
-		}
-		die();
-	}
-*/
 	/**
 	* wpv_filter_taxonomy_parent_update_callback
 	*
@@ -687,19 +672,27 @@ class WPV_Parent_Filter {
 
 	static function wpv_render_post_parent_options( $view_settings = array() ) {
 		$defaults = array(
-			'parent_mode' => 'current_page',
-			'parent_id' => 0,
-			'parent_shortcode_attribute' => 'wpvchildof',
-			'parent_url_parameter' => 'wpv-child-of',
-			'parent_framework' => ''
+			'parent_mode'					=> 'no_parent',
+			'parent_id'						=> 0,
+			'parent_shortcode_attribute'	=> 'wpvchildof',
+			'parent_url_parameter'			=> 'wpv-child-of',
+			'parent_framework'				=> ''
 		);
 		$view_settings = wp_parse_args( $view_settings, $defaults );
 		?>
 		<h4><?php  _e( 'Select post with parent:', 'wpv-views' ); ?></h4>
 		<ul class="wpv-filter-options-set">
 			<li>
-				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-current-page" value="current_page" <?php checked( $view_settings['parent_mode'], 'current_page' ); ?> autocomplete="off" />
-				<label for="parent-mode-current-page"><?php _e('Parent is the current page', 'wpv-views'); ?></label>
+				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-no-parent" value="no_parent" <?php checked( $view_settings['parent_mode'], 'no_parent' ); ?> autocomplete="off" />
+				<label for="parent-mode-no-parent"><?php _e('No parent (return top-level elements)', 'wpv-views'); ?></label>
+			</li>
+			<li>
+				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-top-current-post" value="top_current_post" <?php checked( $view_settings['parent_mode'], 'top_current_post' ); ?> autocomplete="off" />
+				<label for="parent-mode-top-current-post"><?php _e('Parent is the page where this View is shown', 'wpv-views'); ?></label>
+			</li>
+			<li>
+				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-current-post" value="current_post_or_parent_post_view" <?php checked( in_array( $view_settings['parent_mode'], array( 'current_page', 'current_post_or_parent_post_view' ) ) ); ?> autocomplete="off" />
+				<label for="parent-mode-current-post"><?php _e('Parent is the current post in the loop', 'wpv-views'); ?></label>
 			</li>
 			<li>
 				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-this-page" value="this_page" <?php checked( $view_settings['parent_mode'], 'this_page' ); ?> autocomplete="off" />
@@ -722,19 +715,15 @@ class WPV_Parent_Filter {
 					}
 				?>
 				</select>
-				<?php wp_dropdown_pages(
-					array(
-						'name' => 'parent_id',
-						'selected' => $view_settings['parent_id'],
-						'post_type'=> $selected_type,
-						'show_option_none' => __( 'None', 'wpv-views' ),
-						'id' => 'post_parent_id'
-					)
-				); ?>
-			</li>
-			<li>
-				<input type="radio" class="js-parent-mode" name="parent_mode[]" id="parent-mode-no-parent" value="no_parent" <?php checked( $view_settings['parent_mode'], 'no_parent' ); ?> autocomplete="off" />
-				<label for="parent-mode-no-parent"><?php _e('No parent (return top-level elements)', 'wpv-views'); ?></label>
+				<?php 
+				$dropdown_args = array(
+					'post_type'		=> $selected_type,
+					'name'			=> 'parent_id',
+					'id'			=> 'post_parent_id',
+					'selected'		=> (int) $view_settings['parent_id']
+				);
+				wpv_render_posts_select_dropdown( $dropdown_args );
+				?>
 			</li>
 			<li>
 				<input type="radio" id="parent-mode-shortcode" class="js-parent-mode" name="parent_mode[]" value="shortcode_attribute" <?php checked( $view_settings['parent_mode'], 'shortcode_attribute' ); ?> autocomplete="off" />
@@ -787,15 +776,12 @@ class WPV_Parent_Filter {
 		if ( ! wp_verify_nonce( $nonce, 'wpv_view_filter_parent_post_type_nonce' ) ) {
 			die( "Security check" );
 		}
-		wp_dropdown_pages(
-			array(
-				'name' => 'parent_id',
-				'selected' => 0,
-				'post_type'=> sanitize_text_field( $_POST['post_type'] ),
-				'show_option_none' => __( 'None', 'wpv-views' ),
-				'id' => 'post_parent_id'
-			)
+		$dropdown_args = array(
+			'post_type'		=> sanitize_text_field( $_POST['post_type'] ),
+			'name'			=> 'parent_id',
+			'id'			=> 'post_parent_id'
 		);
+		wpv_render_posts_select_dropdown( $dropdown_args );
 		die();
 	}
 
@@ -811,16 +797,16 @@ class WPV_Parent_Filter {
 
 	static function wpv_render_taxonomy_parent_options( $view_settings = array() ) {
 		$defaults = array(
-			'taxonomy_parent_mode' => 'current_view',
-			'taxonomy_parent_id' => 0
+			'taxonomy_parent_mode'	=> 'current_taxonomy_view',
+			'taxonomy_parent_id'	=> 0
 		);
 		$view_settings = wp_parse_args( $view_settings, $defaults );
 		?>
 		<h4><?php  _e( 'Select terms with parent:', 'wpv-views' ); ?></h4>
 		<ul class="wpv-filter-options-set">
 			<li>
-				<input type="radio" id="taxonomy-parent-mode-current-view" class="js-taxonomy-parent-mode" name="taxonomy_parent_mode[]" value="current_view" <?php checked( $view_settings['taxonomy_parent_mode'], 'current_view' ); ?> />
-				<label for="taxonomy-parent-mode-current-view"><?php _e('Parent is the taxonomy selected by the <strong>parent view</strong>', 'wpv-views'); ?></label>
+				<input type="radio" id="taxonomy-parent-mode-current-view" class="js-taxonomy-parent-mode" name="taxonomy_parent_mode[]" value="current_taxonomy_view" <?php checked( in_array( $view_settings['taxonomy_parent_mode'], array( 'current_view', 'current_taxonomy_view' ) ) ); ?> />
+				<label for="taxonomy-parent-mode-current-view"><?php _e('Parent is the taxonomy selected by the <strong>parent Taxonomy View</strong>', 'wpv-views'); ?></label>
 			</li>
 			<li>
 				<input type="radio" id="taxonomy-parent-mode-current-archive-loop" class="js-taxonomy-parent-mode" name="taxonomy_parent_mode[]" value="current_archive_loop" <?php checked( $view_settings['taxonomy_parent_mode'], 'current_archive_loop' ); ?> />
@@ -857,25 +843,6 @@ class WPV_Parent_Filter {
 	}
 	
 	/**
-	* Update parent list select when changing the parent post type callback
-	*
-	* PENDING IMPLEMENTATION
-	*
-	* Commented out in 1.7.0
-	*/
-
-	/*
-	add_action('wp_ajax_wpv_get_parent_post_select', 'wpv_get_parent_post_select_callback');
-
-	static function wpv_get_parent_post_select_callback() {
-		$nonce = $_POST["wpnonce"];
-		if (! wp_verify_nonce($nonce, 'wpv_view_filter_parent_post_type_nonce') ) die("Security check");
-		wpv_show_posts_dropdown($_POST['post_type'], 'parent_id');
-		die();
-	}
-	*/
-	
-	/**
 	* update_taxonomy_parent_id_dropdown
 	*
 	* Update taxonomy parent filter dropdown when the one in the Content Selection section is changed
@@ -907,103 +874,73 @@ class WPV_Parent_Filter {
 	
 }
 
+
 /**
-* Check if $term belongs to $taxonomy
-*/
-/*
-function wpv_get_tax_relationship_test( $term, $taxonomy ) {
-	$term = (int) $term;
-	$term_check = term_exists( $term, $taxonomy );
-	if ($term_check !== 0 && $term_check !== null) {
-		return 'good';
-	} else {
-		return 'bad';
-	}
-}
-*/
-/**
-* DEPRECATED test
-*/
-/*
-function wpv_get_posts_select() {
-    if ( wp_verify_nonce( $_POST['wpv_nonce'], 'wpv_get_posts_select_nonce' ) ) {
-		wpv_show_posts_dropdown( $_POST['post_type'] );
-    }
-    die();
-}
-*/
-/**
-* Renders a select with the given $post_type posts as options, $name as name and $selected as selected option
+* wpv_render_posts_select_dropdown
 *
-* Move this to a more general file, for god's sake
+* Renders a select dropdown for a given 'post_type' using the given 'name', 'id' and 'selected' data.
+* Used in the post parent and post relationship query filters.
 *
-* Used also in the post relationship filter
+* @param $attr array
 *
-* @todo move this to the post relationship filter, it is not used here anymore
+* @note that wp_dropdown_pages calls get_pages, which only works for hierarchical post types, hence wee need to workaround that.
+*
+* @since 2.0
 */
 
-function wpv_show_posts_dropdown( $post_type, $name = '_wpv_settings[parent_id]', $selected = 0 ) {
-	$hierarchical_post_types = get_post_types( array( 'hierarchical' => true ) );	
-	$attr = array(
-		'name'=> $name,
-		'post_type' => $post_type,
-		'show_option_none' => __('None', 'wpv-views'),
-		'selected' => $selected
+function wpv_render_posts_select_dropdown( $attr ) {
+	
+	$defaults = array(
+		'depth'					=> 0, 
+		'child_of'				=> 0,
+		'selected'				=> 0,
+		'echo'					=> 1,
+		'name'					=> 'page_id',
+		'id'					=> '',
+		'show_option_none'		=> __( 'None', 'wpv-views' ),
+		'show_option_no_change'	=> '',
+		'option_none_value'		=> ''
 	);
-	if ( in_array( $post_type, $hierarchical_post_types ) ) {
-		wp_dropdown_pages( $attr );
+	$args = wp_parse_args( $attr, $defaults );
+	
+	$hierarchical_post_types = get_post_types( array( 'hierarchical' => true ) );
+	
+	if ( $args['selected'] > 0 ) {
+		$wpv_wpml_integration = WPV_WPML_Integration_Embedded::get_instance();
+		$args['selected'] = $wpv_wpml_integration->wpml_get_user_admin_language_post_id( $args['selected'] );
+	}
+	
+	$current_user_id = get_current_user_id();
+	$current_lang = apply_filters( 'wpml_current_language', '' );
+	$user_admin_lang = apply_filters( 'wpml_get_user_admin_language', '', $current_user_id );
+	do_action( 'wpml_switch_language', $user_admin_lang );
+	
+	if ( in_array( $args['post_type'], $hierarchical_post_types ) ) {
+		wp_dropdown_pages( $args );
 	} else {
-		$defaults = array(
-			'depth' => 0, 
-			'child_of' => 0,
-			'selected' => $selected,
-			'echo' => 1,
-			'name' => 'page_id',
-			'id' => '',
-			'show_option_none' => '',
-			'show_option_no_change' => '',
-			'option_none_value' => ''
-		);
-		$r = wp_parse_args( $attr, $defaults );
-		extract( $r, EXTR_SKIP );		
-		$pages = get_posts( array( 'numberposts' => -1, 'post_type' => $post_type, 'suppress_filters' => false ) );
 		$output = '';
-		// Back-compat with old system where both id and name were based on $name argument
-		if ( empty( $id ) ) {
-			$id = $name;
+		$available_posts = get_posts( 
+			array( 
+				'numberposts'		=> -1, 
+				'post_type'			=> $args['post_type'], 
+				'suppress_filters'	=> false 
+			) 
+		);
+		if ( empty( $args['id'] ) ) {
+			$args['id'] = $args['name'];
 		}
-		if ( ! empty( $pages ) ) {
-			$output = "<select name='" . esc_attr( $name ) . "' id='" . esc_attr( $id ) . "'>\n";
-			if ( $show_option_no_change )
-				$output .= "\t<option value=\"-1\">$show_option_no_change</option>";
-			if ( $show_option_none )
-				$output .= "\t<option value=\"" . esc_attr( $option_none_value ) . "\">$show_option_none</option>\n";
-			$output .= walk_page_dropdown_tree( $pages, $depth, $r );
+		if ( ! empty( $available_posts ) ) {
+			$output = "<select name='" . esc_attr( $args['name'] ) . "' id='" . esc_attr( $args['id'] ) . "'>\n";
+			if ( $args['show_option_no_change'] )
+				$output .= "\t<option value=\"-1\">" . $args['show_option_no_change'] . "</option>";
+			if ( $args['show_option_none'] )
+				$output .= "\t<option value=\"" . esc_attr( $args['option_none_value'] ) . "\">" . $args['show_option_none'] . "</option>\n";
+			$output .= walk_page_dropdown_tree( $available_posts, $args['depth'], $args );
 			$output .= "</select>\n";
 		}
-		echo $output;	
+		echo $output;
 	}
-}
-
-/**
-* DEPRECATED test
-*/
-/*
-function wpv_get_taxonomy_parents_select() {
-    if (wp_verify_nonce($_POST['wpv_nonce'], 'wpv_get_taxonomy_select_nonce')) {
-		$taxonomy = $_POST['taxonomy'];
-		if ( taxonomy_exists( $taxonomy ) ) {
-		?>
-		<select name="wpv_taxonomy_parent_id">
-			<option selected="selected" value="0"><?php echo __('None', 'wpv-views'); ?></option>
-			<?php $my_walker = new Walker_Category_id_select(0);
-			echo wp_terms_checklist(0, array('taxonomy' => $taxonomy, 'walker' => $my_walker));
-		?>
-		</select>
-		<?php
-		}
-    }
-    die();
+	
+	do_action( 'wpml_switch_language', $current_lang );
 	
 }
-*/
