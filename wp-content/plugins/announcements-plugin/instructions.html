@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<head lang="en">
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<title>Announcements! Documentation</title>
+	<!-- Framework CSS -->
+	<link rel="stylesheet" href="assets/blueprint-css/screen.css" type="text/css" media="screen, projection">
+	<link rel="stylesheet" href="assets/blueprint-css/print.css" type="text/css" media="print">
+	<!--[if lt IE 8]><link rel="stylesheet" href="assets/blueprint-css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+	<link rel="stylesheet" href="assets/blueprint-css/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+	<style type="text/css" media="screen">
+		p, table, hr, .box { margin-bottom:25px; }
+		.box p { margin-bottom:10px; }
+	</style>
+</head>
+
+
+<body>
+	<div class="container">
+
+		<h3 class="center alt">&ldquo;Announcements!&rdquo; Documentation by &ldquo;Jerry Gonzalez&rdquo;</h3>
+
+		<hr>
+
+		<h1 class="center">&ldquo;Announcements!&rdquo;</h1>
+
+		<div class="borderTop">
+			<div class="span-6 colborder info prepend-1">
+				<p class="prepend-top">
+					<strong>
+					Created: 12/05/2012<br>
+					By: Jerry Gonzalez<br>
+					CodeCanyon: <a href="http://codecanyon.net/user/codeoncall">link</a><br>
+					Website: <a href="http://codeoncall.com">link</a><br>
+					</strong>
+				</p>
+			</div><!-- end div .span-6 -->
+
+			<div class="span-12 last">
+				<p class="prepend-top append-0">Thank you for purchasing my plugin. If you have any questions that are beyond the scope of this documentation, please feel free to email via my user page contact form <a href="http://codecanyon.net/user/codeoncall">here</a>. Thank you!</p>
+			</div>
+		</div><!-- end div .borderTop -->
+
+		<hr>
+
+		<h2 id="toc" class="alt">Table of Contents</h2>
+		<ol class="alpha">
+			<li><a href="#introduction">Introduction</a></li>
+			<li><a href="#create">Creating Announcements</a></li>
+			<li><a href="#edit">Editing Announcements</a></li>
+			<li><a href="#delete">Deleting Announcements</a></li>
+			<li><a href="#widget">Using the Widget</a></li>
+			<li><a href="#shortcode">Using a Shortcode</a></li>
+			<li><a href="#config">Configuration</a></li>
+			<li><a href="#deactivate">Deactivate / Delete</a></li>
+		</ol>
+
+		<hr>
+
+		<h3 id="introduction"><strong>A) Introduction</strong> - <a href="#toc">top</a></h3>
+		<p>Announcements! allows you to schedule announcements to appear on specific dates. Its great for sales and event announcements or holiday and birthday greetings.</p>
+		<p>Announcements that you create can appear in both a Widget and a ShortCode.</p>
+		<p>You have 4 options for scheduling your announcements.</p>
+
+		<ul>
+		<li>Display announcements using start and end dates.</li>
+		<li>Display announcements annually.</li>
+		<li>Display announcements weekly.</li>
+		<li>Display announcements monthly.</li>
+		</ul>
+
+		<p>Also included are options to set a custom title CSS class and HTML tag. This way you can achieve the same look of the other widgets in your template.</p>
+
+		<p>Let's get started!</p>
+
+		<hr>
+
+		<h3 id="create"><strong>B) Creating Announcements</strong> - <a href="#toc">top</a></h3>
+
+		<p>In the WordPress administration area click the Announcements! link in the left menu an you will see the following form:</p>
+
+		<p><strong>FORM</strong><br />
+		<img src="assets/images/form.png" alt="Sample Form" />
+		</p>
+
+		<p>Follow these steps to create your announcement.</p>
+		<ol>
+		<li>Input a title for your announcement.</li>
+		<li>Input your body text. The editor allows you to style your text as desired. You may also add links and images. This is the same editor that you use when you create Posts and Pages so if you need more help please refer to the WYSIWYG editor ducumentation offered by WordPress.</li>
+		<li>Now that your title and body text has been created you have four options to choose from for displaying your announcement.<br /><br />
+		<strong>Dates Option:</strong> Choose a start date and an end date. The Start date is the day that your announcement will first appear in the Widget or Shortcode. It will start at 12:00am on the start date and stop at midnight on the end date. <strong>Tip</strong>: To show your announcement for only one day choose the same start date and end date.
+		<br /><br />
+		<strong>Annual Option:</strong> Choose a start date and an end date and check the "Display Annually" box. It does not matter what year you choose because the system will ignor the year and display the announcement every year on the month and day that you have chosen (e.g. 1/1/2012 will appear on January 1st every year).
+		<br /><br />
+		<strong>Weekly Option:</strong> Choose the day of the week for your announcement to first appear. Choose how many days you would like it to remain visible. For example if you choose Friday for 3 days it will appear every Friday at 12:01AM and stay up until midnight on Sunday. <strong>Tip</strong>: Choose 1 day if you wish to show it for only one day (e.g. Friday for 1 day).
+		<br /><br />
+		<strong>Monthly Option:</strong> Choose the day of the month for your announcement to first appear. Choose how many days you would like it to remain visible. For example, if you choose the second Friday for 3 days it will appear every month on the second Friday at 12:01AM and stay up until midnight on Sunday. <strong>Tip</strong>: Choose 1 day if you wish to show it for only one day (e.g. Second Friday for 1 day).
+		<br /><br />
+		</li>
+		<li>Click the Save button. Your new announcement is now in the queue and will appear in the Widget or Shortcode on its start date. See the Sample Queue below.</li>
+		</ol>
+
+		<p><strong>SAMPLE QUEUE</strong><br />
+		<img src="assets/images/list.png" alt="Sample Queue" />
+		</p>
+		<br /><br />
+
+
+		<hr>
+
+		<h3 id="edit"><strong>C) Editing Announcements</strong> - <a href="#toc">top</a></h3>
+
+		<p>To edit an existing announcement simply click the Edit button in the queue. Your announcement will now be in the form ready for editing. You can now edit all facets of the announcement including the title, body and display option. Click Save to update the announcement. To cancel your edit simply move on to something else without clicking Save. </p>
+
+		<hr>
+
+		<h3 id="delete"><strong>D) Deleting Announcements</strong> - <a href="#toc">top</a></h3>
+
+		<p>To delete an existing announcement simply click the Delete button in the queue. A confirmation box will appear giving you one chance to confirm your desire to delete the announcement or cancel and retain the announcement. Warning, deletions are final.</p>
+
+		<hr>
+
+		<h3 id="widget"><strong>E) Using the Widget</strong> - <a href="#toc">top</a></h3>
+
+		<p>If your template is Widget Enabled you will be able to use a Widget to display your announcements. Here's how to set up your Announcements! Widget.
+
+		<ol>
+		<li>Go to the Wordpress administration area.</li>
+		<li>In the main left menu go to Appearance and then Widgets.</li>
+		<li>In the Available Widgets section you will see the Announcements! Widget. Drag it to the sidebar where you want it to appear.</li>
+		</ol>
+
+		<p><strong>WIDGET</strong><br />
+		<img src="assets/images/widget.png" alt="Sample Widget" />
+		</p>
+
+
+		<p>For more information on using Widgets see the <a href="http://codex.wordpress.org/WordPress_Widgets" target="_blank">documentaion</a>.</p>
+
+		<hr>
+
+		<h3 id="shortcode"><strong>F) Using a Shortcode</strong> - <a href="#toc">top</a></h3>
+
+		<p>To have announcements appear on a post or page type the shortcode <strong>[myannouncements]</strong> somewhere within the text. Type is exactly as you see it, with the brackets.</p>
+
+		<p><strong>SHORTCODE</strong><br />
+		<img src="assets/images/shortcode.png" alt="Sample Shortcode" />
+		</p>
+
+		<p>For more information on using Shortcodes see the <a href="http://en.support.wordpress.com/shortcodes/" target="_blank">documentation</a>.</p>
+
+		<p>Note: You can use the Widget and the Shortcode at the same time. However the will both use the same CSS title class and HTML tag that you set in the Configuration menu.</p>
+
+		<hr>
+
+		<h3 id="config"><strong>G) Configuration</strong> - <a href="#toc">top</a></h3>
+		<p>It is important to adjust a few settings before you put Announcements! into use. This will ensure that the announcements appear as scheduled and that they look good on the website.</p>
+
+		<p>Click the Configuration link. The configuration panel will appear.</p>
+		<ul>
+		<li><strong>Timezone</strong>: This plugin relies on knowing the correct time so make sure your Timezone is correct. The time stamp that you see was created the moment you entered the admin area and does not self-update so the time may be slightly off. This is normal. Reload this page and immediately look at the time stamp to determine if it is correct. If necessary, go to WordPress settings to adjust your Timezone.</li>
+		</ul>
+		<ul>
+		<li><strong>Title CSS Class</strong>: The default Title CSS class is <strong>widget-title</strong>. You can use that or input a custom class. When inputting a new class <strong>do not use a period before the class name</strong>. To use your new class be sure to add that new class to your CSS style sheet. To match the style of the other widgets on your website simply input the same CSS title class that they use.</li>
+		</ul>
+		<ul>
+		<li><strong>Title HTML TAG</strong>: The default Title tag is <strong>h3</strong>. You can use that or choose a new Tag (h1 thru h6). To match the look of the other titles on your site you should use the same tag. Experiment to find the one that looks right to you.</li>
+		</ul>
+
+		<hr>
+
+		<h3 id="deactivate"><strong>H) Deactivate / Delete</strong> - <a href="#toc">top</a></h3>
+		<p>You have two options for removing the plugin from your system.</p>
+
+		<ul>
+		<li><strong>Deactivate</strong>: Turns off the plugin but retains all of your data. The next time you activate it all of your announcements will reappear.</li>
+		</ul>
+		<ul>
+		<li><strong>Delete</strong>: Removes the plugin from your server and permanantly deletes all of your announcements and options.</li>
+		</ul>
+
+		<hr>
+
+		<p>Once again, thank you so much for purchasing this plugin. As I said at the beginning, I'd be glad to help you if you have any questions relating to this plugin. No guarantees, but I'll do my best to assist.
+		</p>
+
+		<p class="append-bottom alt large"><strong>Jerry</strong></p>
+		<p><a href="#toc">Go To Table of Contents</a></p>
+
+		<hr class="space">
+	</div><!-- end div .container -->
+</body>
+</html>
